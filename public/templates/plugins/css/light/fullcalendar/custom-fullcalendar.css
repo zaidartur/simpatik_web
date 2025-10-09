@@ -61,7 +61,7 @@
   padding: 7px 20px;
   text-transform: capitalize;
 }
-.fc .fc-addEventButton-button {
+/* .fc .fc-addEventButton-button {
   background-color: #4361ee;
   border-color: #4361ee;
   color: #fff;
@@ -73,7 +73,7 @@
   border-color: #4361ee;
   box-shadow: none;
   color: #fff;
-}
+} */
 
 .fc-theme-standard .fc-scrollgrid, .fc-theme-standard td, .fc-theme-standard th {
   border: 1px solid #e0e6ed;

@@ -108,5 +108,9 @@
 @section('js')
     <script src="{{ asset('templates/plugins/src/fullcalendar/fullcalendar.min.js') }}"></script>
     <script src="{{ asset('templates/plugins/src/uuid/uuid4.min.js') }}"></script>
-    <script src="{{ asset('templates/plugins/src/fullcalendar/custom-fullcalendar.js') }}"></script>
+    <script src="{{ asset('templates/assets/js/custom-fullcalendar.js') }}"></script>
+
+    <script>
+        //
+    </script>
 @endsection

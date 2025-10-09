@@ -9,3 +9,4 @@
     <script src="{{ asset('templates/assets/js/custom.js') }}"></script>
     <!-- END GLOBAL MANDATORY SCRIPTS -->
     <script src="{{ asset('templates/plugins/src/jquery-ui/jquery-ui.min.js') }}"></script>
+    
