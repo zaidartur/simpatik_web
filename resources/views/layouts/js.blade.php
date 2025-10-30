@@ -9,4 +9,20 @@
     <script src="{{ asset('templates/assets/js/custom.js') }}"></script>
     <!-- END GLOBAL MANDATORY SCRIPTS -->
     <script src="{{ asset('templates/plugins/src/jquery-ui/jquery-ui.min.js') }}"></script>
-    
+    <script src="{{ asset('templates/plugins/src/sweetalerts2/sweetalerts2.min.js') }}"></script>
+
+    <script>
+        const csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
+        // SweetAlert Mixin
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        })
+    </script>

@@ -8,3 +8,6 @@
     <link href="{{ asset('templates/layouts/vertical-light-menu/css/dark/plugins.css') }}" rel="stylesheet" type="text/css" />
     <!-- END GLOBAL MANDATORY STYLES -->
     
+    <link rel="stylesheet" href="{{ asset('templates/plugins/src/sweetalerts2/sweetalerts2.css') }}">
+    <link href="{{ asset('templates/plugins/css/light/sweetalerts2/custom-sweetalert.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/plugins/css/dark/sweetalerts2/custom-sweetalert.css') }}" rel="stylesheet" type="text/css" />

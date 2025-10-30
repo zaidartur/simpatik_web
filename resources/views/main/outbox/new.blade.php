@@ -37,6 +37,48 @@
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
                         <div class="row">
+                            <div class="col-12">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-5">Asal Surat</h5>
+
+                                        <div class="row mb-3">
+                                            <label for="kepada" class="col-sm-3 col-form-label">Kepada</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="kepada" name="kepada" value="" maxlength="255" required autofocus>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="wilayah" class="col-sm-3 col-form-label">Wilayah</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="wilayah" name="wilayah" value="" maxlength="255" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="perihal" class="col-sm-3 col-form-label">Perihal Surat</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="perihal" name="perihal" value="" maxlength="255" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+                    <div class="widget-content widget-content-area br-8">
+                        <div class="row">
                             <div class="col-md-5">
                                 <div class="card mb-3">
                                     <div class="card-body">
@@ -45,16 +87,7 @@
                                         <div class="row mb-3">
                                             <label for="berkas" class="col-sm-3 col-form-label">Nama Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="berkas" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="tgl_terima" class="col-sm-3 col-form-label">Tanggal Terima</label>
-                                            <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_terima" value="" required>
+                                                <input type="text" class="form-control" id="berkas" name="berkas" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -63,7 +96,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_surat" class="col-sm-3 col-form-label">Tanggal Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_surat" value="" required>
+                                                <input type="date" class="form-control" id="tgl_surat" name="tgl_surat" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -75,40 +108,38 @@
                             <div class="col-md-7">
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title mb-5">Asal Surat & Isi Surat</h5>
+                                        <h5 class="card-title mb-5">Keterangan</h5>
 
                                         <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-2 col-form-label">Dari Kepada</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="darikepada" value="" required autofocus>
+                                            <label for="naik" class="col-sm-2 col-form-label">Naik</label>
+                                            <div class="col-sm-4">
+                                                <input type="date" class="form-control" id="naik" name="naik" value="" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                            <label for="diteruskan" class="col-sm-2 col-form-label">Diteruskan</label>
+                                            <div class="col-sm-4">
+                                                <input type="date" class="form-control" id="diteruskan" name="diteruskan" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label for="wilayah" class="col-sm-2 col-form-label">Wilayah</label>
+                                            <label for="nama_up" class="col-sm-2 col-form-label">Unit Pengolah</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="wilayah" value="" required>
+                                                {{-- select nama unit pengolah beserta kodenya --}}
+                                                <input type="text" class="form-control" id="nama_up" name="nama_up" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label for="perihal" class="col-sm-2 col-form-label">Perihal</label>
+                                            <label for="nama" class="col-sm-2 col-form-label">Nama</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="perihal" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="isi" class="col-sm-2 col-form-label">Isi Surat</label>
-                                            <div class="col-sm-10">
-                                                {{-- <input type="text" class="form-control" id="isi" value="" required> --}}
-                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required></textarea>
+                                                <input type="text" class="form-control" id="nama" name="nama" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -132,16 +163,7 @@
                                         <div class="row mb-3">
                                             <label for="klasifikasi_kode" class="col-sm-3 col-form-label">Kode Klasifikasi</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="klasifikasi_kode" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
-                                            <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="no_surat" value="" required>
+                                                <input type="text" class="form-control" id="klasifikasi_kode" name="klasifikasi_kode" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -150,7 +172,85 @@
                                         <div class="row mb-3">
                                             <label for="urut" class="col-sm-3 col-form-label">Nomor Urut</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="urut" value="" required readonly>
+                                                <input type="text" class="form-control" id="urut" name="urut" value="" required readonly>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="no_surat" name="no_surat" value="" maxlength="20" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="sifat_surat" class="col-sm-3 col-form-label">Sifat Surat</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value="" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-5">Isi Surat</h5>
+
+                                        <div class="row mb-3">
+                                            <label for="isi" class="col-sm-2 col-form-label">Isi</label>
+                                            <div class="col-sm-10">
+                                                {{-- <input type="text" class="form-control" id="isi" name="isi" value="" maxlength="255" required> --}}
+                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required></textarea>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="ttd" class="col-sm-2 col-form-label">Ditandatangani Oleh</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" class="form-control" id="ttd" name="ttd" value="" maxlength="100" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+                    <div class="widget-content widget-content-area br-8">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-5">Tempat Penyimpanan</h5>
+
+                                        <div class="row mb-3">
+                                            <label for="darikepada" class="col-sm-3 col-form-label">Tempat Berkas</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="darikepada" class="col-sm-3 col-form-label">Tk Perkembangan</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="darikepada" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -228,101 +328,6 @@
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
                         <div class="row">
-                            <div class="col-md-5">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-5">Tempat Penyimpanan</h5>
-
-                                        <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-3 col-form-label">Tempat Berkas</label>
-                                            <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-3 col-form-label">Tk Penyimpanan</label>
-                                            <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-7">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-5">Keterangan</h5>
-
-                                        <div class="row mb-3">
-                                            <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Tanggal Diteruskan</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="tgl_diteruskan" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="diteruskan_kpd" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {{-- <div class="row mb-3">
-                                            <label for="disposisi" class="col-sm-2 col-form-label">Catatan Disposisi</label>
-                                            <div class="col-sm-10">
-                                                <textarea name="disposisi" id="disposisi" class="form-control" cols="30" rows="5"></textarea>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div> --}}
-                                        <div class="row mb-3">
-                                            <label for="sifat_surat" class="col-sm-2 col-form-label">Sifat Surat</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="sifat_surat" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="tindakan" class="col-sm-2 col-form-label">Tindakan</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="tindakan" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="tgl_balas" class="col-sm-2 col-form-label">Tanggal Balas</label>
-                                            <div class="col-sm-10">
-                                                <input type="date" class="form-control" id="tgl_balas" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
-                    <div class="widget-content widget-content-area br-8">
-                        <div class="row">
                             <div class="col-md-6">
                                 <div class="card mb-3">
                                     <div class="card-body">
@@ -384,7 +389,7 @@
                             <div class="row col-12 justify-content-center">
                                 <button type="submit" class="btn btn-success mb-2 me-4 col-4">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                    <span class="btn-text-inner">Update</span>
+                                    <span class="btn-text-inner">Simpan</span>
                                 </button>
                                 <button type="button" class="btn btn-info mb-2 me-4 col-4">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16"></polyline><line x1="16" y1="12" x2="8" y2="12"></line></svg>

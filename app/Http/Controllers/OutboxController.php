@@ -10,13 +10,13 @@ class OutboxController extends Controller
 {
     public function index()
     {
-        // $inbox  = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('TGLENTRY', 'desc')->limit(20)->get();
-        // foreach ($inbox as $r => $ibx) {
-        //     $inbox[$r]->uid = Crypt::encryptString($ibx->NO);
+        // $outbox  = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('TGLENTRY', 'desc')->limit(20)->get();
+        // foreach ($outbox as $r => $ibx) {
+        //     $outbox[$r]->uid = Crypt::encryptString($ibx->NO);
         // }
-        $inbox = [];
+        $outbox = [];
         $data  = [
-            'inbox' => $inbox
+            'outbox' => $outbox
         ];
 
         return view('main.outbox.index', $data);
@@ -60,11 +60,11 @@ class OutboxController extends Controller
         // $query->offset($start)->limit($length);
         $query->skip($start)->take($length);
         
-        $inbox = $query->get();
+        $outbox = $query->get();
 
         // manipulate fields data
         $data = [];
-        foreach ($inbox as $r => $ibx) {
+        foreach ($outbox as $r => $ibx) {
             $data[] = [
                 // 'NO' => $ibx->NO,
                 'nomor'     => $ibx->NOSURAT,
@@ -80,7 +80,7 @@ class OutboxController extends Controller
                 'tgl_buat'  => $ibx->TGLENTRY,
                 'uid'       => Crypt::encryptString($ibx->NO),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">
-                                    <a href="'. route('inbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
+                                    <a href="'. route('outbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>
                                     <button type="button" class="btn btn-outline-primary bs-tooltip" title="Disposisi Surat">
@@ -105,5 +105,48 @@ class OutboxController extends Controller
             'recordsFiltered' => $totalFiltered,
             'data' => $data,
         ]);
+    }
+
+    public function create()
+    {
+        $data = [];
+        return view('main.outbox.new', $data);
+    }
+
+    public function edit($id)
+    {
+        $no    = json_decode(Crypt::decryptString($id));
+        $outbox = ArsipSurat::where('NO', $no)->first();
+        $data  = [
+            'outbox' => $outbox,
+        ];
+
+        return view('main.outbox.edit', $data);
+    }
+
+    public function show($id)
+    {
+        $no    = json_decode(Crypt::decryptString($id));
+        $outbox = ArsipSurat::where('NO', $no)->first();
+        $data  = [
+            'outbox' => $outbox,
+        ];
+
+        return view('main.outbox.show', $data);
+    }
+
+    public function store(Request $request)
+    {
+        //
+    }
+
+    public function update(Request $request, $id)
+    {
+        //
+    }
+
+    public function destroy(Request $request)
+    {
+        //
     }
 }

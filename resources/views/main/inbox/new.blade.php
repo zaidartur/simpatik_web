@@ -10,9 +10,18 @@
 
     <link href="{{ asset('templates/assets/css/light/scrollspyNav.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/plugins/css/light/filepond/custom-filepond.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/plugins/css/light/autocomplete/css/custom-autoComplete.css') }}" rel="stylesheet" type="text/css" />
     
     <link href="{{ asset('templates/assets/css/dark/scrollspyNav.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/plugins/css/dark/filepond/custom-filepond.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/plugins/css/dark/autocomplete/css/custom-autoComplete.css') }}" rel="stylesheet" type="text/css" />
+
+    <style>
+    input[readonly] {
+        background-color: #ffffff !important;
+        color: #2a2a2a !important;
+    }
+    </style>
 @endsection
 
 
@@ -30,7 +39,7 @@
             </nav>
         </div>
 
-        <form class="needs-validation" novalidate>
+        <form method="POST" action="{{ route('inbox.store') }}" class="needs-validation" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
 
@@ -43,9 +52,9 @@
                                         <h5 class="card-title mb-5">Tanggal</h5>
                                         
                                         <div class="row mb-3">
-                                            <label for="berkas" class="col-sm-3 col-form-label">Nama Berkas</label>
+                                            <label for="tgl_surat" class="col-sm-3 col-form-label">Tanggal Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="berkas" value="" required>
+                                                <input type="date" class="form-control" id="tgl_surat" name="tgl_surat" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -54,16 +63,16 @@
                                         <div class="row mb-3">
                                             <label for="tgl_terima" class="col-sm-3 col-form-label">Tanggal Terima</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_terima" value="" required>
+                                                <input type="date" class="form-control" id="tgl_terima" name="tgl_terima" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label for="tgl_surat" class="col-sm-3 col-form-label">Tanggal Surat</label>
+                                            <label for="berkas" class="col-sm-3 col-form-label">Nama Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_surat" value="" required>
+                                                <input type="text" class="form-control" id="berkas" name="berkas" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -80,7 +89,7 @@
                                         <div class="row mb-3">
                                             <label for="darikepada" class="col-sm-2 col-form-label">Dari Kepada</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="darikepada" value="" required autofocus>
+                                                <input type="text" class="form-control" id="darikepada" name="darikepada" value="" maxlength="255" required autofocus>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -89,7 +98,7 @@
                                         <div class="row mb-3">
                                             <label for="wilayah" class="col-sm-2 col-form-label">Wilayah</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="wilayah" value="" required>
+                                                <input type="text" class="form-control" id="wilayah" name="wilayah" value="" maxlength="100" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -98,7 +107,7 @@
                                         <div class="row mb-3">
                                             <label for="perihal" class="col-sm-2 col-form-label">Perihal</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="perihal" value="" required>
+                                                <input type="text" class="form-control" id="perihal" name="perihal" maxlength="255" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -108,7 +117,7 @@
                                             <label for="isi" class="col-sm-2 col-form-label">Isi Surat</label>
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="isi" value="" required> --}}
-                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required></textarea>
+                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" maxlength="255" required></textarea>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -132,16 +141,8 @@
                                         <div class="row mb-3">
                                             <label for="klasifikasi_kode" class="col-sm-3 col-form-label">Kode Klasifikasi</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="klasifikasi_kode" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
-                                            <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="no_surat" value="" required>
+                                                <input type="text" class="form-control" id="klasifikasi_kode" name="klasifikasi_kode" value="" required>
+                                                {{-- <input id="autoComplete" class="form-control"> --}}
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -150,7 +151,16 @@
                                         <div class="row mb-3">
                                             <label for="urut" class="col-sm-3 col-form-label">Nomor Urut</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="urut" value="" required readonly>
+                                                <input type="text" class="form-control" id="urut" name="urut" value="" required readonly>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="no_surat" name="no_surat" value="" maxlength="15" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -167,7 +177,7 @@
                                         <div class="row mb-3">
                                             <label for="aktif" class="col-sm-2 col-form-label">Retensi Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="aktif" value="" required readonly>
+                                                <input type="text" class="form-control" id="aktif" name="aktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -176,7 +186,7 @@
                                         <div class="row mb-3">
                                             <label for="inaktif" class="col-sm-2 col-form-label">Retensi Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="inaktif" value="" required readonly>
+                                                <input type="text" class="form-control" id="inaktif" name="inaktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -185,7 +195,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_aktif" class="col-sm-2 col-form-label">Tahun Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_aktif" value="" required readonly>
+                                                <input type="text" class="form-control" id="thn_aktif" name="thn_aktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -194,7 +204,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_inaktif" class="col-sm-2 col-form-label">Tahun Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_inaktif" value="" required readonly>
+                                                <input type="text" class="form-control" id="thn_inaktif" name="thn_inaktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -203,7 +213,7 @@
                                         <div class="row mb-3">
                                             <label for="jra" class="col-sm-2 col-form-label">JRA</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="jra" value="" required readonly>
+                                                <input type="text" class="form-control" id="jra" name="jra" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -212,7 +222,7 @@
                                         <div class="row mb-3">
                                             <label for="nilai_guna" class="col-sm-2 col-form-label">Nilai Guna</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="nilai_guna" value="" required readonly>
+                                                <input type="text" class="form-control" id="nilai_guna" name="nilai_guna" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -234,18 +244,30 @@
                                         <h5 class="card-title mb-5">Tempat Penyimpanan</h5>
 
                                         <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-3 col-form-label">Tempat Berkas</label>
+                                            <label for="tempat_berkas" class="col-sm-3 col-form-label">Tempat Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                {{-- <input type="text" class="form-control" id="tempat_berkas" name="tempat_berkas" value="" required> --}}
+                                                <select class="form-select" id="tempat_berkas" name="tempat_berkas" required>
+                                                    @foreach ($berkas as $br)
+                                                        <option value="{{ $br->Nama }}" {{ $br->Nama == 'Map' ? 'selected' : '' }}>{{ $br->Nama }}</option>
+                                                    @endforeach
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-3 col-form-label">Tk Penyimpanan</label>
+                                            <label for="perkembangan" class="col-sm-3 col-form-label">Tk Perkembangan</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                {{-- <input type="text" class="form-control" id="perkembangan" name="perkembangan" value="" required> --}}
+                                                <select class="form-select" id="perkembangan" name="perkembangan" required>
+                                                    <option value="Asli">Asli</option>
+                                                    <option value="Foto Copy">Foto Copy</option>
+                                                    <option value="Tembusan">Tembusan</option>
+                                                    <option value="Salinan">Salinan</option>
+                                                    <option value="Faksimile">Faksimile</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -262,7 +284,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Tanggal Diteruskan</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="tgl_diteruskan" value="" required>
+                                                <input type="date" class="form-control" id="tgl_diteruskan" name="tgl_diteruskan" value="{{ date('Y-m-d') }}">
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -271,7 +293,11 @@
                                         <div class="row mb-3">
                                             <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="diteruskan_kpd" value="" required>
+                                                {{-- <input type="text" class="form-control" id="diteruskan_kpd" name="diteruskan_kpd" value=""> --}}
+                                                <select class="form-select" id="diteruskan_kpd" name="diteruskan_kpd" required>
+                                                    <option value="Sekretaris Daerah">Sekretaris Daerah</option>
+                                                    <option value="Bupati">Bupati</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -289,7 +315,13 @@
                                         <div class="row mb-3">
                                             <label for="sifat_surat" class="col-sm-2 col-form-label">Sifat Surat</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="sifat_surat" value="" required>
+                                                {{-- <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value=""> --}}
+                                                <select class="form-select" id="sifat_surat" name="sifat_surat" required>
+                                                    <option value="Biasa">Biasa</option>
+                                                    <option value="Segera">Segera</option>
+                                                    <option value="Penting">Penting</option>
+                                                    <option value="Rahasia">Rahasia</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -298,7 +330,11 @@
                                         <div class="row mb-3">
                                             <label for="tindakan" class="col-sm-2 col-form-label">Tindakan</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="tindakan" value="" required>
+                                                {{-- <input type="text" class="form-control" id="tindakan" name="tindakan" value=""> --}}
+                                                <select class="form-select" id="tindakan" name="tindakan" required>
+                                                    <option value="Non Balas">Non Balas</option>
+                                                    <option value="Balas">Balas</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -307,7 +343,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_balas" class="col-sm-2 col-form-label">Tanggal Balas</label>
                                             <div class="col-sm-10">
-                                                <input type="date" class="form-control" id="tgl_balas" value="" required>
+                                                <input type="date" class="form-control" id="tgl_balas" name="tgl_balas" value="{{ date('Y-m-d') }}">
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -384,7 +420,7 @@
                             <div class="row col-12 justify-content-center">
                                 <button type="submit" class="btn btn-success mb-2 me-4 col-4">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                    <span class="btn-text-inner">Update</span>
+                                    <span class="btn-text-inner">Simpan</span>
                                 </button>
                                 <button type="button" class="btn btn-info mb-2 me-4 col-4">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16"></polyline><line x1="16" y1="12" x2="8" y2="12"></line></svg>
@@ -438,6 +474,144 @@
                 acceptedFileTypes: ['application/pdf'],
                 fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
             });
+
+            const autoCompleteJS = new autoComplete({
+                selector: "#klasifikasi_kode",
+                placeHolder: "Input kode klasifikasi...",
+                data: {
+                    src: [
+                        @foreach ($jra as $jr)
+                            "{{ $jr->KLAS3 }} - {{ $jr->MASALAH3 }}",
+                        @endforeach
+                    ],
+                    cache: true,
+                },
+                resultsList: {
+                    element: (list, data) => {
+                        if (!data.results.length) {
+                            // Create "No Results" message element
+                            const message = document.createElement("div");
+                            // Add class to the created element
+                            message.setAttribute("class", "no_result");
+                            // Add message text content
+                            message.innerHTML = `<span>Found No Results for "${data.query}"</span>`;
+                            // Append message element to the results list
+                            list.prepend(message);
+                        }
+                    },
+                    noResults: true,
+                },
+                resultItem: {
+                    highlight: {
+                        render: true
+                    }
+                },
+                events: {
+                    input: {
+                        focus() {
+                            if (autoCompleteJS.input.value.length) autoCompleteJS.start();
+                        },
+                        selection(event) {
+                            const feedback = event.detail;
+                            // Prepare User's Selected Value
+                            const selection = feedback.selection.value;
+                            // Replace Input value with the selected value
+                            const splitSelection = selection.split(' - ');
+
+                            autoCompleteJS.input.value = splitSelection[0];
+                            document.getElementById('berkas').value = splitSelection[1]
+                            document.getElementById('no_surat').value = splitSelection[0] + '/   /' + new Date().getFullYear();
+                            focusNextInput();
+                            get_nomor_urut();
+                            set_jra(selection);
+
+                            const inputElement = document.getElementById('no_surat');
+                            inputElement.focus(); // Set focus on the input field
+
+                            const textLength = inputElement.value.length;
+                            const middleIndex = Math.floor(textLength / 2);
+
+                            inputElement.setSelectionRange(middleIndex, middleIndex);
+                        },
+                    },
+                },
+            });
         });
+
+        function focusNextInput() {
+            const formInputs = document.querySelectorAll('form input[type="text"]');
+            let currentIndex = -1;
+
+            // Find the currently focused input
+            for (let i = 0; i < formInputs.length; i++) {
+                if (document.activeElement === formInputs[i]) {
+                currentIndex = i;
+                break;
+                }
+            }
+
+            // Calculate the next index
+            let nextIndex = currentIndex + 2;
+
+            // If at the end, loop back to the first input
+            if (nextIndex >= formInputs.length) {
+                nextIndex = 0;
+            }
+
+            // Focus the next input field
+            formInputs[nextIndex].focus();
+        }
+
+        async function get_nomor_urut() {
+            try {
+                const response = await fetch("{{ route('inbox.urut') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify({ type: 'Masuk' })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                document.getElementById('urut').value = data.urut;
+            } catch (error) {
+                console.error('Error fetching nomor urut:', error);
+                return null;
+            }
+        }
+
+        function set_jra(datas) {
+            const split = datas.split(' - ')
+
+            fetch("{{ route('jra') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ kode: split[0], name: split[1] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    console.error('Error:', data.message);
+                    return;
+                }
+                document.getElementById('aktif').value = data.jra.RAKTIF;
+                document.getElementById('inaktif').value = data.jra.RINAKTIF;
+                document.getElementById('thn_aktif').value = data.jra.thn_aktif;
+                document.getElementById('thn_inaktif').value = data.jra.thn_inaktif;
+                document.getElementById('jra').value = data.jra.KETJRA;
+                document.getElementById('nilai_guna').value = data.jra.NILAIGUNA;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
     </script>
 @endsection

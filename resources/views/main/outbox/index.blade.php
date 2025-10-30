@@ -71,7 +71,7 @@
                         <div class="col-6">
                             <button class="btn btn-info mb-2 me-4 float-end" onclick="location.href='{{ route('outbox.create') }}'">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                <span class="btn-text-inner">Buat Surat</span>
+                                <span class="btn-text-inner">Buat Surat Keluar</span>
                             </button>
                         </div>
                     </div>
@@ -98,38 +98,7 @@
                                 <th style="width: 10%">Opsi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {{-- @foreach ($inbox as $ibx)
-                            <tr>
-                                <td style="width: 10%">{{ $ibx->NOSURAT }}</td>
-                                <td style="width: 10%">{{ $ibx->NOAGENDA }}</td>
-                                <td style="width: 10%">{{ $ibx->SIFAT_SURAT }}</td>
-                                <td style="width: 10%">{{ $ibx->NAMABERKAS }}</td>
-                                <td style="width: 10%">{{ $ibx->WILAYAH }}</td>
-                                <td style="width: 20%">{{ $ibx->ISI }}</td>
-                                <td style="width: 20%">{{ $ibx->PERIHAL }}</td>
-                                <td style="width: 10%">
-                                    <div class="btn-group-vertical" role="group" aria-label="Second group">
-                                        <a href="{{ route('inbox.show', Crypt::encryptString($ibx->NO)) }}" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
-                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-primary bs-tooltip" title="Disposisi Surat">
-                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-success bs-tooltip" title="Cetak Surat">
-                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-info bs-tooltip" title="Tindak Lanjut">
-                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                        </button>
-                                        <button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat">
-                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach --}}
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -173,7 +142,7 @@
                 "serverSide": true,
                 // "ordering": false,
                 "ajax": {
-                    url: "{{ route('inbox.ssr') }}",
+                    url: "{{ route('outbox.ssr') }}",
                     type: 'GET',
                 },
                 "columns": [

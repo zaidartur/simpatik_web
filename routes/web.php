@@ -23,6 +23,8 @@ Route::prefix('/')->middleware(['auth'])->group(function () {
     Route::post('change-password', [App\Http\Controllers\HomeController::class, 'changePassword'])->name('admin.changePassword');
 });
 
+Route::post('detail-jra', [App\Http\Controllers\InboxController::class, 'get_jra'])->middleware(['auth'])->name('jra');
+
 Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
     Route::get('/', [App\Http\Controllers\InboxController::class, 'index'])->name('inbox');
     Route::get('/daftar-surat', [App\Http\Controllers\InboxController::class, 'serverside'])->name('inbox.ssr');
@@ -30,7 +32,8 @@ Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
     Route::post('simpan-surat', [App\Http\Controllers\InboxController::class, 'store'])->name('inbox.store');
     Route::get('edit-surat/{id}', [App\Http\Controllers\InboxController::class, 'edit'])->name('inbox.edit');
     Route::post('update-surat/{id}', [App\Http\Controllers\InboxController::class, 'update'])->name('inbox.update');
-    Route::get('hapus-surat/{id}', [App\Http\Controllers\InboxController::class, 'destroy'])->name('inbox.destroy');
+    Route::post('nomor-urut', [App\Http\Controllers\InboxController::class, 'nomor_urut'])->name('inbox.urut');
+    Route::post('hapus-surat', [App\Http\Controllers\InboxController::class, 'destroy'])->name('inbox.destroy');
     Route::get('lihat-surat/{id}', [App\Http\Controllers\InboxController::class, 'show'])->name('inbox.show');
 });
 
@@ -41,7 +44,7 @@ Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {
     Route::post('simpan-surat', [App\Http\Controllers\OutboxController::class, 'store'])->name('outbox.store');
     Route::get('edit-surat/{id}', [App\Http\Controllers\OutboxController::class, 'edit'])->name('outbox.edit');
     Route::post('update-surat/{id}', [App\Http\Controllers\OutboxController::class, 'update'])->name('outbox.update');
-    Route::get('hapus-surat/{id}', [App\Http\Controllers\OutboxController::class, 'destroy'])->name('outbox.destroy');
+    Route::post('hapus-surat', [App\Http\Controllers\OutboxController::class, 'destroy'])->name('outbox.destroy');
     Route::get('lihat-surat/{id}', [App\Http\Controllers\OutboxController::class, 'show'])->name('outbox.show');
 });
 
