@@ -41,17 +41,18 @@
             <div class="row">
     
                 <div class="col-6 d-lg-flex d-none h-100 my-auto top-0 start-0 text-center justify-content-center flex-column">
-                    <div class="auth-cover-bg-image"></div>
+                    <div class="auth-cover-bg-image" style="background-image: url({{ asset('templates/images/setda02.jpg') }}) !important; background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0.5"></div>
                     <div class="auth-overlay"></div>
                         
                     <div class="auth-cover">
     
                         <div class="position-relative">
     
-                            <img src="{{ asset('templates/assets/img/auth-cover.svg') }}" alt="auth-img">
+                            {{-- <img src="{{ asset('templates/assets/img/auth-cover.svg') }}" alt="auth-img"> --}}
+                            <img src="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" alt="auth-img" style="width: 200px; height: auto;">
     
-                            <h2 class="mt-5 text-white font-weight-bolder px-2">Join the community of expert developers</h2>
-                            <p class="text-white px-2">It is easy to setup with great customer experience. Start your 7-day free trial</p>
+                            <h1 class="mt-5 text-white font-weight-bolder px-2">SIMPATIK</h1>
+                            <h2 class="mt-5 text-white font-weight-bolder px-2">Silahkan Login Menggunakan Akun Anda</h2>
                         </div>
                         
                     </div>

@@ -206,6 +206,10 @@
                 });
             });
         });
+
+        function printPdf(id) {
+            window.open(`/surat-masuk/print-pdf/${id}`, '_blank')
+        }
     </script>
     <!-- END PAGE LEVEL SCRIPTS -->
 @endsection

@@ -91,7 +91,7 @@ class InboxController extends Controller
                                     <button type="button" class="btn btn-outline-primary bs-tooltip" title="Disposisi Surat">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                                     </button>
-                                    <button type="button" class="btn btn-outline-success bs-tooltip" title="Cetak Surat">
+                                    <button type="button" class="btn btn-outline-success bs-tooltip" title="Cetak Surat" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                     </button>
                                     <button type="button" class="btn btn-outline-info bs-tooltip" title="Tindak Lanjut">
@@ -375,9 +375,16 @@ class InboxController extends Controller
         }
     }
 
-    public function view_pdf(Request $request)
+    public function view_pdf($uid)
     {
-        $pdf = $this->build_pdf($request->inbox);
+        // if (empty($uid)) return abort(404);
+        $id  = Crypt::decryptString($uid);
+        if (!$id) return abort(404);
+
+        $surat = ArsipSurat::where('NO', $id)->first();
+        if (!$surat) return abort(404);
+
+        $pdf = $this->build_pdf($surat);
         return $pdf->stream('surat_masuk.pdf');
     }
 
@@ -389,9 +396,10 @@ class InboxController extends Controller
 
     public function build_pdf($inbox)
     {
-        $pdf = new Pdf();
-        $pdf->setPaper('A4', 'portrait');
-        $pdf->loadView('main.inbox.pdf_template', ['inbox' => $inbox]);
+        $pdf = Pdf::setPaper('letter', 'portrait');
+        // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
+
+        $pdf->loadView('main.inbox.template', ['data' => $inbox]);
         return $pdf;
     }
 }
