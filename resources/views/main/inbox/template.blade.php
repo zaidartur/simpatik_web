@@ -87,7 +87,7 @@
             </tr>
             <tr>
                 <td colspan="3">DARI : {{ $data->drkpd ?? '' }}</td>
-                <td rowspan="2">Lampiran</td>
+                <td rowspan="2" style="text-align: center;">Lampiran</td>
             </tr>
             <tr>
                 <td colspan="3">ALAMAT : {{ $data->NAMAKOTA ?? '' }}</td>

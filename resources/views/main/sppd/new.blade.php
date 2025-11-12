@@ -151,15 +151,9 @@
                                         <div class="row mb-3">
                                             <label for="nama" class="col-sm-2 col-form-label">No. SPPD</label>
                                             <div class="col-sm-10">
-                                                <div class="input-group">
-                                                    <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="" onclick="_sppd()" readonly style="cursor: pointer;" title="Klik untuk melihat data SPPD" aria-describedby="button-clear">
-                                                    <button class="btn btn-warning" type="button" id="button-clear" onclick="_clear()">
-                                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                                                        Bersihkan
-                                                    </button>
-                                                    <div class="invalid-feedback">
-                                                        Field ini wajib di isi.
-                                                    </div>
+                                                <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="" onclick="_sppd()" readonly style="cursor: pointer;" title="Klik untuk melihat data SPPD">
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
@@ -343,64 +337,6 @@
                     </div>
                 </div>
 
-                <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
-                    <div class="widget-content widget-content-area br-8">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-5">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                            Gambar
-                                        </h5>
-                                        
-                                        <div class="row mb-3">
-                                            <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload Gambar (maksimum 5 file @3Mb)</label>
-                                                <div class="multiple-file-upload">
-                                                    <input type="file" 
-                                                        class="filepond file-upload-multiple"
-                                                        name="gambar[]" 
-                                                        multiple 
-                                                        data-allow-reorder="true"
-                                                        data-max-file-size="3MB"
-                                                        data-max-files="5"
-                                                    >
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-5">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                                            File Lampiran
-                                        </h5>
-                                        
-                                        <div class="row mb-3">
-                                            <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Lampiran (maksimum 5Mb, format PDF)</label>
-                                                <div class="multiple-file-upload">
-                                                    <input type="file" 
-                                                        class="filepond file-upload-lampiran"
-                                                        name="lampiran" 
-                                                        multiple 
-                                                        data-allow-reorder="true"
-                                                        data-max-file-size="5MB"
-                                                    >
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="col-md-12 mt-3">
                     <div class="card">
                         <div class="card-body">
@@ -427,120 +363,18 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Data SPPD</h5>
+                <h5 class="modal-title" id="sppdLabel">Data SPPD</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <div class="modal-body">
-                <div id="sppd_content" class="row col-12 g-3 gx-3"></div>
+                <div id="sppd_content" class="row"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-light-dark" data-bs-dismiss="modal">Batalkan</button>
-                {{-- <button type="button" class="btn btn-primary">Konfimasi</button> --}}
+                <button type="button" class="btn btn-primary">Konfimasi</button>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="sppdNew" tabindex="-1" role="dialog" aria-labelledby="sppdLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="sppdLabel">Buat SPPD</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-            <form action="" method="POST" class="needs-validation new-sppd" novalidate>
-                <div class="modal-body">
-                    @csrf
-                    <input type="hidden" id="uid" name="uid" value="">
-                    <div class="row layout-top-spacing">
-                        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
-                            <div class="widget-content widget-content-area br-8">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                {{-- <h5 class="card-title mb-5">Asal Surat</h5> --}}
-
-                                                <div class="row mb-3">
-                                                    <label for="nosppd" class="col-sm-3 col-form-label">Nomor SPPD</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="text" class="form-control" id="nosppd" name="nosppd" value="" maxlength="100" required autofocus>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="nama_sppd" class="col-sm-3 col-form-label">Nama</label>
-                                                    <div class="col-sm-9">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="nama_sppd" name="nama" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="jabatan_sppd" class="col-sm-3 col-form-label">Jabatan</label>
-                                                    <div class="col-sm-9">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="jabatan_sppd" name="jabatan" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="tujuan_sppd" class="col-sm-3 col-form-label">Tujuan</label>
-                                                    <div class="col-sm-9">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="tujuan_sppd" name="tujuan" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="kendaraan_sppd" class="col-sm-3 col-form-label">Kendaraan</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="kendaraan_sppd" name="kendaraan" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="tgl_surat_sppd" class="col-sm-3 col-form-label">Tanggal Surat</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="date" class="form-control" id="tgl_surat_sppd" name="tgl_surat" value="" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="tgl_berangkat_sppd" class="col-sm-3 col-form-label">Tanggal Berangkat</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="date" class="form-control" id="tgl_berangkat_sppd" name="tgl_berangkat" value="" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light-dark" data-bs-dismiss="modal">Batalkan</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -561,156 +395,13 @@
     
     <script>
         $(document).ready(function () {
-            FilePond.registerPlugin(
-                FilePondPluginImagePreview,
-                FilePondPluginImageExifOrientation,
-                FilePondPluginFileValidateSize,
-                FilePondPluginFileValidateType,
-                // FilePondPluginImageEdit
-            );
-            
-            // Select the file input and use 
-            // create() to turn it into a pond
-            var multifiles = FilePond.create(document.querySelector('.file-upload-multiple'), {
-                acceptedFileTypes: ['image/jpg', 'image/png', 'image/jpeg'],
-                fileValidateTypeLabelExpectedTypesMap: { 'image/*': '.jpg, .png, .jpeg' },
-                fileValidateTypeDetectType: (source, type) => new Promise((resolve, reject) => {
-                    resolve(type);
-                }),
-            });
-
-            var lampiran = FilePond.create(document.querySelector('.file-upload-lampiran'), {
-                acceptedFileTypes: ['application/pdf'],
-                fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
-            });
-
-            $('.new-sppd').submit(function(e) {
-                e.preventDefault()
-                var invalid = $('.new-sppd .invalid-feedback');
-                var fcontrol = $('.new-sppd .form-control');
-                var total = 0;
-
-                fcontrol.each(function() {
-                    var $input = $(this)
-
-                    if ($input.val().trim() === '') {
-                        $input.next('.invalid-feedback').css('display', 'block');
-                        $input.removeClass('is-valid');
-                        $input.addClass('is-invalid');
-                        total++
-                    } else {
-                        $input.next('.invalid-feedback').css('display', 'none');
-                        $input.addClass('is-valid');
-                        $input.removeClass('is-invalid');
-                    }
-                })
-
-                if (total > 0) {
-                    Toast.fire({ icon: 'error', title: 'Field belum terisi semua.' })
-                } else {
-                    $.ajax({
-                        url: "{{ route('sppd.save') }}",
-                        type: "POST",
-                        data: $('.new-sppd').serialize(),
-                        success: function(res) {
-                            if (res.status === 'success') {
-                                Toast.fire({ icon: 'success', title: res.message })
-                            } else {
-                                Toast.fire({ icon: 'error', title: res.message })
-                            }
-                            $('#sppdNew').modal('hide')
-                            _sppd()
-                        },
-                        error: function() {
-                            Toast.fire({ icon: 'error', title: 'Terjadi kesalahan pada sistem.' })
-                        }
-                    })
-                }
-            })
+            //
         });
     </script>
 
     <script>
         function _sppd() {
-            $.ajax({
-                url: "{{ route('sppd.list') }}",
-                type: "GET",
-                dataType: "JSON",
-                success: function(res) {
-                    if (res.status === 'success') {
-                        const data = res.data
-                        let text = ''
-                        data.forEach((dt) => {
-                            text += `
-                                <div class="card col-4 px-3 style-4">
-                                    <div class="card-body pt-3">
-                                        
-                                        <div class="media mt-0 mb-3">
-                                            <div class="media-body">
-                                                <h4 class="media-heading mb-0">${dt.nosppd}</h4>
-                                                <p class="media-text">${dt.tujuan}</p>
-                                            </div>
-                                        </div>
-                                        <p class="card-text mt-4 mb-0"><b>${dt.nama}</b><br>${dt.jabatan}</p>
-                                        <br>
-                                        <p>Surat: ${dt.tglsurat} <br>Berangkat: ${dt.tglberangkat}</p>
-                                    </div>
-                                    <div class="card-footer pt-0 border-0 text-center">
-                                        <div class="row">
-                                            <a href="javascript:void(0);" class="btn btn-secondary w-50" onclick="_use_sppd('${dt.nosppd}')">
-                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                                                <span class="btn-text-inner ms-3">Gunakan</span>
-                                            </a>
-                                            <a href="javascript:void(0);" class="btn btn-warning w-50" onclick="_copy_sppd('${btoa(JSON.stringify(dt))}')">
-                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                                <span class="btn-text-inner ms-3">Salin</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            `
-                        })
-                        $('#sppd_content').html(text)
-                        $('#spppdModal').modal('show')
-                    } else {
-                        Toast.fire({ icon: 'error', title: res.message })
-                    }
-                },
-                error: function() {
-                    Toast.fire({ icon: 'error', title: 'Terjadi kesalahan pada sistem.' })
-                }
-            })
             $('#sppdModal').modal('show')
-        }
-
-        function _use_sppd(no) {
-            $('#sppd').val(no)
-            $('#sppdModal').modal('hide')
-        }
-
-        function _copy_sppd(datas) {
-            if (datas) {
-                const data = JSON.parse(atob(datas))
-                $('.new-sppd .invalid-feedback').css('display', 'none')
-
-                $('#sppdLabel').html('Salin SPPD')
-                $('.new-sppd').attr("action", "{{ route('sppd.store') }}")
-
-                $('#nosppd').val(data.nosppd)
-                $('#nama_sppd').val(data.nama)
-                $('#jabatan_sppd').val(data.jabatan)
-                $('#tujuan_sppd').val(data.tujuan)
-                $('#kendaraan_sppd').val(data.kendaraan)
-                $('#tgl_surat_sppd').val(data.tglsurat)
-                $('#tgl_berangkat_sppd').val(data.tglberangkat)
-
-                $('#sppdModal').modal('hide')
-                $('#sppdNew').modal('show')
-            }
-        }
-
-        function _clear() {
-            $('#sppd').val('')
         }
     </script>
 @endsection

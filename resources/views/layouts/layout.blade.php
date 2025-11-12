@@ -5,8 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title') | EQUATION - Multipurpose Bootstrap Dashboard Template </title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('templates/assets/img/favicon.ico') }}"/>
+    <title>@yield('title') | Simpatik </title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" />
     
     @include('layouts.css')
     @yield('css')

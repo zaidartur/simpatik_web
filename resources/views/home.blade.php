@@ -31,30 +31,36 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Detail Surat</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
 
                         <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="">
+                                    <label class="form-label">Nomor Surat</label>
+                                    <input id="event-number" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="">
+                                    <label class="form-label">Dari/Kepada</label>
+                                    <textarea name="event-title" id="event-title" class="form-control" cols="30" rows="3"></textarea>
+                                    {{-- <input id="event-title" type="text" class="form-control"> --}}
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="">
+                                    <label class="form-label">Isi Surat</label>
+                                    <textarea name="event-content" id="event-content" class="form-control" cols="30" rows="5"></textarea>
+                                    {{-- <input id="event-title" type="text" class="form-control"> --}}
+                                </div>
+                            </div>
                             <div class="col-md-12">
                                 <div class="">
-                                    <label class="form-label">Enter Title</label>
-                                    <input id="event-title" type="text" class="form-control">
-                                </div>
-                            </div>
-
-                            <div class="col-md-12 d-none">
-                                <div class="">
-                                    <label class="form-label">Enter Start Date</label>
-                                    <input id="event-start-date" type="text" class="form-control">
-                                </div>
-                            </div>
-
-                            <div class="col-md-12 d-none">
-                                <div class="">
-                                    <label class="form-label">Enter End Date</label>
-                                    <input id="event-end-date" type="text" class="form-control">
+                                    <label class="form-label">Tanggal Surat</label>
+                                    <input id="event-date" type="date" class="form-control">
                                 </div>
                             </div>
                             
@@ -63,26 +69,14 @@
                                 <div class="d-flex mt-4">
                                     <div class="n-chk">
                                         <div class="form-check form-check-primary form-check-inline">
-                                            <input class="form-check-input" type="radio" name="event-level" value="Work" id="rwork">
-                                            <label class="form-check-label" for="rwork">Work</label>
-                                        </div>
-                                    </div>
-                                    <div class="n-chk">
-                                        <div class="form-check form-check-warning form-check-inline">
-                                            <input class="form-check-input" type="radio" name="event-level" value="Travel" id="rtravel">
-                                            <label class="form-check-label" for="rtravel">Travel</label>
-                                        </div>
-                                    </div>
-                                    <div class="n-chk">
-                                        <div class="form-check form-check-success form-check-inline">
-                                            <input class="form-check-input" type="radio" name="event-level" value="Personal" id="rPersonal">
-                                            <label class="form-check-label" for="rPersonal">Personal</label>
+                                            <input class="form-check-input" type="radio" name="event-level" value="Masuk" id="rMasuk" disabled>
+                                            <label class="form-check-label" for="rMasuk">Masuk</label>
                                         </div>
                                     </div>
                                     <div class="n-chk">
                                         <div class="form-check form-check-danger form-check-inline">
-                                            <input class="form-check-input" type="radio" name="event-level" value="Important" id="rImportant">
-                                            <label class="form-check-label" for="rImportant">Important</label>
+                                            <input class="form-check-input" type="radio" name="event-level" value="Keluar" id="rKeluar" disabled>
+                                            <label class="form-check-label" for="rKeluar">Keluar</label>
                                         </div>
                                     </div>
                                 </div>
@@ -93,8 +87,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-success btn-update-event" data-fc-event-public-id="">Update changes</button>
-                        <button type="button" class="btn btn-primary btn-add-event">Add Event</button>
+                        {{-- <button type="button" class="btn btn-success btn-update-event" data-fc-event-public-id="">Update changes</button> --}}
+                        {{-- <button type="button" class="btn btn-primary btn-add-event">Add Event</button> --}}
                     </div>
                 </div>
             </div>

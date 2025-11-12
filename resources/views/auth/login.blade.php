@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
     <title>Login | Simpatik </title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('templates/assets/img/favicon.ico') }}"/>
+    <link rel="icon" type="image/x-icon" href="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" />
     <link href="{{ asset('templates/layouts/vertical-light-menu/css/light/loader.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/layouts/vertical-light-menu/css/dark/loader.css') }}" rel="stylesheet" type="text/css" />
     <script src="{{ asset('templates/layouts/vertical-light-menu/loader.js') }}"></script>
@@ -52,7 +52,7 @@
                             <img src="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" alt="auth-img" style="width: 200px; height: auto;">
     
                             <h1 class="mt-5 text-white font-weight-bolder px-2">SIMPATIK</h1>
-                            <h2 class="mt-5 text-white font-weight-bolder px-2">Silahkan Login Menggunakan Akun Anda</h2>
+                            <h2 class="mt-5 text-white font-weight-bolder px-2">Sistem Pengelolaan Arsip Dinamis<br>Kabupaten Karanganyar</h2>
                         </div>
                         
                     </div>

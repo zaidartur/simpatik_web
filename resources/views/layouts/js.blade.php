@@ -25,4 +25,21 @@
                 toast.addEventListener('mouseleave', Swal.resumeTimer)
             }
         })
+
+        function _logout() {
+            Swal.fire({
+                title: 'Logout Sesi',
+                text: 'Anda yakin ingin logout dari aplikasi ini?',
+                icon: 'question',
+                showCancelButton: true,
+                cancelButtonText: 'Batalkan',
+                confirmButtonText: 'Konfirmasi',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((response) => {
+                if (response.isConfirmed) {
+                    $('#flogout').submit()
+                }
+            })
+        }
     </script>
