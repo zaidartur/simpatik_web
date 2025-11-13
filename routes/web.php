@@ -46,7 +46,8 @@ Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {
     Route::get('buat-surat', [App\Http\Controllers\OutboxController::class, 'create'])->name('outbox.create');
     Route::post('simpan-surat', [App\Http\Controllers\OutboxController::class, 'store'])->name('outbox.store');
     Route::get('edit-surat/{id}', [App\Http\Controllers\OutboxController::class, 'edit'])->name('outbox.edit');
-    Route::post('update-surat/{id}', [App\Http\Controllers\OutboxController::class, 'update'])->name('outbox.update');
+    Route::post('update-surat', [App\Http\Controllers\OutboxController::class, 'update'])->name('outbox.update');
+    // Route::post('nomor-urut', [App\Http\Controllers\OutboxController::class, 'nomor_urut'])->name('outbox.urut');
     Route::post('hapus-surat', [App\Http\Controllers\OutboxController::class, 'destroy'])->name('outbox.destroy');
     Route::get('lihat-surat/{id}', [App\Http\Controllers\OutboxController::class, 'show'])->name('outbox.show');
 });

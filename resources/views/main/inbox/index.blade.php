@@ -87,14 +87,14 @@
                     <table id="zero-config" class="table dt-table-bordered" style="width:100%" width="100%">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th style="width: 5%">#</th>
                                 <th style="width: 10%">No. Surat</th>
                                 <th style="width: 10%">No. Agenda</th>
                                 <th style="width: 10%">Klasifikasi</th>
                                 <th style="width: 10%">Nama Berkas</th>
-                                <th style="width: 10%">Instansi</th>
-                                <th style="width: 20%">Isi</th>
-                                <th style="width: 20%">Perihal</th>
+                                <th style="width: 15%">Instansi</th>
+                                {{-- <th style="width: 20%">Isi</th> --}}
+                                <th style="width: 30%">Perihal</th>
                                 <th style="width: 10%">Opsi</th>
                             </tr>
                         </thead>
@@ -183,7 +183,7 @@
                     { data: 'klasifikasi', orderable: false },
                     { data: 'berkas', orderable: false },
                     { data: 'wilayah', orderable: false },
-                    { data: 'isi_surat', orderable: false },
+                    // { data: 'isi_surat', orderable: false },
                     { data: 'perihal', orderable: false },
                     { data: 'option', orderable: false, searchable: false},
                 ],

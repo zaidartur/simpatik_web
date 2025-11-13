@@ -42,6 +42,7 @@
         <form method="POST" action="{{ route('inbox.store') }}" class="needs-validation" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
+                <input type="hidden" name="uid" value="">
 
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">

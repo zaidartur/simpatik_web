@@ -87,14 +87,13 @@
                     <table id="zero-config" class="table dt-table-hover" style="width:100%" width="100%">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th style="width: 10%">No. Surat</th>
+                                <th style="width: 5%">#</th>
                                 <th style="width: 10%">No. Agenda</th>
+                                <th style="width: 15%">Tanggal Entry</th>
                                 <th style="width: 10%">Klasifikasi</th>
                                 <th style="width: 10%">Nama Berkas</th>
-                                <th style="width: 10%">Instansi</th>
-                                <th style="width: 20%">Isi</th>
-                                <th style="width: 20%">Perihal</th>
+                                <th style="width: 15%">Tujuan</th>
+                                <th style="width: 25%">Perihal</th>
                                 <th style="width: 10%">Opsi</th>
                             </tr>
                         </thead>
@@ -147,12 +146,11 @@
                 },
                 "columns": [
                     { data: null, orderable: false, searchable: false},
-                    { data: 'nomor', orderable: false },
                     { data: 'no_agenda', orderable: false },
+                    { data: 'tgl_buat', orderable: false },
                     { data: 'klasifikasi', orderable: false },
                     { data: 'berkas', orderable: false },
-                    { data: 'wilayah', orderable: false },
-                    { data: 'isi_surat', orderable: false },
+                    { data: 'tujuan', orderable: false },
                     { data: 'perihal', orderable: false },
                     { data: 'option', orderable: false, searchable: false},
                 ],

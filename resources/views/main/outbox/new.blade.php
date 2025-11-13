@@ -15,6 +15,15 @@
     <link href="{{ asset('templates/assets/css/dark/scrollspyNav.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/plugins/css/dark/filepond/custom-filepond.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/assets/css/dark/components/modal.css') }}" rel="stylesheet" type="text/css" />
+
+    <style>
+        .autoComplete_wrapper {
+            width: 100%;
+        }
+        .autoComplete_wrapper .form-control {
+            width: 100%;
+        }
+    </style>
 @endsection
 
 
@@ -32,7 +41,7 @@
             </nav>
         </div>
 
-        <form class="needs-validation" novalidate>
+        <form action="{{ route('outbox.store') }}" method="POST" class="needs-validation" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
 
@@ -45,9 +54,9 @@
                                         <h5 class="card-title mb-5">Asal Surat</h5>
 
                                         <div class="row mb-3">
-                                            <label for="kepada" class="col-sm-3 col-form-label">Kepada</label>
+                                            <label for="darikepada" class="col-sm-3 col-form-label">Kepada</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="kepada" name="kepada" value="" maxlength="255" required autofocus>
+                                                <input type="text" class="form-control" id="darikepada" name="darikepada" value="" maxlength="255" required autofocus>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -56,7 +65,7 @@
                                         <div class="row mb-3">
                                             <label for="wilayah" class="col-sm-3 col-form-label">Wilayah</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="wilayah" name="wilayah" value="" maxlength="255" required>
+                                                <input type="text" class="form-control" id="wilayah" name="wilayah" value="" maxlength="150" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -65,7 +74,7 @@
                                         <div class="row mb-3">
                                             <label for="perihal" class="col-sm-3 col-form-label">Perihal Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="perihal" name="perihal" value="" maxlength="255" required>
+                                                <input type="text" class="form-control" id="perihal" name="perihal" value="" maxlength="100" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -104,6 +113,16 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="row mb-3">
+                                            <label for="nama" class="col-sm-3 col-form-label">&nbsp;</label>
+                                            <div class="col-sm-9">
+                                                {{-- <input type="text" class="form-control" id="nama" name="nama" value="" required> --}}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="ditinggal" name="ditinggal" checked>
+                                                    <label class="form-check-label" for="ditinggal">Berkas Di Tinggal?</label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -115,14 +134,14 @@
                                         <div class="row mb-3">
                                             <label for="naik" class="col-sm-2 col-form-label">Naik</label>
                                             <div class="col-sm-4">
-                                                <input type="date" class="form-control" id="naik" name="naik" value="" required>
+                                                <input type="date" class="form-control" id="tgl_naik" name="tgl_naik" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
-                                            <label for="diteruskan" class="col-sm-2 col-form-label">Diteruskan</label>
+                                            <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Diteruskan</label>
                                             <div class="col-sm-4">
-                                                <input type="date" class="form-control" id="diteruskan" name="diteruskan" value="" required>
+                                                <input type="date" class="form-control" id="tgl_diteruskan" name="tgl_diteruskan" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -130,12 +149,16 @@
                                         </div>
                                         <div class="row mb-3">
                                             <label for="nama_up" class="col-sm-2 col-form-label">Unit Pengolah</label>
-                                            <div class="col-sm-10">
+                                            <div class="col-sm-6">
                                                 {{-- select nama unit pengolah beserta kodenya --}}
+                                                {{-- <input type="hidden" name="kode_up" id="kode_up" value=""> --}}
                                                 <input type="text" class="form-control" id="nama_up" name="nama_up" value="" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control form-control-sm" name="kode_up" id="kode_up" placeholder="Kode Unit" value="" readonly>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
@@ -163,6 +186,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -208,7 +232,13 @@
                                         <div class="row mb-3">
                                             <label for="sifat_surat" class="col-sm-3 col-form-label">Sifat Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value="" required>
+                                                {{-- <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value="" required> --}}
+                                                <select class="form-select" id="sifat_surat" name="sifat_surat" required>
+                                                    <option value="Biasa">Biasa</option>
+                                                    <option value="Segera">Segera</option>
+                                                    <option value="Penting">Penting</option>
+                                                    <option value="Rahasia">Rahasia</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -223,8 +253,8 @@
                                         <h5 class="card-title mb-5">Isi Surat</h5>
 
                                         <div class="row mb-3">
-                                            <label for="isi" class="col-sm-2 col-form-label">Isi</label>
-                                            <div class="col-sm-10">
+                                            <label for="isi" class="col-sm-3 col-form-label">Isi</label>
+                                            <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="isi" name="isi" value="" maxlength="255" required> --}}
                                                 <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required></textarea>
                                                 <div class="invalid-feedback">
@@ -233,9 +263,13 @@
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label for="ttd" class="col-sm-2 col-form-label">Ditandatangani Oleh</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="ttd" name="ttd" value="" maxlength="100" required>
+                                            <label for="ttd" class="col-sm-3 col-form-label">Ditandatangani Oleh</label>
+                                            <div class="col-sm-9">
+                                                {{-- <input type="text" class="form-control" id="ttd" name="ttd" value="" maxlength="100" required> --}}
+                                                <select class="form-select" id="ttd" name="ttd" required>
+                                                    <option value="Sekretaris Daerah">Sekretaris Daerah</option>
+                                                    <option value="Bupati">Bupati</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -257,18 +291,30 @@
                                         <h5 class="card-title mb-5">Tempat Penyimpanan</h5>
 
                                         <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-3 col-form-label">Tempat Berkas</label>
+                                            <label for="tempat_berkas" class="col-sm-3 col-form-label">Tempat Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                {{-- <input type="text" class="form-control" id="tempat_berkas" name="tempat_berkas" value="" required> --}}
+                                                <select class="form-select" id="tempat_berkas" name="tempat_berkas" required>
+                                                    @foreach ($berkas as $br)
+                                                        <option value="{{ $br->Nama }}" {{ $br->Nama == 'Map' ? 'selected' : '' }}>{{ $br->Nama }}</option>
+                                                    @endforeach
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label for="darikepada" class="col-sm-3 col-form-label">Tk Perkembangan</label>
+                                            <label for="perkembangan" class="col-sm-3 col-form-label">Tk Perkembangan</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                {{-- <input type="text" class="form-control" id="perkembangan" name="perkembangan" value="" required> --}}
+                                                <select class="form-select" id="perkembangan" name="perkembangan" required>
+                                                    <option value="Asli">Asli</option>
+                                                    <option value="Foto Copy">Foto Copy</option>
+                                                    <option value="Tembusan">Tembusan</option>
+                                                    <option value="Salinan">Salinan</option>
+                                                    <option value="Faksimile">Faksimile</option>
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -285,7 +331,7 @@
                                         <div class="row mb-3">
                                             <label for="aktif" class="col-sm-2 col-form-label">Retensi Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="aktif" value="" required readonly>
+                                                <input type="number" class="form-control" id="aktif" name="aktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -294,7 +340,7 @@
                                         <div class="row mb-3">
                                             <label for="inaktif" class="col-sm-2 col-form-label">Retensi Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="inaktif" value="" required readonly>
+                                                <input type="number" class="form-control" id="inaktif" name="inaktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -303,7 +349,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_aktif" class="col-sm-2 col-form-label">Tahun Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_aktif" value="" required readonly>
+                                                <input type="number" class="form-control" id="thn_aktif" name="thn_aktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -312,7 +358,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_inaktif" class="col-sm-2 col-form-label">Tahun Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_inaktif" value="" required readonly>
+                                                <input type="number" class="form-control" id="thn_inaktif" name="thn_inaktif" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -321,7 +367,7 @@
                                         <div class="row mb-3">
                                             <label for="jra" class="col-sm-2 col-form-label">JRA</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="jra" value="" required readonly>
+                                                <input type="text" class="form-control" id="jra" name="jra" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -330,7 +376,7 @@
                                         <div class="row mb-3">
                                             <label for="nilai_guna" class="col-sm-2 col-form-label">Nilai Guna</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="nilai_guna" value="" required readonly>
+                                                <input type="text" class="form-control" id="nilai_guna" name="nilai_guna" value="" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -584,6 +630,168 @@
                 fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
             });
 
+            const autoCompleteJS = new autoComplete({
+                selector: "#klasifikasi_kode",
+                placeHolder: "Input kode klasifikasi...",
+                data: {
+                    src: [
+                        @foreach ($jra as $jr)
+                            "{{ $jr->KLAS3 }} - {{ $jr->MASALAH3 }}",
+                        @endforeach
+                    ],
+                    cache: true,
+                },
+                resultsList: {
+                    element: (list, data) => {
+                        if (!data.results.length) {
+                            // Create "No Results" message element
+                            const message = document.createElement("div");
+                            // Add class to the created element
+                            message.setAttribute("class", "no_result");
+                            // Add message text content
+                            message.innerHTML = `<span>Found No Results for "${data.query}"</span>`;
+                            // Append message element to the results list
+                            list.prepend(message);
+                        }
+                    },
+                    noResults: true,
+                },
+                resultItem: {
+                    highlight: {
+                        render: true
+                    }
+                },
+                events: {
+                    input: {
+                        focus() {
+                            if (autoCompleteJS.input.value.length) autoCompleteJS.start();
+                        },
+                        selection(event) {
+                            const feedback = event.detail;
+                            // Prepare User's Selected Value
+                            const selection = feedback.selection.value;
+                            // Replace Input value with the selected value
+                            const splitSelection = selection.split(' - ');
+
+                            autoCompleteJS.input.value = splitSelection[0];
+                            document.getElementById('berkas').value = splitSelection[1]
+                            document.getElementById('no_surat').value = splitSelection[0] + '/   /' + new Date().getFullYear();
+                            focusNextInput();
+                            get_nomor_urut();
+                            set_jra(selection);
+
+                            const inputElement = document.getElementById('no_surat');
+                            inputElement.focus(); // Set focus on the input field
+
+                            const textLength = inputElement.value.length;
+                            const middleIndex = Math.floor(textLength / 2);
+
+                            inputElement.setSelectionRange(middleIndex, middleIndex);
+                        },
+                    },
+                },
+            });
+
+            const autoCompleteTo = new autoComplete({
+                selector: "#darikepada",
+                placeHolder: "Nama instansi / perusahaan",
+                data: {
+                    src: [
+                        @foreach ($instansi as $ins)
+                            "{{ $ins->INSTANSI }}",
+                        @endforeach
+                    ],
+                    cache: true,
+                },
+                resultsList: {
+                    element: (list, data) => {
+                        if (!data.results.length) {
+                            // Create "No Results" message element
+                            const message = document.createElement("div");
+                            // Add class to the created element
+                            message.setAttribute("class", "no_result");
+                            // Add message text content
+                            message.innerHTML = `<span>Found No Results for "${data.query}"</span>`;
+                            // Append message element to the results list
+                            list.prepend(message);
+                        }
+                    },
+                    noResults: true,
+                },
+                resultItem: {
+                    highlight: {
+                        render: true
+                    }
+                },
+                events: {
+                    input: {
+                        focus() {
+                            if (autoCompleteTo.input.value.length) autoCompleteTo.start();
+                        },
+                        selection(event) {
+                            const feedback = event.detail;
+                            // Prepare User's Selected Value
+                            const selection = feedback.selection.value;
+                            autoCompleteTo.input.value = selection;
+
+                            const inputElement = document.getElementById('wilayah');
+                            inputElement.focus();
+                        },
+                    },
+                },
+            });
+
+            const autoCompleteUp = new autoComplete({
+                selector: "#nama_up",
+                placeHolder: "Nama Unit Pengolah",
+                data: {
+                    src: [
+                        @foreach ($instansi as $ins)
+                            "{{ $ins->KODE }} - {{ $ins->INSTANSI }}",
+                        @endforeach
+                    ],
+                    cache: true,
+                },
+                resultsList: {
+                    element: (list, data) => {
+                        if (!data.results.length) {
+                            // Create "No Results" message element
+                            const message = document.createElement("div");
+                            // Add class to the created element
+                            message.setAttribute("class", "no_result");
+                            // Add message text content
+                            message.innerHTML = `<span>Found No Results for "${data.query}"</span>`;
+                            // Append message element to the results list
+                            list.prepend(message);
+                        }
+                    },
+                    noResults: true,
+                },
+                resultItem: {
+                    highlight: {
+                        render: true
+                    }
+                },
+                events: {
+                    input: {
+                        focus() {
+                            if (autoCompleteUp.input.value.length) autoCompleteUp.start();
+                        },
+                        selection(event) {
+                            const feedback = event.detail;
+                            // Prepare User's Selected Value
+                            const selection = feedback.selection.value;
+                            const splitSelection = selection.split(' - ');
+                            autoCompleteUp.input.value = splitSelection[1];
+                            $('#kode_up').val(splitSelection[0])
+
+                            const inputElement = document.getElementById('nama');
+                            inputElement.focus();
+                        },
+                    },
+                },
+            });
+
             $('.new-sppd').submit(function(e) {
                 e.preventDefault()
                 var invalid = $('.new-sppd .invalid-feedback');
@@ -711,6 +919,82 @@
 
         function _clear() {
             $('#sppd').val('')
+        }
+
+        function focusNextInput() {
+            const formInputs = document.querySelectorAll('form input[type="text"]');
+            let currentIndex = -1;
+
+            // Find the currently focused input
+            for (let i = 0; i < formInputs.length; i++) {
+                if (document.activeElement === formInputs[i]) {
+                currentIndex = i;
+                break;
+                }
+            }
+
+            // Calculate the next index
+            let nextIndex = currentIndex + 2;
+
+            // If at the end, loop back to the first input
+            if (nextIndex >= formInputs.length) {
+                nextIndex = 0;
+            }
+
+            // Focus the next input field
+            formInputs[nextIndex].focus();
+        }
+
+        async function get_nomor_urut() {
+            try {
+                const response = await fetch("{{ route('inbox.urut') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify({ type: 'Keluar' })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                document.getElementById('urut').value = data.urut;
+            } catch (error) {
+                console.error('Error fetching nomor urut:', error);
+                return null;
+            }
+        }
+
+        function set_jra(datas) {
+            const split = datas.split(' - ')
+
+            fetch("{{ route('jra') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ kode: split[0], name: split[1] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    console.error('Error:', data.message);
+                    return;
+                }
+                document.getElementById('aktif').value = data.jra.RAKTIF;
+                document.getElementById('inaktif').value = data.jra.RINAKTIF;
+                document.getElementById('thn_aktif').value = data.jra.thn_aktif;
+                document.getElementById('thn_inaktif').value = data.jra.thn_inaktif;
+                document.getElementById('jra').value = data.jra.KETJRA;
+                document.getElementById('nilai_guna').value = data.jra.NILAIGUNA;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
         }
     </script>
 @endsection

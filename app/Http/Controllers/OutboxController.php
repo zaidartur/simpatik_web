@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
+use App\Models\Instansi;
+use App\Models\Jra;
+use App\Models\TempatBerkas;
+use App\Models\UnitKerja;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 
 class OutboxController extends Controller
@@ -56,7 +62,7 @@ class OutboxController extends Controller
         // }
 
         $totalFiltered = $query->count();
-        $query->orderBy('TGLENTRY', 'desc');
+        $query->orderBy('NO', 'desc');
         // $query->offset($start)->limit($length);
         $query->skip($start)->take($length);
         
@@ -77,7 +83,8 @@ class OutboxController extends Controller
                 'kepada'    => $ibx->drkpd,
                 'perihal'   => $ibx->PERIHAL,
                 'kode'      => $ibx->KLAS3,
-                'tgl_buat'  => $ibx->TGLENTRY,
+                'tgl_buat'  => Carbon::parse($ibx->TGLENTRY)->isoFormat('DD-MMM-YYYY'),
+                'tujuan'    => $ibx->NAMAUP,
                 'uid'       => Crypt::encryptString($ibx->NO),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">
                                     <a href="'. route('outbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
@@ -109,16 +116,25 @@ class OutboxController extends Controller
 
     public function create()
     {
-        $data = [];
+        $data = [
+            'jra'       => Jra::all(),
+            'berkas'    => TempatBerkas::all(),
+            'instansi'  => Instansi::all(),
+        ];
         return view('main.outbox.new', $data);
     }
 
     public function edit($id)
     {
-        $no    = json_decode(Crypt::decryptString($id));
+        $no    = (Crypt::decryptString($id));
+        if (!$no) return abort(404);
         $outbox = ArsipSurat::where('NO', $no)->first();
+        $outbox->uid = $id;
         $data  = [
-            'outbox' => $outbox,
+            'jra'       => Jra::all(),
+            'berkas'    => TempatBerkas::all(),
+            'instansi'  => Instansi::all(),
+            'outbox'    => $outbox,
         ];
 
         return view('main.outbox.edit', $data);
@@ -137,12 +153,200 @@ class OutboxController extends Controller
 
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'berkas'        => 'required|string|max:255',
+            'tgl_naik'      => 'required|date',
+            'tgl_surat'     => 'required|date',
+            'darikepada'    => 'required|string|max:255',
+            'wilayah'       => 'required|string|max:100',
+            'perihal'       => 'nullable|string|max:255',
+            'isi'           => 'required|string|max:255',
+            'klasifikasi_kode' => 'required|string|max:10',
+            'urut'          => 'required|numeric',
+            'no_surat'      => 'required|string|max:15',
+            'aktif'         => 'nullable|numeric',
+            'inaktif'       => 'nullable|numeric',
+            'thn_aktif'     => 'nullable|numeric',
+            'thn_inaktif'   => 'nullable|numeric',
+            'jra'           => 'nullable|string|max:255',
+            'nilai_guna'    => 'nullable|string|max:100',
+            'tempat_berkas' => 'required|string|max:100',
+            'perkembangan'  => 'required|string|max:100',
+            'tgl_diteruskan'=> 'nullable|date',
+            'nama_up'       => 'nullable|string|max:100',
+            'kode_up'       => 'nullable|string|max:10',
+            'sppd'          => 'nullable|string|max:50',
+            'sifat_surat'   => 'nullable|string|max:100',
+            'ttd'           => 'nullable|string|max:100',
+            // 'tindakan'      => 'nullable|string|max:255',
+            // 'tgl_balas'     => 'nullable|date',
+            'gambar'        => 'nullable|array|max:5',
+            'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
+            'lampiran'      => 'nullable|mimes:pdf|max:5126',
+        ]);
+
+        $last = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('NO', 'desc')->first();
+        // $kode_urut = intval($last->NOURUT) + 1;
+        $kode = explode('/', $last->poenx)[0];
+        $kode_urut = intval(substr(substr($kode, 1), 0, -2)) + 1;
+
+        $outbox = new ArsipSurat();
+        $outbox->NAMABERKAS      = $request->berkas;
+        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y/m/d');
+        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+        $outbox->drkpd           = $request->darikepada;
+        $outbox->NAMAKOTA        = $request->wilayah;
+        $outbox->PERIHAL         = $request->perihal;
+        $outbox->ISI             = $request->isi;
+        $outbox->masalahjra      = ' ';
+        $outbox->KLAS3           = $request->klasifikasi_kode;
+        $outbox->NOURUT          = $request->urut;
+        $outbox->NOAGENDA        = $request->urut;
+        $outbox->noagenda2       = $request->urut;
+        $outbox->NOSURAT         = $request->no_surat ?? ' ';
+        $outbox->AKTIF           = $request->aktif;
+        $outbox->INAKTIF         = $request->inaktif;
+        $outbox->THAKTIF         = $request->thn_aktif;
+        $outbox->THINAKTIF       = $request->thn_inaktif;
+        $outbox->KETJRA          = $request->jra;
+        $outbox->NILAIGUNA       = $request->nilai_guna;
+        $outbox->TMPTBERKAS      = $request->tempat_berkas;
+        $outbox->TK_PERKEMBANGAN = $request->perkembangan;
+        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y/m/d');
+        $outbox->NAMAUP          = $request->nama_up;
+        $outbox->KODEUP          = $request->kode_up;
+        $outbox->nosppd          = $request->sppd;
+        $outbox->SIFAT_SURAT     = $request->sifat_surat;
+        $outbox->BALAS           = ' ';
+        $outbox->TGLBALAS        = ' ';
+        $outbox->CATATAN         = ' ';
+        $outbox->ditandatanganioleh = $request->ttd;
+
+        $outbox->SERIDPA         = '';
+        $outbox->NO_SISIP        = 0;
+        $outbox->nodef           = ' ';
+        $outbox->TDT             = ' ';
+        $outbox->pinjam          = ' ';
+        $outbox->TTD             = 'Nama Perwakilan';
+        $outbox->PIMPINAN        = 'Perwakilan';
+
+        // Header
+        $outbox->poenx           = 'K' . $kode_urut . date('d') . '/' . date('m') . '/0001 ' . date('H:i:s');
+        $outbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
+        $outbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
+        $outbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
+        $outbox->BULAN           = date('m');
+        $outbox->TAHUN           = date('Y');
+        $outbox->MEDIA           = 'Teks';
+        
+        // Operator
+        $outbox->Posisi          = Auth::user()->jurusan;
+        $outbox->KODEOPR         = Auth::user()->nama_lengkap;
+        $outbox->JENISSURAT      = 'Keluar';
+        $outbox->TGLENTRY        = date('Y/m/d');
+        $outbox->JAM             = date('H:i:s');
+
+        $save = $outbox->save();
+
+        if ($save) {
+            return redirect()->route('outbox')->with('success', 'Surat keluar berhasil disimpan.');
+        } else {
+            return redirect()->route('outbox')->with('error', 'Surat keluar gagal disimpan.');
+        }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        //
+        $request->validate([
+            'uid'           => 'required|string',
+            'berkas'        => 'required|string|max:255',
+            'tgl_naik'      => 'required|date',
+            'tgl_surat'     => 'required|date',
+            'darikepada'    => 'required|string|max:255',
+            'wilayah'       => 'required|string|max:100',
+            'perihal'       => 'nullable|string|max:255',
+            'isi'           => 'required|string|max:255',
+            'klasifikasi_kode' => 'required|string|max:10',
+            'urut'          => 'required|numeric',
+            'no_surat'      => 'nullable|string|max:15',
+            'aktif'         => 'nullable|numeric',
+            'inaktif'       => 'nullable|numeric',
+            'thn_aktif'     => 'nullable|numeric',
+            'thn_inaktif'   => 'nullable|numeric',
+            'jra'           => 'nullable|string|max:255',
+            'nilai_guna'    => 'nullable|string|max:100',
+            'tempat_berkas' => 'required|string|max:100',
+            'perkembangan'  => 'required|string|max:100',
+            'tgl_diteruskan'=> 'nullable|date',
+            'nama_up'       => 'nullable|string|max:100',
+            'kode_up'       => 'nullable|string|max:10',
+            'sppd'          => 'nullable|string|max:50',
+            'sifat_surat'   => 'nullable|string|max:100',
+            'ttd'           => 'nullable|string|max:100',
+            // 'tindakan'      => 'nullable|string|max:255',
+            // 'tgl_balas'     => 'nullable|date',
+            'gambar'        => 'nullable|array|max:5',
+            'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
+            'lampiran'      => 'nullable|mimes:pdf|max:5126',
+        ]);
+
+        $id = Crypt::decryptString($request->uid);
+        if (!$id) return redirect()->back()->with('error', 'No. Agenda tidak diketahui.');
+
+        $outbox = ArsipSurat::where('NO', $id)->where('JENISSURAT', 'Keluar')->first();
+        $outbox->NAMABERKAS      = $request->berkas;
+        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y/m/d');
+        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+        $outbox->drkpd           = $request->darikepada;
+        $outbox->NAMAKOTA        = $request->wilayah;
+        $outbox->PERIHAL         = $request->perihal;
+        $outbox->ISI             = $request->isi;
+        // $outbox->masalahjra      = ' ';
+        $outbox->KLAS3           = $request->klasifikasi_kode;
+        // $outbox->NOURUT          = $request->urut;
+        // $outbox->NOAGENDA        = $request->urut;
+        // $outbox->noagenda2       = $request->urut;
+        $outbox->NOSURAT         = $request->no_surat ?? ' ';
+        $outbox->AKTIF           = $request->aktif;
+        $outbox->INAKTIF         = $request->inaktif;
+        $outbox->THAKTIF         = $request->thn_aktif;
+        $outbox->THINAKTIF       = $request->thn_inaktif;
+        $outbox->KETJRA          = $request->jra;
+        $outbox->NILAIGUNA       = $request->nilai_guna;
+        $outbox->TMPTBERKAS      = $request->tempat_berkas;
+        $outbox->TK_PERKEMBANGAN = $request->perkembangan;
+        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y/m/d');
+        $outbox->NAMAUP          = $request->nama_up;
+        $outbox->KODEUP          = $request->kode_up;
+        $outbox->nosppd          = $request->sppd;
+        $outbox->SIFAT_SURAT     = $request->sifat_surat;
+        // $outbox->BALAS           = ' ';
+        // $outbox->TGLBALAS        = ' ';
+        // $outbox->CATATAN         = ' ';
+        $outbox->ditandatanganioleh = $request->ttd;
+
+        // Header
+        $outbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
+        // $outbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
+        $outbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
+        // $outbox->BULAN           = date('m');
+        // $outbox->TAHUN           = date('Y');
+        $outbox->MEDIA           = 'Teks';
+        
+        // Operator
+        $outbox->Posisi          = Auth::user()->jurusan;
+        $outbox->KODEOPR         = Auth::user()->nama_lengkap;
+        // $outbox->JENISSURAT      = 'Keluar';
+        // $outbox->TGLENTRY        = date('Y/m/d');
+        // $outbox->JAM             = date('H:i:s');
+
+        $save = $outbox->save();
+
+        if ($save) {
+            return redirect()->route('outbox')->with('success', 'Surat keluar berhasil diupdate.');
+        } else {
+            return redirect()->route('outbox')->with('error', 'Surat keluar gagal diupdate.');
+        }
     }
 
     public function destroy(Request $request)

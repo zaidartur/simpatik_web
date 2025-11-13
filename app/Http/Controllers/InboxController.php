@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class InboxController extends Controller
 {
@@ -124,6 +125,7 @@ class InboxController extends Controller
     public function edit($id)
     {
         $no    = json_decode(Crypt::decryptString($id));
+        if (!$no) return abort(404);
         $inbox = ArsipSurat::where('NO', $no)->first();
         $data  = [
             'inbox' => $inbox,
@@ -211,8 +213,8 @@ class InboxController extends Controller
 
         $inbox = new ArsipSurat();
         $inbox->NAMABERKAS      = $request->berkas;
-        $inbox->TGLTERIMA       = $request->tgl_terima;
-        $inbox->TGLSURAT        = $request->tgl_surat;
+        $inbox->TGLTERIMA       = Carbon::parse($request->tgl_terima)->format('Y/m/d');
+        $inbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
         $inbox->drkpd           = $request->darikepada;
         $inbox->NAMAKOTA        = $request->wilayah;
         $inbox->PERIHAL         = $request->perihal;
@@ -231,19 +233,19 @@ class InboxController extends Controller
         $inbox->NILAIGUNA       = $request->nilai_guna;
         $inbox->TMPTBERKAS      = $request->tempat_berkas;
         $inbox->TK_PERKEMBANGAN = $request->perkembangan;
-        $inbox->TGLTERUS        = $request->tgl_diteruskan;
+        $inbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y/m/d');
         $inbox->NAMAUP          = $request->diteruskan_kpd;
         $inbox->KODEUP          = null;
         $inbox->SIFAT_SURAT     = $request->sifat_surat;
         $inbox->BALAS           = $request->tindakan;
-        $inbox->TGLBALAS        = $request->tgl_balas;
+        $inbox->TGLBALAS        = Carbon::parse($request->tgl_balas)->format('Y/m/d');
 
         $inbox->NO_SISIP        = null;
         $inbox->nodef           = ' ';
         $inbox->TDT             = ' ';
 
         // Header
-        $inbox->poenx           = 'M' . $kode_urut . '01/01/0001 ' . date('H:i:s');
+        $inbox->poenx           = 'M' . $kode_urut . date('d') .'/' . date('m') . '/0001 ' . date('H:i:s');
         $inbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
         $inbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
         $inbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
@@ -328,13 +330,9 @@ class InboxController extends Controller
         $inbox->BALAS           = $request->tindakan;
         $inbox->TGLBALAS        = $request->tgl_balas;
 
-        $inbox->NO_SISIP        = 0;
-        $inbox->nodef           = ' ';
-        $inbox->TDT             = ' ';
-
         // Header
         $inbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
-        $inbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
+        // $inbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
         $inbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
         // $inbox->BULAN           = date('m');
         // $inbox->TAHUN           = date('Y');
