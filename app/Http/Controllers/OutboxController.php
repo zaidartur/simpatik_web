@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ArsipSurat;
 use App\Models\Instansi;
 use App\Models\Jra;
+use App\Models\Sppd;
 use App\Models\TempatBerkas;
 use App\Models\UnitKerja;
 use Carbon\Carbon;
@@ -90,16 +91,13 @@ class OutboxController extends Controller
                                     <a href="'. route('outbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>
-                                    <button type="button" class="btn btn-outline-primary bs-tooltip" title="Disposisi Surat">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    <button type="button" class="btn btn-outline-info bs-tooltip" title="Tindak Lanjut">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                                     </button>
                                     <button type="button" class="btn btn-outline-success bs-tooltip" title="Cetak Surat">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                     </button>
-                                    <button type="button" class="btn btn-outline-info bs-tooltip" title="Tindak Lanjut">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                    </button>
-                                    <button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat">
+                                    <button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat" onclick="_delete(\''. Crypt::encryptString($ibx->NO) .'\')">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                     </button>
                                 </div>',
@@ -129,12 +127,14 @@ class OutboxController extends Controller
         $no    = (Crypt::decryptString($id));
         if (!$no) return abort(404);
         $outbox = ArsipSurat::where('NO', $no)->first();
+        $sppd = empty($outbox->nosppd) ? [] : Sppd::where('nosppd', $outbox->nosppd)->first();
         $outbox->uid = $id;
         $data  = [
             'jra'       => Jra::all(),
             'berkas'    => TempatBerkas::all(),
             'instansi'  => Instansi::all(),
             'outbox'    => $outbox,
+            'sppd'      => $sppd,
         ];
 
         return view('main.outbox.edit', $data);
@@ -175,7 +175,6 @@ class OutboxController extends Controller
             'tgl_diteruskan'=> 'nullable|date',
             'nama_up'       => 'nullable|string|max:100',
             'kode_up'       => 'nullable|string|max:10',
-            'sppd'          => 'nullable|string|max:50',
             'sifat_surat'   => 'nullable|string|max:100',
             'ttd'           => 'nullable|string|max:100',
             // 'tindakan'      => 'nullable|string|max:255',
@@ -183,6 +182,13 @@ class OutboxController extends Controller
             'gambar'        => 'nullable|array|max:5',
             'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
             'lampiran'      => 'nullable|mimes:pdf|max:5126',
+
+            'sppd'          => 'nullable|string|max:50',
+            'nama'          => 'nullable|string|max:100',
+            'jabatan'       => 'nullable|string|max:100',
+            'tujuan'        => 'nullable|string|max:255',
+            'kendaraan'     => 'nullable|string|max:100',
+            'berangkat'     => 'nullable|date',
         ]);
 
         $last = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('NO', 'desc')->first();
@@ -240,7 +246,7 @@ class OutboxController extends Controller
         $outbox->MEDIA           = 'Teks';
         
         // Operator
-        $outbox->Posisi          = Auth::user()->jurusan;
+        $outbox->Posisi          = 'Bagian Umum';
         $outbox->KODEOPR         = Auth::user()->nama_lengkap;
         $outbox->JENISSURAT      = 'Keluar';
         $outbox->TGLENTRY        = date('Y/m/d');
@@ -249,6 +255,17 @@ class OutboxController extends Controller
         $save = $outbox->save();
 
         if ($save) {
+            if (!empty($request->sppd)) {
+                $sppd = new Sppd();
+                $sppd->nosppd       = $request->sppd;
+                $sppd->nama         = $request->nama;
+                $sppd->jabatan      = $request->jabatan;
+                $sppd->tujuan       = $request->tujuan;
+                $sppd->kendaraan    = $request->kendaraan;
+                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y/m/d');
+                $sppd->save();
+            }
             return redirect()->route('outbox')->with('success', 'Surat keluar berhasil disimpan.');
         } else {
             return redirect()->route('outbox')->with('error', 'Surat keluar gagal disimpan.');
@@ -280,7 +297,6 @@ class OutboxController extends Controller
             'tgl_diteruskan'=> 'nullable|date',
             'nama_up'       => 'nullable|string|max:100',
             'kode_up'       => 'nullable|string|max:10',
-            'sppd'          => 'nullable|string|max:50',
             'sifat_surat'   => 'nullable|string|max:100',
             'ttd'           => 'nullable|string|max:100',
             // 'tindakan'      => 'nullable|string|max:255',
@@ -288,6 +304,13 @@ class OutboxController extends Controller
             'gambar'        => 'nullable|array|max:5',
             'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
             'lampiran'      => 'nullable|mimes:pdf|max:5126',
+
+            'sppd'          => 'nullable|string|max:50',
+            'nama'          => 'nullable|string|max:100',
+            'jabatan'       => 'nullable|string|max:100',
+            'tujuan'        => 'nullable|string|max:255',
+            'kendaraan'     => 'nullable|string|max:100',
+            'berangkat'     => 'nullable|date',
         ]);
 
         $id = Crypt::decryptString($request->uid);
@@ -343,6 +366,17 @@ class OutboxController extends Controller
         $save = $outbox->save();
 
         if ($save) {
+            if (!empty($request->sppd)) {
+                $sppd = Sppd::where('nosppd', $request->sppd)->first();
+                $sppd->nosppd       = $request->sppd;
+                $sppd->nama         = $request->nama;
+                $sppd->jabatan      = $request->jabatan;
+                $sppd->tujuan       = $request->tujuan;
+                $sppd->kendaraan    = $request->kendaraan;
+                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y/m/d');
+                $sppd->save();
+            }
             return redirect()->route('outbox')->with('success', 'Surat keluar berhasil diupdate.');
         } else {
             return redirect()->route('outbox')->with('error', 'Surat keluar gagal diupdate.');
@@ -351,6 +385,20 @@ class OutboxController extends Controller
 
     public function destroy(Request $request)
     {
-        //
+        $request->validate([
+            'uid'    => 'required|string'
+        ]);
+
+        $id = json_decode(Crypt::decryptString($request->uid));
+        if (!$id) {
+            return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
+        }
+
+        $outbox = ArsipSurat::where('NO', $id)->delete();
+        if ($outbox) {
+            return response()->json(['status' => 'success', 'message' => 'Surat keluar berhasil dihapus.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Surat keluar gagal dihapus.']);
+        }
     }
 }

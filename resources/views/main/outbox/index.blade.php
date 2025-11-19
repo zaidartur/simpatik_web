@@ -175,4 +175,52 @@
         });
     </script>
     <!-- END PAGE LEVEL SCRIPTS -->
+
+    <script>
+        function _delete(uid) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('outbox.destroy') }}",
+                        type: "POST",
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            uid: uid
+                        },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#zero-config').DataTable().ajax.reload(null, false);
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: 'Surat keluar berhasil dihapus.'
+                                });
+                            } else {
+                                Toast.fire({
+                                    icon: 'error',
+                                    title: 'Gagal menghapus surat keluar.'
+                                });
+                            }
+                        },
+                        error: function() {
+                            Toast.fire({
+                                icon: 'error',
+                                title: 'Terjadi kesalahan pada server.'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
 @endsection

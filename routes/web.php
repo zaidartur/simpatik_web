@@ -27,7 +27,7 @@ Route::prefix('/')->middleware(['auth'])->group(function () {
 Route::post('detail-jra', [App\Http\Controllers\InboxController::class, 'get_jra'])->middleware(['auth'])->name('jra');
 
 Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
-    Route::get('/', [App\Http\Controllers\InboxController::class, 'index'])->name('inbox');
+    Route::get('/view', [App\Http\Controllers\InboxController::class, 'index'])->name('inbox');
     Route::get('/daftar-surat', [App\Http\Controllers\InboxController::class, 'serverside'])->name('inbox.ssr');
     Route::get('buat-surat', [App\Http\Controllers\InboxController::class, 'create'])->name('inbox.create');
     Route::post('simpan-surat', [App\Http\Controllers\InboxController::class, 'store'])->name('inbox.store');
@@ -41,7 +41,7 @@ Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
 });
 
 Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {
-    Route::get('/', [App\Http\Controllers\OutboxController::class, 'index'])->name('outbox');
+    Route::get('/view', [App\Http\Controllers\OutboxController::class, 'index'])->name('outbox');
     Route::get('/daftar-surat', [App\Http\Controllers\OutboxController::class, 'serverside'])->name('outbox.ssr');
     Route::get('buat-surat', [App\Http\Controllers\OutboxController::class, 'create'])->name('outbox.create');
     Route::post('simpan-surat', [App\Http\Controllers\OutboxController::class, 'store'])->name('outbox.store');
@@ -66,7 +66,7 @@ Route::prefix('/sppd')->middleware(['auth'])->group(function () {
 });
 
 
-Route::prefix('/user')->middleware(['auth'])->group(function () {
+Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('/view', [App\Http\Controllers\UserController::class, 'index'])->name('user');
     Route::get('buat-user', [App\Http\Controllers\UserController::class, 'create'])->name('user.create');
     Route::post('simpan-user', [App\Http\Controllers\UserController::class, 'store'])->name('user.store');
@@ -78,3 +78,6 @@ Route::prefix('/user')->middleware(['auth'])->group(function () {
     Route::post('ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->name('user.change_pwd');
 });
 
+Route::prefix('/aplikasi')->middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('/view', [App\Http\Controllers\ApplicationController::class, 'index'])->name('apps');
+});

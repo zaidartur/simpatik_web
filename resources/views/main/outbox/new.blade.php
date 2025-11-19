@@ -161,17 +161,8 @@
                                                 <input type="text" class="form-control form-control-sm" name="kode_up" id="kode_up" placeholder="Kode Unit" value="" readonly>
                                             </div>
                                         </div>
-                                        <div class="row mb-3">
-                                            <label for="nama" class="col-sm-2 col-form-label">Nama</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="nama" name="nama" value="" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        <div class="row mb-3">
+                                        {{-- <div class="row mb-3">
                                             <label for="nama" class="col-sm-2 col-form-label">No. SPPD</label>
                                             <div class="col-sm-10">
                                                 <div class="input-group">
@@ -185,7 +176,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         
                                     </div>
                                 </div>
@@ -275,6 +266,90 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="card mb-3 bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-5">SPPD</h5>
+
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="row mb-3">
+                                                    <label for="sppd" class="col-sm-2 col-form-label">No. SPPD</label>
+                                                    {{-- <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="sppd" name="sppd" value="" onfocus="generate_sppd(this)">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div> --}}
+                                                    <div class="col-sm-10">
+                                                        <div class="input-group is-sppd">
+                                                            <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="">
+                                                            <button class="btn btn-info" type="button" id="button_generate" onclick="generate_sppd()">
+                                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                                                Generate Nomor
+                                                            </button>
+                                                            <button class="btn btn-warning" type="button" id="button_clear" onclick="_clear()">
+                                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                                                Bersihkan
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="nama" class="col-sm-2 col-form-label">Nama</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="nama" name="nama" value="">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="jabatan" class="col-sm-2 col-form-label">Jabatan</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="jabatan" name="jabatan" value="">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="row mb-3">
+                                                    <label for="tujuan" class="col-sm-2 col-form-label">Tujuan</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="tujuan" name="tujuan" value="">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="kendaraan" class="col-sm-2 col-form-label">Kendaraan Dinas</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="kendaraan" name="kendaraan" value="">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="berangkat" class="col-sm-2 col-form-label">Tanggal Berangkat</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="date" class="form-control" id="berangkat" name="berangkat" value="">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -606,6 +681,15 @@
     <script src="{{ asset('templates/plugins/src/autocomplete/autoComplete.min.js') }}"></script>
     
     <script>
+        const btg = `<button class="btn btn-info" type="button" id="button_generate" onclick="generate_sppd()">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                        Generate Nomor
+                    </button>`
+        const btc = `<button class="btn btn-warning" type="button" id="button_clear" onclick="_clear()">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        Bersihkan
+                    </button>`
+
         $(document).ready(function () {
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
@@ -675,18 +759,12 @@
 
                             autoCompleteJS.input.value = splitSelection[0];
                             document.getElementById('berkas').value = splitSelection[1]
-                            document.getElementById('no_surat').value = splitSelection[0] + '/   /' + new Date().getFullYear();
+                            document.getElementById('no_surat').value = splitSelection[0] + '//' + new Date().getFullYear();
                             focusNextInput();
                             get_nomor_urut();
                             set_jra(selection);
 
-                            const inputElement = document.getElementById('no_surat');
-                            inputElement.focus(); // Set focus on the input field
-
-                            const textLength = inputElement.value.length;
-                            const middleIndex = Math.floor(textLength / 2);
-
-                            inputElement.setSelectionRange(middleIndex, middleIndex);
+                            focusCursor();
                         },
                     },
                 },
@@ -785,7 +863,7 @@
                             autoCompleteUp.input.value = splitSelection[1];
                             $('#kode_up').val(splitSelection[0])
 
-                            const inputElement = document.getElementById('nama');
+                            const inputElement = document.getElementById('isi');
                             inputElement.focus();
                         },
                     },
@@ -835,6 +913,16 @@
                     })
                 }
             })
+
+            $('#button_generate').remove()
+            $('#button_clear').remove()
+            if ($('#sppd').val().trim() !== '') {
+                $('#button_generate').remove()
+                $('.is-sppd').append(btc)
+            } else {
+                $('#button_clear').remove()
+                $('.is-sppd').append(btg)
+            }
         });
     </script>
 
@@ -919,6 +1007,11 @@
 
         function _clear() {
             $('#sppd').val('')
+            $('#button_clear').remove()
+            $('.is-sppd').append(btg)
+
+            // $('#button_generate').show()
+            // $('#button_clear').hide()
         }
 
         function focusNextInput() {
@@ -943,6 +1036,15 @@
 
             // Focus the next input field
             formInputs[nextIndex].focus();
+        }
+
+        function focusCursor() {
+            const formInputs = $('#no_surat');
+            const firstSlash = formInputs.val().indexOf("/");
+            let position = firstSlash + 1;
+            console.log(firstSlash, position);
+
+            formInputs.focus()[0].setSelectionRange(position, position);
         }
 
         async function get_nomor_urut() {
@@ -995,6 +1097,30 @@
             .catch((error) => {
                 console.error('Error:', error);
             });
+        }
+
+        function generate_sppd() {
+            const bulan = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]
+            const id = $('#sppd');
+            if (id.val().trim() === '') {
+                const kode = $('#klasifikasi_kode').val();
+                const up = $('#kode_up').val();
+                const month = parseInt(new Date().getMonth()) + 1;
+                const year = new Date().getFullYear();
+
+                id.val(`${kode}/.${up}/${bulan[month]}/${year}`);
+
+                const slashIndex = id.val().indexOf("/");
+                const dotIndex = id.val().indexOf(".");
+                let position = slashIndex + 1;
+
+                if (slashIndex !== -1 && dotIndex !== -1 && slashIndex < dotIndex) {
+                    id.focus()[0].setSelectionRange(position, position);
+                }
+                
+                $('#button_generate').remove()
+                $('.is-sppd').append(btc)
+            }
         }
     </script>
 @endsection

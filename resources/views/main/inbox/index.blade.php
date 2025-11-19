@@ -9,6 +9,9 @@
     
     <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/light/table/datatable/dt-global_style.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/light/table/datatable/dt-global_style.css') }}">
+
+    <link href="{{ asset('templates/plugins/css/light/loaders/custom-loader.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/plugins/css/dark/loaders/custom-loader.css') }}" rel="stylesheet" type="text/css" />
     <!-- END PAGE LEVEL STYLES -->
 
     <style>
@@ -61,14 +64,47 @@
 
             <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
                 <div class="widget-content widget-content-area br-8 p-3">
-                    <div class="row justify-content-space-between">
-                        <div class="col-6">
+                    <div class="row justify-content-space-between" style="align-items: center;">
+                        <div class="col-3">
                             <h4 class="">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
                                 Daftar Surat Masuk
                             </h4>
                         </div>
                         <div class="col-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row justify-content-center">
+                                        <div class="col-auto">
+                                            <select class="form-control form-control-sm bs-tooltip mb-2" id="klasifikasi" name="klasifikasi" placeholder="Sifat Surat" title="Sifat Surat">
+                                                <option value="Biasa" selected>Biasa</option>
+                                                <option value="Segera">Segera</option>
+                                                <option value="Penting">Penting</option>
+                                                <option value="Rahasia">Rahasia</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-auto me-2">
+                                            <select name="tahun" id="tahun" class="form-control form-control-sm bs-tooltip" placeholder="Tahun Arsip" title="Tahun Arsip">
+                                                @foreach ($years as $y => $year)
+                                                    <option value="{{ $year->TAHUN }}" {{ $y == 0 ? 'selected' : '' }}>{{ $year->TAHUN }}</option>
+                                                @endforeach
+                                                <option value="all">Semua</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button class="btn btn-info is-active" onclick="_filter()">
+                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                                                <span class="btn-text-inner">Filter</span>
+                                            </button>
+                                            <button class="btn btn-info is-loading d-none" type="button" disabled>
+                                                <div class="spinner-border text-white me-2 align-self-center loader-sm "></div> Memproses
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
                             <button class="btn btn-info mb-2 me-4 float-end" onclick="location.href='{{ route('inbox.create') }}'">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                                 <span class="btn-text-inner">Buat Surat Masuk</span>
@@ -146,6 +182,8 @@
     <script src="{{ asset('templates/plugins/src/table/datatable/datatables.js') }}"></script>
     <script>
         $(document).ready(function() {
+            let klasifikasi = $('#klasifikasi').val();
+            let tahun = $('#tahun').val();
             let tb_inbox = $('#zero-config').DataTable({
                 "dom": "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-12 col-sm-6 d-flex justify-content-sm-end justify-content-center mt-sm-0 mt-3'f>>>" +
                         "<'table-responsive'tr>" +
@@ -173,7 +211,7 @@
                 "serverSide": true,
                 // "ordering": false,
                 "ajax": {
-                    url: "{{ route('inbox.ssr') }}",
+                    url: `{{ route('inbox.ssr') }}?klasifikasi=${klasifikasi}&tahun=${tahun}`,
                     type: 'GET',
                 },
                 "columns": [
@@ -212,4 +250,93 @@
         }
     </script>
     <!-- END PAGE LEVEL SCRIPTS -->
+
+    <script>
+        function _delete(uid) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `{{ route('outbox.destroy') }}`,
+                        type: "POST",
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            uid: uid
+                        },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#zero-config').DataTable().ajax.reload(null, false);
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: 'Surat keluar berhasil dihapus.'
+                                });
+                            } else {
+                                Toast.fire({
+                                    icon: 'error',
+                                    title: 'Gagal menghapus surat keluar.'
+                                });
+                            }
+                        },
+                        error: function() {
+                            Toast.fire({
+                                icon: 'error',
+                                title: 'Terjadi kesalahan pada server.'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        async function _filter() {
+            let klasifikasi = $('#klasifikasi').val();
+            let tahun = $('#tahun').val();
+            let tb_inbox = $('#zero-config').DataTable();
+
+            $('.is-active').addClass('d-none');
+            $('.is-loading').removeClass('d-none');
+            await new Promise(resolve => {
+                tb_inbox.ajax.url(`{{ route('inbox.ssr') }}?klasifikasi=${klasifikasi}&tahun=${tahun}`).load(() => {
+                    $('.is-loading').addClass('d-none');
+                    $('.is-active').removeClass('d-none');
+                    resolve()
+                });
+            });
+        }
+
+        function followUp(uid) {
+            Swal.fire({
+                title: 'Tindak Lanjut Surat',
+                html: `
+                    <select id="tujuan" class="swal2-select" style="width: 80%; margin: auto;">
+                        <option value="" disabled selected>Pilih Tindakan</option>
+                        <option value="disposisi">Disposisi</option>
+                        <option value="tindak_lanjut">Tindak Lanjut</option>
+                    </select>
+                    <br/><br/>
+                    <textarea id="notes" class="swal2-textarea" placeholder="Catatan (opsional)" style="width: 80%;"></textarea>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Konfirmasi',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    // Placeholder for future functionality
+                }
+            });
+        }
+    </script>
 @endsection

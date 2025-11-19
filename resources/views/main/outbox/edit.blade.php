@@ -162,7 +162,7 @@
                                                 <input type="text" class="form-control form-control-sm" name="kode_up" id="kode_up" placeholder="Kode Unit" value="{{ $outbox->KODEUP }}" readonly>
                                             </div>
                                         </div>
-                                        <div class="row mb-3">
+                                        {{-- <div class="row mb-3">
                                             <label for="nama" class="col-sm-2 col-form-label">Nama</label>
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="nama" name="nama" value="" required>
@@ -186,7 +186,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         
                                     </div>
                                 </div>
@@ -276,6 +276,90 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="card mb-3 bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-5">SPPD</h5>
+
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="row mb-3">
+                                                    <label for="sppd" class="col-sm-2 col-form-label">No. SPPD</label>
+                                                    {{-- <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="sppd" name="sppd" value="" onfocus="generate_sppd(this)">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div> --}}
+                                                    <div class="col-sm-10">
+                                                        <div class="input-group is-sppd">
+                                                            <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="{{ $sppd ? $sppd->nosppd : '' }}">
+                                                            <button class="btn btn-info" type="button" id="button_generate" onclick="generate_sppd()">
+                                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                                                Generate Nomor
+                                                            </button>
+                                                            <button class="btn btn-warning" type="button" id="button_clear" onclick="_clear()">
+                                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                                                Bersihkan
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="nama" class="col-sm-2 col-form-label">Nama</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="nama" name="nama" value="{{ $sppd ? $sppd->nama : '' }}">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="jabatan" class="col-sm-2 col-form-label">Jabatan</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="jabatan" name="jabatan" value="{{ $sppd ? $sppd->jabatan : '' }}">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="row mb-3">
+                                                    <label for="tujuan" class="col-sm-2 col-form-label">Tujuan</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="tujuan" name="tujuan" value="{{ $sppd ? $sppd->tujuan : '' }}">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="kendaraan" class="col-sm-2 col-form-label">Kendaraan Dinas</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="kendaraan" name="kendaraan" value="{{ $sppd ? $sppd->kendaraan : '' }}">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <label for="berangkat" class="col-sm-2 col-form-label">Tanggal Berangkat</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="date" class="form-control" id="berangkat" name="berangkat" value="{{ $sppd ? $carbon::parse($sppd->tglberangkat)->format('Y-m-d') : '' }}">
+                                                        <div class="invalid-feedback">
+                                                            Field ini wajib di isi.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -607,6 +691,14 @@
     <script src="{{ asset('templates/plugins/src/autocomplete/autoComplete.min.js') }}"></script>
     
     <script>
+        const btg = `<button class="btn btn-info" type="button" id="button_generate" onclick="generate_sppd()">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                        Generate Nomor
+                    </button>`
+        const btc = `<button class="btn btn-warning" type="button" id="button_clear" onclick="_clear()">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        Bersihkan
+                    </button>`
         $(document).ready(function () {
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
@@ -836,6 +928,16 @@
                     })
                 }
             })
+
+            $('#button_generate').remove()
+            $('#button_clear').remove()
+            if ($('#sppd').val().trim() !== '') {
+                $('#button_generate').remove()
+                $('.is-sppd').append(btc)
+            } else {
+                $('#button_clear').remove()
+                $('.is-sppd').append(btg)
+            }
         });
     </script>
 

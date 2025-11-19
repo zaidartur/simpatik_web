@@ -269,33 +269,6 @@
                                         <h5 class="card-title mb-5">Keterangan</h5>
 
                                         <div class="row mb-3">
-                                            <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Tanggal Diteruskan</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="tgl_diteruskan" value="{{ $inbox->TGLTERUS }}" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
-                                            <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="diteruskan_kpd" value="{{ $inbox->NAMAUP }}" required>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {{-- <div class="row mb-3">
-                                            <label for="disposisi" class="col-sm-2 col-form-label">Catatan Disposisi</label>
-                                            <div class="col-sm-10">
-                                                <textarea name="disposisi" id="disposisi" class="form-control" cols="30" rows="5">{{ $inbox->CATATAN }}</textarea>
-                                                <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
-                                                </div>
-                                            </div>
-                                        </div> --}}
-                                        <div class="row mb-3">
                                             <label for="sifat_surat" class="col-sm-2 col-form-label">Sifat Surat</label>
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="sifat_surat" value="{{ $inbox->SIFAT_SURAT }}" required>
@@ -322,6 +295,43 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div class="row mb-1">
+                                            <label for="is_diteruskan" class="col-sm-2 col-form-label">&nbsp;</label>
+                                            <div class="col-sm-10">
+                                                <div class="form-check form-check-info form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="is_diteruskan" name="is_diteruskan" value="yes" onchange="_forward()" {{ !empty($inbox->NAMAUP) ? 'checked' : '' }}>
+                                                    <label class="form-check-label bs-tooltip" for="is_diteruskan" title="Hapus centang apabila surat tidak akan diteruskan"><span class="badge badge-info mb-2 me-4">Surat Diteruskan?</span></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Tanggal Diteruskan</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" class="form-control lbl-diteruskan" id="tgl_diteruskan" value="{{ $inbox->TGLTERUS }}" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" class="form-control lbl-diteruskan" id="diteruskan_kpd" value="{{ $inbox->NAMAUP }}" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- <div class="row mb-3">
+                                            <label for="disposisi" class="col-sm-2 col-form-label">Catatan Disposisi</label>
+                                            <div class="col-sm-10">
+                                                <textarea name="disposisi" id="disposisi" class="form-control" cols="30" rows="5">{{ $inbox->CATATAN }}</textarea>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
@@ -448,5 +458,16 @@
                 fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
             });
         });
+
+        function _forward() {
+            const ask = document.getElementById('is_diteruskan');
+            const ele = ask;
+            const isChecked = ele.checked;
+            const forwardFields = document.querySelectorAll('.lbl-diteruskan');
+
+            forwardFields.forEach(field => {
+                field.disabled = !isChecked;
+            });
+        }
     </script>
 @endsection
