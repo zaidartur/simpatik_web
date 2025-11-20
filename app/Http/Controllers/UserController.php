@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -16,9 +17,9 @@ class UserController extends Controller
     {
         $data = [
             'lists'     => User::all(),
-            'instansi'  => Instansi::all(),
+            'instansi'  => DB::table('instansi')->get(),
             'badge'     => [
-                'Administrator' => 'badge-primary',
+                'administrator' => 'badge-primary',
                 'operator'      => 'badge-secondary',
             ],
         ];
@@ -42,17 +43,25 @@ class UserController extends Controller
             'password'  => 'required|string|max:50',
         ]);
 
+        $ins  = DB::table('instansi')->where('kode', $request->instansi)->first();
+        $uuid = Str::uuid();
         $user = new User();
-        $user->uuid         = Str::uuid();
+        $user->uuid         = $uuid;
         $user->nama_lengkap = $request->nama;
         $user->username     = $request->username;
         $user->email        = $request->email;
-        $user->jurusan      = $request->instansi;
+        $user->jurusan      = $ins->instansi;
         $user->level        = $request->level;
         $user->password     = Hash::make($request->password);
         $user->blokir       = 'N';
         $user->kode         = 'ID3331';
         if ($user->save()) {
+            $users = User::where('uuid', $uuid)->first();
+            if ($request->level == 'administrator') {
+                $users->assignRole('administrator');
+            } else {
+                $users->assignRole($request->instansi);
+            }
             return redirect()->back()->with('success', 'User berhasil ditambahkan.');
         } else {
             return redirect()->back()->with('failed', 'User gagal ditambahkan.');
@@ -71,12 +80,19 @@ class UserController extends Controller
         $user = User::find($request->uid);
         if (!$user) return redirect()->back()->with('failed', 'User tidak ditemukan.');
 
+        $ins = DB::table('instansi')->where('kode', $request->instansi)->first();
         $user->nama_lengkap = $request->nama;
         // $user->username     = $request->username;
         $user->email        = $request->email;
-        $user->jurusan      = $request->instansi;
+        $user->jurusan      = $ins->instasi;
         $user->level        = $request->level;
         if ($user->save()) {
+            $user->syncRoles([]);
+            if ($request->level == 'administrator') {
+                $user->assignRole('administrator');
+            } else {
+                $user->assignRole($request->instansi);
+            }
             return redirect()->back()->with('success', 'User berhasil diperbarui.');
         } else {
             return redirect()->back()->with('failed', 'User gagal diperbarui.');

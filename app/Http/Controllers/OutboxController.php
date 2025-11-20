@@ -193,22 +193,26 @@ class OutboxController extends Controller
 
         $last = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('NO', 'desc')->first();
         // $kode_urut = intval($last->NOURUT) + 1;
-        $kode = explode('/', $last->poenx)[0];
-        $kode_urut = intval(substr(substr($kode, 1), 0, -2)) + 1;
+        // $kode = explode('/', $last->poenx)[0];
+        // $kode_urut = intval(substr(substr($kode, 1), 0, -2)) + 1;
+        $kode_urut = $last->TAHUN == date('Y') ? intval($last->NOURUT) + 1 : 1;
 
         $outbox = new ArsipSurat();
         $outbox->NAMABERKAS      = $request->berkas;
-        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y/m/d');
-        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y-m-d');
+        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y-m-d');
         $outbox->drkpd           = $request->darikepada;
         $outbox->NAMAKOTA        = $request->wilayah;
         $outbox->PERIHAL         = $request->perihal;
         $outbox->ISI             = $request->isi;
         $outbox->masalahjra      = ' ';
         $outbox->KLAS3           = $request->klasifikasi_kode;
-        $outbox->NOURUT          = $request->urut;
-        $outbox->NOAGENDA        = $request->urut;
-        $outbox->noagenda2       = $request->urut;
+        // $outbox->NOURUT          = $request->urut;
+        // $outbox->NOAGENDA        = $request->urut;
+        // $outbox->noagenda2       = $request->urut;
+        $outbox->NOURUT          = $kode_urut;
+        $outbox->NOAGENDA        = $kode_urut;
+        $outbox->noagenda2       = $kode_urut;
         $outbox->NOSURAT         = $request->no_surat ?? ' ';
         $outbox->AKTIF           = $request->aktif;
         $outbox->INAKTIF         = $request->inaktif;
@@ -218,7 +222,7 @@ class OutboxController extends Controller
         $outbox->NILAIGUNA       = $request->nilai_guna;
         $outbox->TMPTBERKAS      = $request->tempat_berkas;
         $outbox->TK_PERKEMBANGAN = $request->perkembangan;
-        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y/m/d');
+        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y-m-d');
         $outbox->NAMAUP          = $request->nama_up;
         $outbox->KODEUP          = $request->kode_up;
         $outbox->nosppd          = $request->sppd;
@@ -237,7 +241,7 @@ class OutboxController extends Controller
         $outbox->PIMPINAN        = 'Perwakilan';
 
         // Header
-        $outbox->poenx           = 'K' . $kode_urut . date('d') . '/' . date('m') . '/0001 ' . date('H:i:s');
+        $outbox->poenx           = 'K' . $kode_urut . date('d') . '/' . date('m') . '/' . date('Y') . ' ' . date('H:i:s');
         $outbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
         $outbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
         $outbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
@@ -246,10 +250,10 @@ class OutboxController extends Controller
         $outbox->MEDIA           = 'Teks';
         
         // Operator
-        $outbox->Posisi          = 'Bagian Umum';
+        $outbox->Posisi          = Auth::user()->jurusan;
         $outbox->KODEOPR         = Auth::user()->nama_lengkap;
         $outbox->JENISSURAT      = 'Keluar';
-        $outbox->TGLENTRY        = date('Y/m/d');
+        $outbox->TGLENTRY        = date('Y-m-d');
         $outbox->JAM             = date('H:i:s');
 
         $save = $outbox->save();
@@ -262,8 +266,8 @@ class OutboxController extends Controller
                 $sppd->jabatan      = $request->jabatan;
                 $sppd->tujuan       = $request->tujuan;
                 $sppd->kendaraan    = $request->kendaraan;
-                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y/m/d');
-                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y/m/d');
+                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y-m-d');
+                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y-m-d');
                 $sppd->save();
             }
             return redirect()->route('outbox')->with('success', 'Surat keluar berhasil disimpan.');
@@ -318,8 +322,8 @@ class OutboxController extends Controller
 
         $outbox = ArsipSurat::where('NO', $id)->where('JENISSURAT', 'Keluar')->first();
         $outbox->NAMABERKAS      = $request->berkas;
-        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y/m/d');
-        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y-m-d');
+        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y-m-d');
         $outbox->drkpd           = $request->darikepada;
         $outbox->NAMAKOTA        = $request->wilayah;
         $outbox->PERIHAL         = $request->perihal;
@@ -338,7 +342,7 @@ class OutboxController extends Controller
         $outbox->NILAIGUNA       = $request->nilai_guna;
         $outbox->TMPTBERKAS      = $request->tempat_berkas;
         $outbox->TK_PERKEMBANGAN = $request->perkembangan;
-        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y/m/d');
+        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y-m-d');
         $outbox->NAMAUP          = $request->nama_up;
         $outbox->KODEUP          = $request->kode_up;
         $outbox->nosppd          = $request->sppd;
@@ -373,8 +377,8 @@ class OutboxController extends Controller
                 $sppd->jabatan      = $request->jabatan;
                 $sppd->tujuan       = $request->tujuan;
                 $sppd->kendaraan    = $request->kendaraan;
-                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y/m/d');
-                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y/m/d');
+                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y-m-d');
+                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y-m-d');
                 $sppd->save();
             }
             return redirect()->route('outbox')->with('success', 'Surat keluar berhasil diupdate.');

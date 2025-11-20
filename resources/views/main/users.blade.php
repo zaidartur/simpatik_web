@@ -150,7 +150,7 @@
                                                         <select name="instansi" id="instansi" class="form-control" required>
                                                             <option value="">Pilih Instansi</option>
                                                             @foreach ($instansi as $ins)
-                                                                <option value="{{ $ins->INSTANSI }}">{{ $ins->INSTANSI }}</option>
+                                                                <option value="{{ $ins->kode }}">{{ $ins->instansi }}</option>
                                                             @endforeach
                                                         </select>
                                                         <div class="invalid-feedback">

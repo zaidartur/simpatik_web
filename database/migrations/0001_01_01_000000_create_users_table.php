@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('username', '50')->unique();
             $table->string('email')->nullable()->unique();
             $table->string('no_telp', '16')->nullable();
-            $table->enum('level', ['Administrator', 'direktur', 'kajur', 'opdirektur', 'operator'])->default('operator');
+            $table->enum('level', ['administrator', 'direktur', 'kajur', 'opdirektur', 'operator'])->default('operator');
             $table->string('kode', '10');
             $table->string('blokir', '1')->default('N');
             $table->string('jurusan', '50');

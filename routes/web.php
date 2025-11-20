@@ -36,6 +36,8 @@ Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
     Route::post('nomor-urut', [App\Http\Controllers\InboxController::class, 'nomor_urut'])->name('inbox.urut');
     Route::post('hapus-surat', [App\Http\Controllers\InboxController::class, 'destroy'])->name('inbox.destroy');
     Route::get('lihat-surat/{id}', [App\Http\Controllers\InboxController::class, 'show'])->name('inbox.show');
+    Route::post('diteruskan', [App\Http\Controllers\InboxController::class, 'forward'])->name('inbox.forward');
+    Route::post('tanggapi', [App\Http\Controllers\InboxController::class, 'reply'])->name('inbox.reply');
 
     Route::get('print-pdf/{id}', [App\Http\Controllers\InboxController::class, 'view_pdf'])->name('inbox.pdf');
 });
@@ -80,4 +82,5 @@ Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(functi
 
 Route::prefix('/aplikasi')->middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('/view', [App\Http\Controllers\ApplicationController::class, 'index'])->name('apps');
+    Route::post('/update-permission', [App\Http\Controllers\ApplicationController::class, 'update_permission'])->name('apps.permission.update');
 });

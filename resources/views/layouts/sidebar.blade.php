@@ -123,7 +123,7 @@
                     </a>
                 </li> --}}
 
-                <li class="menu {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'active' : '' }}">
+                <li class="menu {{ request()->routeIs(['']) ? 'active' : '' }}">
                     <a  href="#report" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
@@ -133,10 +133,10 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </div>
                     </a>
-                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'show' : '' }}" id="report" data-bs-parent="#menusidebar">
-                        <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
+                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['']) ? 'show' : '' }}" id="report" data-bs-parent="#menusidebar">
+                        {{-- <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Disposisi </a>
-                        </li>
+                        </li> --}}
                         <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Tindak Lanjut </a>
                         </li>
@@ -145,9 +145,11 @@
                             <a href="{{ route('inbox') }}"> Agenda </a>
                         </li>
                         @endrole
-                        <li class="{{ request()->routeIs(['inbox']) ? 'active' : '' }}">
-                            <a href="{{ route('inbox') }}"> Statistik </a>
+                        @role(['administrator','umum'])
+                        <li class="{{ request()->routeIs(['inbox.pdf']) ? 'active' : '' }}">
+                            <a href="{{ route('inbox.destroy') }}"> Statistik </a>
                         </li>
+                        @endrole
                     </ul>
                 </li>
 

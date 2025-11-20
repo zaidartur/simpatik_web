@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class InboxController extends Controller
 {
@@ -23,13 +24,10 @@ class InboxController extends Controller
 
     public function index()
     {
-        // $inbox  = ArsipSurat::where('JENISSURAT', 'Masuk')->orderBy('TGLENTRY', 'desc')->limit(20)->get();
-        // foreach ($inbox as $r => $ibx) {
-        //     $inbox[$r]->uid = Crypt::encryptString($ibx->NO);
-        // }
-        $inbox = [];
+        $user  = Auth::user();
+        $posisi = DB::table('instansi')->where('instansi', Auth::user()->jurusan)->first();
         $data  = [
-            'inbox' => $inbox,
+            'posisi'=> json_decode($posisi->akses, true),
             'years' => ArsipSurat::select('TAHUN')->distinct()->orderBy('TAHUN', 'desc')->get(),
         ];
 
@@ -41,6 +39,8 @@ class InboxController extends Controller
         $request = Request();
         $start = $request->start;
         $length = $request->length;
+        $posisi = DB::table('instansi')->where('instansi', Auth::user()->jurusan)->first();
+        $akses  = json_decode($posisi->akses, true);
 
         $query = ArsipSurat::query();
         $query->where('JENISSURAT', 'Masuk');
@@ -49,6 +49,22 @@ class InboxController extends Controller
         }
         if ($request->has('tahun') && $request->tahun != '') {
             $query->where('TAHUN', $request->tahun);
+        }
+        if ($request->has('posisi') && $request->posisi != '' && in_array($request->posisi, $akses)) {
+            $query->where('Posisi', $request->posisi);
+        } else {
+            if (Auth::user()->level == 'operator' && Auth::user()->jurusan == 'Sekretaris Daerah') {
+                $query->whereIn('Posisi', ['Sekretaris Daerah', 'Bupati', 'Wakil Bupati']);
+            }
+            if (Auth::user()->level == 'operator' && Auth::user()->jurusan == 'Wakil Bupati') {
+                $query->whereIn('Posisi', ['Wakil Bupati']);
+            }
+            if (Auth::user()->level == 'operator' && Auth::user()->jurusan == 'Bupati') {
+                $query->whereIn('Posisi', ['Bupati']);
+            }
+        }
+        if ($request->has('status') && $request->status != '') {
+            $query->where('statussurat', $request->status);
         }
         $totalData = $query->count();
 
@@ -64,26 +80,8 @@ class InboxController extends Controller
             });
         }
 
-        // if ($request->has('klasifikasi') && $request->klasifikasi != '') {
-        //     $query->where('SIFAT_SURAT', $request->klasifikasi);
-        // }
-        // if ($request->has('tahun') && $request->tahun != '') {
-        //     $query->where('TAHUN', $request->tahun);
-        // }
-
-        // sorting
-        // if ($request->has('order')) {
-        //     $orderColumnIndex = $request->order[0]['column'];
-        //     $orderDirection = $request->order[0]['dir'];
-        //     $columns = $request->get('columns');
-        //     $columnName = $columns[$orderColumnIndex]['data'];
-        //     $query->orderBy($columnName, $orderDirection);
-        // } else {
-        //     $query->orderBy('TGLENTRY', 'desc');
-        // }
-
         $totalFiltered = $query->count();
-        $query->orderBy('TGLENTRY', 'desc');
+        $query->orderBy('NO', 'desc');
         // $query->offset($start)->limit($length);
         $query->skip($start)->take($length);
         
@@ -105,21 +103,34 @@ class InboxController extends Controller
                 'perihal'   => $ibx->PERIHAL,
                 'kode'      => $ibx->KLAS3,
                 'tgl_buat'  => $ibx->TGLENTRY,
+                'posisi'    => $ibx->Posisi,
+                'class'     => ($ibx->Posisi == 'Sekretaris Daerah' ? 'badge-info' : ($ibx->Posisi == 'Wakil Bupati' ? 'badge-secondary' : ($ibx->Posisi == 'Bupati' ? 'badge-primary' : 'badge-dark'))),
                 'uid'       => Crypt::encryptString($ibx->NO),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">'.
+                                    (!Auth::user()->hasRole(['administrator','umum']) ? '<button type="button" class="btn btn-info bs-tooltip" title="Detail Surat" onclick="viewSurat(`'. base64_encode(json_encode($ibx)) .'`)">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    </button>' : '') .
                                     (Auth::user()->hasRole(['administrator','umum']) ? '<a href="'. route('inbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </a>' : '').
-                                    (Auth::user()->hasRole(['administrator','setda']) ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Tindak Lanjut" onclick="followUp(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    </a>' : '') .
+                                    ((Auth::user()->hasRole(['administrator','setda']) && ($ibx->statussurat == 'disposisi') && ($ibx->Posisi == Auth::user()->jurusan || Auth::user()->level == 'administrator')) ? '<button type="button" class="btn btn-outline-primary bs-tooltip" title="Tindak Lanjut (Teruskan)" onclick="followUp(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                    </button>' : '').
-                                    (Auth::user()->hasRole(['administrator','umum']) ? '<button type="button" class="btn btn-outline-success bs-tooltip" title="Cetak Surat" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    </button>' : '') .
+                                    (($ibx->statussurat == 'selesai') ? '<button type="button" class="btn btn-outline-success bs-tooltip" title="Surat sudah ditindak lanjuti">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    </button>' : ((Auth::user()->level == 'administrator' || $ibx->Posisi == Auth::user()->jurusan) ? '' : '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                                    </button>')) .
+                                    (Auth::user()->hasRole(['administrator','umum']) ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Surat" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                    </button>' : '').
-                                    '<button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                     </button>
-                                </div>',
+                                    <button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat" onclick="_delete(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    </button>' : '') .
+                                    ((Auth::user()->level == 'administrator' || Auth::user()->jurusan == $ibx->Posisi) && $ibx->statussurat == "disposisi" ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                    </button>' : '') .
+                                '</div>',
             ];
         }
 
@@ -172,7 +183,7 @@ class InboxController extends Controller
         ]);
 
         $last = ArsipSurat::where('JENISSURAT', $request->type)->orderBy('NO', 'desc')->first();
-        $kode_urut = intval($last->NOURUT) + 1;
+        $kode_urut = $last->TAHUN == date('Y') ? intval($last->NOURUT) + 1 : 1;
 
         return response()->json(['status' => 'success', 'urut' => $kode_urut]);
     }
@@ -227,21 +238,24 @@ class InboxController extends Controller
         ]);
 
         $last = ArsipSurat::where('JENISSURAT', 'Masuk')->orderBy('NO', 'desc')->first();
-        $kode_urut = intval($last->NOURUT) + 1;
+        $kode_urut = $last->TAHUN == date('Y') ? intval($last->NOURUT) + 1 : 1;
 
         $inbox = new ArsipSurat();
         $inbox->NAMABERKAS      = $request->berkas;
-        $inbox->TGLTERIMA       = Carbon::parse($request->tgl_terima)->format('Y/m/d');
-        $inbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+        $inbox->TGLTERIMA       = Carbon::parse($request->tgl_terima)->format('Y-m-d');
+        $inbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y-m-d');
         $inbox->drkpd           = $request->darikepada;
         $inbox->NAMAKOTA        = $request->wilayah;
         $inbox->PERIHAL         = $request->perihal;
         $inbox->ISI             = $request->isi;
         $inbox->masalahjra      = $request->berkas;
         $inbox->KLAS3           = $request->klasifikasi_kode;
-        $inbox->NOURUT          = $request->urut;
-        $inbox->NOAGENDA        = $request->urut;
-        $inbox->noagenda2       = $request->urut;
+        // $inbox->NOURUT          = $request->urut;
+        // $inbox->NOAGENDA        = $request->urut;
+        // $inbox->noagenda2       = $request->urut;
+        $inbox->NOURUT          = $kode_urut;
+        $inbox->NOAGENDA        = $kode_urut;
+        $inbox->noagenda2       = $kode_urut;
         $inbox->NOSURAT         = $request->no_surat;
         $inbox->AKTIF           = $request->aktif;
         $inbox->INAKTIF         = $request->inaktif;
@@ -251,19 +265,20 @@ class InboxController extends Controller
         $inbox->NILAIGUNA       = $request->nilai_guna;
         $inbox->TMPTBERKAS      = $request->tempat_berkas;
         $inbox->TK_PERKEMBANGAN = $request->perkembangan;
-        $inbox->TGLTERUS        = isset($request->is_diteruskan) ? Carbon::parse($request->tgl_diteruskan)->format('Y/m/d') : null;
+        $inbox->TGLTERUS        = isset($request->is_diteruskan) ? Carbon::parse($request->tgl_diteruskan)->format('Y-m-d') : null;
         $inbox->NAMAUP          = isset($request->is_diteruskan) ? $request->diteruskan_kpd : null;
         $inbox->KODEUP          = null;
         $inbox->SIFAT_SURAT     = $request->sifat_surat;
         $inbox->BALAS           = $request->tindakan;
-        $inbox->TGLBALAS        = Carbon::parse($request->tgl_balas)->format('Y/m/d');
+        $inbox->TGLBALAS        = $inbox->tindakan == 'Non Balas' ? '' : Carbon::parse($request->tgl_balas)->format('Y-m-d');
+        $inbox->statussurat     = isset($request->is_diteruskan) ? 'disposisi' : 'selesai';
 
-        $inbox->NO_SISIP        = null;
+        $inbox->NO_SISIP        = 0;
         $inbox->nodef           = ' ';
         $inbox->TDT             = ' ';
 
         // Header
-        $inbox->poenx           = 'M' . $kode_urut . date('d') .'/' . date('m') . '/0001 ' . date('H:i:s');
+        $inbox->poenx           = 'M' . $kode_urut . date('d') .'/' . date('m') . '/' . date('Y') . ' ' . date('H:i:s');
         $inbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
         $inbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
         $inbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
@@ -272,10 +287,10 @@ class InboxController extends Controller
         $inbox->MEDIA           = 'Teks';
         
         // Operator
-        $inbox->Posisi          = isset($request->is_diteruskan) ? $request->diteruskan_kpd : 'Bagian Umum';
+        $inbox->Posisi          = isset($request->is_diteruskan) ? $request->diteruskan_kpd : Auth::user()->jurusan;
         $inbox->KODEOPR         = Auth::user()->nama_lengkap;
         $inbox->JENISSURAT      = 'Masuk';
-        $inbox->TGLENTRY        = date('Y/m/d');
+        $inbox->TGLENTRY        = date('Y-m-d');
         $inbox->JAM             = date('H:i:s');
 
         $save = $inbox->save();
@@ -321,8 +336,8 @@ class InboxController extends Controller
 
         $inbox = ArsipSurat::where('NO', $request->id)->first();
         $inbox->NAMABERKAS      = $request->berkas;
-        $inbox->TGLTERIMA       = Carbon::parse($request->tgl_terima)->format('Y/m/d');
-        $inbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y/m/d');
+        $inbox->TGLTERIMA       = Carbon::parse($request->tgl_terima)->format('Y-m-d');
+        $inbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y-m-d');
         $inbox->drkpd           = $request->darikepada;
         $inbox->NAMAKOTA        = $request->wilayah;
         $inbox->PERIHAL         = $request->perihal;
@@ -341,12 +356,13 @@ class InboxController extends Controller
         $inbox->NILAIGUNA       = $request->nilai_guna;
         $inbox->TMPTBERKAS      = $request->tempat_berkas;
         $inbox->TK_PERKEMBANGAN = $request->perkembangan;
-        $inbox->TGLTERUS        = isset($request->is_diteruskan) ? Carbon::parse($request->tgl_diteruskan)->format('Y/m/d') : null;
+        $inbox->TGLTERUS        = isset($request->is_diteruskan) ? Carbon::parse($request->tgl_diteruskan)->format('Y-m-d') : null;
         $inbox->NAMAUP          = isset($request->is_diteruskan) ? $request->diteruskan_kpd : null;
         $inbox->KODEUP          = null;
         $inbox->SIFAT_SURAT     = $request->sifat_surat;
         $inbox->BALAS           = $request->tindakan;
-        $inbox->TGLBALAS        = Carbon::parse($request->tgl_balas)->format('Y/m/d');
+        $inbox->TGLBALAS        = Carbon::parse($request->tgl_balas)->format('Y-m-d');
+        $inbox->statussurat     = isset($request->is_diteruskan) ? 'disposisi' : 'selesai';
 
         // Header
         $inbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
@@ -357,7 +373,7 @@ class InboxController extends Controller
         $inbox->MEDIA           = 'Teks';
         
         // Operator
-        $inbox->Posisi          = isset($request->is_diteruskan) ? $request->diteruskan_kpd : 'Bagian Umum';
+        $inbox->Posisi          = isset($request->is_diteruskan) ? $request->diteruskan_kpd : Auth::user()->jurusan;
         $inbox->KODEOPR         = Auth::user()->nama_lengkap;
         $inbox->JENISSURAT      = 'Masuk';
         // $inbox->TGLENTRY        = date('Y/m/d');
@@ -372,7 +388,7 @@ class InboxController extends Controller
         }
     }
 
-    public function drop(Request $request)
+    public function destroy(Request $request)
     {
         $request->validate([
             'uid'    => 'required|string'
@@ -388,6 +404,56 @@ class InboxController extends Controller
             return response()->json(['status' => 'success', 'message' => 'Surat masuk berhasil dihapus.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Surat masuk gagal dihapus.']);
+        }
+    }
+
+    public function forward(Request $request)
+    {
+        $request->validate([
+            'uid'       => 'required|string',
+            'tujuan'    => 'required|string|max:100',
+            'catatan'   => 'nullable|string|max:255',
+        ]);
+
+        $id = json_decode(Crypt::decryptString($request->uid));
+        if (!$id) {
+            return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
+        }
+
+        $inbox = ArsipSurat::where('NO', $id)->first();
+        $inbox->Posisi      = $request->tujuan;
+        if ($request->tujuan == 'Wakil Bupati') {
+            $inbox->DisposisiWakil = $request->catatan;
+            $inbox->tglwakil     = date('Y-m-d H:i:s');
+        } elseif ($request->tujuan == 'Bupati') {
+            $inbox->DisposisiBupati = $request->catatan;
+            $inbox->tglbupati1      = date('Y-m-d H:i:s');
+        }
+        
+        if ($inbox->save()) {
+            return response()->json(['status' => 'success', 'message' => 'Surat berhasil diteruskan.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Surat gagal diteruskan.']);
+        }
+    }
+
+    public function reply(Request $request)
+    {
+        $request->validate([
+            'uid'       => 'required|string',
+        ]);
+
+        $id = json_decode(Crypt::decryptString($request->uid));
+        if (!$id) {
+            return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
+        }
+
+        $inbox = ArsipSurat::where('NO', $id)->first();
+        $inbox->statussurat = 'selesai';
+        if ($inbox->save()) {
+            return response()->json(['status' => 'success', 'message' => 'Surat berhasil ditanggapi.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Surat gagal ditanggapi.']);
         }
     }
 
