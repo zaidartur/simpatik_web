@@ -80,6 +80,18 @@ Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(functi
     Route::post('ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->name('user.change_pwd');
 });
 
+Route::prefix('/laporan')->middleware(['auth'])->group(function () {
+    Route::get('/statistik', [App\Http\Controllers\LaporanController::class, 'statistik'])->name('report.statistik');
+    Route::get('/tabel-statistik', [App\Http\Controllers\LaporanController::class, 'statistik_ssr'])->name('report.statistik.ssr');
+});
+
+Route::prefix('/instansi')->middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('/view', [App\Http\Controllers\InstansiController::class, 'index'])->name('instansi');
+    Route::post('/simpan-instansi', [App\Http\Controllers\InstansiController::class, 'save_instansi'])->name('instansi.save');
+    Route::post('/update-instansi', [App\Http\Controllers\InstansiController::class, 'update_instansi'])->name('instansi.update');
+    Route::post('/hapus-instansi', [App\Http\Controllers\InstansiController::class, 'delete_instansi'])->name('instansi.delete');
+});
+
 Route::prefix('/aplikasi')->middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('/view', [App\Http\Controllers\ApplicationController::class, 'index'])->name('apps');
     Route::post('/update-permission', [App\Http\Controllers\ApplicationController::class, 'update_permission'])->name('apps.permission.update');

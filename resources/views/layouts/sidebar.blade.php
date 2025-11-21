@@ -7,11 +7,11 @@
                     <div class="nav-item theme-logo">
                         <a href="/">
                             {{-- <img src="{{ asset('templates/assets/img/logo.svg') }}" class="navbar" alt="logo"> --}}
-                            <img src="{{ asset('templates/assets/img/logo.svg') }}" class="navbar" alt="logo">
+                            <img src="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" class="navbar" alt="logo" style="width: auto !important;">
                         </a>
                     </div>
                     <div class="nav-item theme-text">
-                        <a href="/" class="nav-link"> EQUATION </a>
+                        <a href="/" class="nav-link"> SIMPATIK </a>
                     </div>
                 </div>
                 <div class="nav-item sidebar-toggle">
@@ -123,7 +123,7 @@
                     </a>
                 </li> --}}
 
-                <li class="menu {{ request()->routeIs(['']) ? 'active' : '' }}">
+                <li class="menu {{ request()->routeIs(['report.statistik']) ? 'active' : '' }}">
                     <a  href="#report" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
@@ -133,7 +133,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </div>
                     </a>
-                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['']) ? 'show' : '' }}" id="report" data-bs-parent="#menusidebar">
+                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['report.statistik']) ? 'show' : '' }}" id="report" data-bs-parent="#menusidebar">
                         {{-- <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Disposisi </a>
                         </li> --}}
@@ -146,8 +146,8 @@
                         </li>
                         @endrole
                         @role(['administrator','umum'])
-                        <li class="{{ request()->routeIs(['inbox.pdf']) ? 'active' : '' }}">
-                            <a href="{{ route('inbox.destroy') }}"> Statistik </a>
+                        <li class="{{ request()->routeIs(['report.statistik']) ? 'active' : '' }}">
+                            <a href="{{ route('report.statistik') }}"> Statistik </a>
                         </li>
                         @endrole
                     </ul>
@@ -169,8 +169,8 @@
                         </div>
                     </a>
                 </li> --}}
-                <li class="menu">
-                    <a href="/" aria-expanded="false" class="dropdown-toggle">
+                <li class="menu {{ request()->routeIs(['instansi']) ? 'active' : '' }}">
+                    <a href="{{ route('instansi') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             {{-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> --}}
                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"></path></svg>
