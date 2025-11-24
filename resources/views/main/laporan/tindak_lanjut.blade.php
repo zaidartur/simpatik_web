@@ -68,17 +68,9 @@
                         <div class="col-6">
                             <h4 class="">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                                Daftar SPPD
+                                Laporan Tindak Lanjut
                             </h4>
                         </div>
-                        @role(['administrator'])
-                        <div class="col-6">
-                            <button class="btn btn-info mb-2 me-4 float-end" id="bt_new" onclick="_new()">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                <span class="btn-text-inner">Buat SPPD</span>
-                            </button>
-                        </div>
-                        @endrole
                     </div>
                 </div>
             </div>
@@ -92,15 +84,19 @@
                     <table id="zero-config" class="table dt-table-hover" style="width:100%" width="100%">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th style="width: 10%">No. SPPD</th>
-                                <th style="width: 10%">Nama</th>
-                                <th style="width: 10%">Jabatan</th>
-                                <th style="width: 10%">Tujuan</th>
-                                <th style="width: 10%">Kendaraan</th>
-                                <th style="width: 20%">Tgl. Surat</th>
-                                <th style="width: 20%">Tgl. Berangkat</th>
-                                <th style="width: 10%">Opsi</th>
+                                <th style="width: 5%; text-align: center;" rowspan="2">#</th>
+                                <th style="width: 10%; text-align: center;" rowspan="2">No. Surat</th>
+                                <th style="width: 10%; text-align: center;" rowspan="2">Nama Berkas</th>
+                                <th style="width: 15%; text-align: center;" rowspan="2">Instansi</th>
+                                <th style="width: 20%; text-align: center;" rowspan="2">Perihal</th>
+                                <th style="width: 20%; text-align: center;" colspan="3">Tindak Lanjut</th>
+                                <th style="width: 10%; text-align: center;" rowspan="2">Posisi</th>
+                                <th style="width: 10%; text-align: center;" rowspan="2">Opsi</th>
+                            </tr>
+                            <tr>
+                                <th>Sekda</th>
+                                <th>Wabup</th>
+                                <th>Bupati</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -111,109 +107,6 @@
 
     </div>
     
-</div>
-
-
-<div class="modal fade" id="sppdNew" tabindex="-1" role="dialog" aria-labelledby="sppdLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="sppdLabel">Buat SPPD</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-            <form action="" method="POST" class="needs-validation new-sppd" novalidate>
-                <div class="modal-body">
-                    @csrf
-                    <input type="hidden" id="uid" name="uid" value="">
-                    <div class="row layout-top-spacing">
-                        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
-                            <div class="widget-content widget-content-area br-8">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                {{-- <h5 class="card-title mb-5">Asal Surat</h5> --}}
-
-                                                <div class="row mb-3">
-                                                    <label for="nosppd" class="col-sm-3 col-form-label">Nomor SPPD</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="text" class="form-control" id="nosppd" name="nosppd" value="" maxlength="100" required autofocus>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="nama" class="col-sm-3 col-form-label">Nama</label>
-                                                    <div class="col-sm-9">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="nama" name="nama" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="jabatan" class="col-sm-3 col-form-label">Jabatan</label>
-                                                    <div class="col-sm-9">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="jabatan" name="jabatan" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="tujuan" class="col-sm-3 col-form-label">Tujuan</label>
-                                                    <div class="col-sm-9">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="tujuan" name="tujuan" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="kendaraan" class="col-sm-3 col-form-label">Kendaraan</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="text" class="form-control" style="text-transform: uppercase;" id="kendaraan" name="kendaraan" value="" maxlength="255" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="tgl_surat" class="col-sm-3 col-form-label">Tanggal Surat</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="date" class="form-control" id="tgl_surat" name="tgl_surat" value="" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="tgl_berangkat" class="col-sm-3 col-form-label">Tanggal Berangkat</label>
-                                                    <div class="col-sm-5">
-                                                        <input type="date" class="form-control" id="tgl_berangkat" name="tgl_berangkat" value="" required>
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light-dark" data-bs-dismiss="modal">Batalkan</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 @endsection
 
@@ -250,20 +143,20 @@
                 "serverSide": true,
                 // "ordering": false,
                 "ajax": {
-                    url: "{{ route('sppd.ssr') }}",
+                    url: "{{ route('report.next.ssr') }}",
                     type: 'GET',
                 },
-                "columns": [
-                    { data: null, orderable: false, searchable: false},
-                    { data: 'nomor', orderable: false },
-                    { data: 'nama', orderable: false },
-                    { data: 'jabatan', orderable: false },
-                    { data: 'tujuan', orderable: false },
-                    { data: 'kendaraan', orderable: false },
-                    { data: 'tgl_surat', orderable: false },
-                    { data: 'tgl_berangkat', orderable: false },
-                    { data: 'option', orderable: false, searchable: false},
-                ],
+                // "columns": [
+                //     { data: null, orderable: false, searchable: false},
+                //     { data: 'nomor', orderable: false },
+                //     { data: 'nama', orderable: false },
+                //     { data: 'jabatan', orderable: false },
+                //     { data: 'tujuan', orderable: false },
+                //     { data: 'kendaraan', orderable: false },
+                //     { data: 'tgl_surat', orderable: false },
+                //     { data: 'tgl_berangkat', orderable: false },
+                //     { data: 'option', orderable: false, searchable: false},
+                // ],
             });
 
             tb_inbox.on('processing.dt', function (e, settings, processing) {

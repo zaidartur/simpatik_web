@@ -82,7 +82,9 @@ Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(functi
 
 Route::prefix('/laporan')->middleware(['auth'])->group(function () {
     Route::get('/statistik', [App\Http\Controllers\LaporanController::class, 'statistik'])->name('report.statistik');
+    Route::get('/tindak-lanjut', [App\Http\Controllers\LaporanController::class, 'tindak_lanjut'])->name('report.next');
     Route::get('/tabel-statistik', [App\Http\Controllers\LaporanController::class, 'statistik_ssr'])->name('report.statistik.ssr');
+    Route::get('/tabel-tindak-lanjut', [App\Http\Controllers\LaporanController::class, 'tindak_lanjut_ssr'])->name('report.next.ssr');
 });
 
 Route::prefix('/instansi')->middleware(['auth', 'role:administrator'])->group(function () {
