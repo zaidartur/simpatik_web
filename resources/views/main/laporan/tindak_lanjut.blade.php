@@ -146,17 +146,17 @@
                     url: "{{ route('report.next.ssr') }}",
                     type: 'GET',
                 },
-                // "columns": [
-                //     { data: null, orderable: false, searchable: false},
-                //     { data: 'nomor', orderable: false },
-                //     { data: 'nama', orderable: false },
-                //     { data: 'jabatan', orderable: false },
-                //     { data: 'tujuan', orderable: false },
-                //     { data: 'kendaraan', orderable: false },
-                //     { data: 'tgl_surat', orderable: false },
-                //     { data: 'tgl_berangkat', orderable: false },
-                //     { data: 'option', orderable: false, searchable: false},
-                // ],
+                "columns": [
+                    { data: null, orderable: false, searchable: false},
+                    { data: 'nomor', orderable: false },
+                    { data: 'berkas', orderable: false },
+                    { data: 'kepada', orderable: false },
+                    { data: 'perihal', orderable: false },
+                    { data: 'sekda', orderable: false },
+                    { data: 'wakil', orderable: false },
+                    { data: 'bupati', orderable: false },
+                    { data: 'option', orderable: false, searchable: false},
+                ],
             });
 
             tb_inbox.on('processing.dt', function (e, settings, processing) {
