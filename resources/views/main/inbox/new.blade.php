@@ -1,6 +1,6 @@
-@can('update', $post)
+{{-- @can('update', $post) --}}
     
-@endcan
+{{-- @endcan --}}
 @extends('layouts.layout')
 
 @section('title', 'Buat Surat Masuk')
