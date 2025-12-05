@@ -122,6 +122,13 @@ class OutboxController extends Controller
         return view('main.outbox.new', $data);
     }
 
+    public function duplicate()
+    {
+        $data = [];
+
+        return view('main.outbox.duplikat', $data);
+    }
+
     public function edit($id)
     {
         $no    = (Crypt::decryptString($id));
@@ -404,5 +411,18 @@ class OutboxController extends Controller
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Surat keluar gagal dihapus.']);
         }
+    }
+
+    public function check_surat(Request $request)
+    {
+        $request->validate([
+            'nosurat'   => 'required|string|max:100',
+        ]);
+
+        $res = ArsipSurat::where('JENISSURAT', 'Keluar')->where('NOSURAT', 'like', '%'.$request->nosurat.'%')->orderBy('noagenda2', 'asc')->get();
+
+        if (!$res || count($res) < 1) return response()->json(['status' => 'failed', 'message' => 'Nomor surat tidak ditemukan.', 'data' => []]);
+
+        return response()->json(['status' => 'success', 'message' => 'Nomor surat ditemukan.', 'data' => $res]);
     }
 }

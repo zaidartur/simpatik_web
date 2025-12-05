@@ -69,6 +69,7 @@
                         </li>
                     </ul>
                 </li>
+                @role(['administrator','umum'])
                 <li class="menu {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit']) ? 'active' : '' }}">
                     <a href="#outbox" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -79,15 +80,19 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </div>
                     </a>
-                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit']) ? 'show' : '' }}" id="outbox" data-bs-parent="#menusidebar">
+                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit', 'outbox.duplicate']) ? 'show' : '' }}" id="outbox" data-bs-parent="#menusidebar">
                         <li class="{{ request()->routeIs(['outbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('outbox.create') }}"> Buat Surat </a>
                         </li>
                         <li class="{{ request()->routeIs(['outbox']) ? 'active' : '' }}">
                             <a href="{{ route('outbox') }}"> Daftar Surat </a>
                         </li>
+                        <li class="{{ request()->routeIs(['outbox.duplicate']) ? 'active' : '' }}">
+                            <a href="{{ route('outbox.duplicate') }}"> Duplikat Surat </a>
+                        </li>
                     </ul>
                 </li>
+                @endrole
                 
                 {{-- <li class="menu">
                     <a href="./app-calendar.html" aria-expanded="false" class="dropdown-toggle">
@@ -105,6 +110,8 @@
                         </div>
                     </a>
                 </li> --}}
+
+                @role(['administrator','umum'])
                 <li class="menu {{ request()->routeIs(['sppd']) ? 'active' : '' }}">
                     <a href="{{ route('sppd') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -113,15 +120,7 @@
                         </div>
                     </a>
                 </li>
-
-                {{-- <li class="menu">
-                    <a href="./app-notes.html" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                            <span>Agenda Surat</span>
-                        </div>
-                    </a>
-                </li> --}}
+                @endrole
 
                 <li class="menu {{ request()->routeIs(['report.statistik']) ? 'active' : '' }}">
                     <a  href="#report" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -133,7 +132,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </div>
                     </a>
-                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['report.statistik', 'report.next']) ? 'show' : '' }}" id="report" data-bs-parent="#menusidebar">
+                    <ul class="collapse submenu list-unstyled {{ request()->routeIs(['report.statistik', 'report.next', 'report.agenda']) ? 'show' : '' }}" id="report" data-bs-parent="#menusidebar">
                         {{-- <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Disposisi </a>
                         </li> --}}
@@ -142,9 +141,9 @@
                             <a href="{{ route('report.next') }}"> Tindak Lanjut </a>
                         </li>
                         @endrole
-                        @role(['administrator','setda'])
-                        <li class="{{ request()->routeIs(['inbox']) ? 'active' : '' }}">
-                            <a href="{{ route('inbox') }}"> Agenda </a>
+                        @role(['administrator','setda', 'wabup', 'bupati'])
+                        <li class="{{ request()->routeIs(['report.agenda']) ? 'active' : '' }}">
+                            <a href="{{ route('report.agenda') }}"> Agenda </a>
                         </li>
                         @endrole
                         @role(['administrator','umum'])

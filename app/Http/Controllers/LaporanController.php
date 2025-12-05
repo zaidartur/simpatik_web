@@ -6,7 +6,11 @@ use App\Models\ArsipSurat;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
+ini_set('memory_limit', '1024M');
+ini_set('max_execution_time', '300');
 class LaporanController extends Controller
 {
     public function __construct() {
@@ -27,6 +31,14 @@ class LaporanController extends Controller
     public function tindak_lanjut()
     {
         return view('main.laporan.tindak_lanjut');
+    }
+
+    public function agenda()
+    {
+        $data = [
+            'years' => ArsipSurat::select('TAHUN')->distinct()->orderBy('TAHUN', 'desc')->get(),
+        ];
+        return view('main.laporan.agenda', $data);
     }
 
     public function statistik_ssr()
@@ -163,5 +175,141 @@ class LaporanController extends Controller
                 'data' => [],
             ]);
         }
+    }
+
+    public function agenda_ssr()
+    {
+        $request = Request();
+        $user = $request->user();
+        if ($user->hasAnyRole(['administrator', 'umum', 'setda', 'wabup', 'bupati'])) {
+            $start = $request->start;
+            $length = $request->length;
+
+            $query = ArsipSurat::where('TAHUN', (!empty($request->year) ? $request->year : date('Y')));
+
+            if (isset($request->jenis) && in_array($request->jenis, ['Masuk', 'Keluar'])) {
+                $query->where('JENISSURAT', $request->jenis);
+            }
+            if (isset($request->bulan) && !empty($request->bulan) && (intval($request->bulan) > 0 && intval($request->bulan) < 13)) {
+                $query->where('BULAN', $request->bulan);
+            }
+
+            $query->orderBy('noagenda2', 'ASC');
+
+            $totalData = $query->count();
+
+            // search query
+            if ($request->has('search') && $request->search['value'] != '') {
+                $search = $request->search['value'];
+                $query->where(function ($q) use ($search) {
+                    $q->where('NOSURAT', 'like', "%$search%")
+                        ->orWhere('drkpd', 'like', "%$search%")
+                        ->orWhere('PERIHAL', 'like', "%$search%")
+                        ->orWhere('ISI', 'like', "%$search%")
+                        ->orWhere('KLAS3', 'like', "%$search%");
+                });
+            }
+            $totalFiltered = $query->count();
+            $list = $query->skip($start)->take($length)->get();
+
+            $data = [];
+            foreach ($list as $l => $row) {
+                $data[$l] = [
+                    'no_agenda' => $row->NOAGENDA,
+                    'kepada'    => $row->JENISSURAT == 'Masuk' ? $row->Posisi : $row->drkpd,
+                    'tgl_buat'  => Carbon::parse($row->TGLENTRY)->isoFormat('DD-MM-YYYY'),
+                    'tanggal'   => Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'),
+                    'nomor'     => $row->NOSURAT,
+                    'row3'      => Carbon::parse($row->TGLENTRY)->isoFormat('DD-MM-YYYY'). '<br>' .Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'). '<br>' .$row->NOSURAT,
+                    'kode'      => $row->KLAS3,
+                    'jra'       => $row->KETJRA,
+                    'isi_surat' => $row->ISI,
+                    'row4'      => $row->KLAS3. '<br><b>' .$row->KETJRA. '</b><br>' .$row->ISI,
+                    // 'dari'      => $row->drkpd,
+                    'berkas'    => $row->NAMABERKAS,
+                    'wilayah'   => $row->WILAYAH,
+                    'dari'      => $row->JENISSURAT == 'Keluar' ? $row->NAMAUP : $row->drkpd,
+                    'perihal'   => $row->PERIHAL,
+                    'class'     => ($row->Posisi == 'Sekretaris Daerah' ? 'badge-info' : ($row->Posisi == 'Wakil Bupati' ? 'badge-secondary' : ($row->Posisi == 'Bupati' ? 'badge-primary' : 'badge-dark'))),
+                    'uid'       => Crypt::encryptString($row->NO),
+                ];
+
+                if ($user->hasAnyRole(['administrator', 'umum', 'setda'])) {
+                    $data[$l] += [
+                        'sekda'     => '<b><p style="width: 100%; text-align: right;">' .(empty($row->tglsekda1) ? null : Carbon::parse($row->tglsekda1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiSekda,
+                        'sekda2'    => '<b><p style="width: 100%; text-align: right;">' . (empty($row->tglsekda2) ? null : Carbon::parse($row->tglsekda2)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiSekda2,
+                        'bupati'    => '<b><p style="width: 100%; text-align: right;">' .(empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiBupati,
+                        'wakil'     => '<b><p style="width: 100%; text-align: right;">'. (empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiWakil,
+                        'tsekda'    => empty($row->tglsekda1) ? null : Carbon::parse($row->tglsekda1)->isoFormat('DD-MM-YYYY HH:mm'),
+                        'tsekda2'   => empty($row->tglsekda2) ? null : Carbon::parse($row->tglsekda2)->isoFormat('DD-MM-YYYY HH:mm'),
+                        'tbupati'   => empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm'),
+                        'twakil'    => empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm'),
+                    ];
+                }
+
+                if ($user->hasAnyRole(['wabup'])) {
+                    $data[$l] += [
+                        'wakil'     => '<b><p style="width: 100%; text-align: right;">'. (empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiWakil,
+                        'twakil'    => empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm'),
+                    ];
+                }
+
+                if ($user->hasAnyRole(['bupati'])) {
+                    $data[$l] += [
+                        'bupati'    => '<b><p style="width: 100%; text-align: right;">' .(empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiBupati,
+                        'tbupati'   => empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm'),
+                    ];
+                }
+            }
+
+            return response()->json([
+                'draw' => intval($request->draw) ?? 0,
+                'recordsTotal' => $totalData,
+                'recordsFiltered' => $totalFiltered,
+                'data' => $data,
+            ]);
+        } else {
+            return response()->json([
+                'draw' => intval($request->draw) ?? 0,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ]);
+        }
+    }
+
+    public function agenda_print() 
+    {
+        $request = Request();
+        $year    = !empty($request->tahun) ? $request->tahun : date('Y');
+        $month   = $request->bulan;
+        $type    = $request->jenis;
+
+        $query   = ArsipSurat::where('TAHUN', $year);
+        if (!empty($type) && in_array($type, ['Masuk', 'Keluar'])) {
+            $query->where('JENISSURAT', $type);
+        }
+        if (!empty($month) && (intval($month) > 0 && intval($month) < 13)) {
+            $query->where('BULAN', (intval($month) < 10 ? '0'.$month : $month));
+        }
+        
+        $res = $query->orderBy('noagenda2', 'ASC')->get();
+
+        $pdf = $this->build_pdf($res, $type, $year, $month);
+        return $pdf->stream('agenda_' .$year.$month. '.pdf');
+    }
+
+    public function build_pdf($agenda, $type, $tahun, $bulan)
+    {
+        $pdf = Pdf::setPaper('legal', 'landscape');
+        // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
+        $data = [
+            'data'  => $agenda,
+            'jenis' => $type,
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+        ];
+        $pdf->loadView('main.laporan.template_agenda', $data);
+        return $pdf;
     }
 }

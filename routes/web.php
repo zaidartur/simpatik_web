@@ -44,14 +44,17 @@ Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
 
 Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {
     Route::get('/view', [App\Http\Controllers\OutboxController::class, 'index'])->name('outbox');
+    Route::get('duplikasi-surat', [App\Http\Controllers\OutboxController::class, 'duplicate'])->name('outbox.duplicate');
     Route::get('/daftar-surat', [App\Http\Controllers\OutboxController::class, 'serverside'])->name('outbox.ssr');
     Route::get('buat-surat', [App\Http\Controllers\OutboxController::class, 'create'])->name('outbox.create');
     Route::post('simpan-surat', [App\Http\Controllers\OutboxController::class, 'store'])->name('outbox.store');
     Route::get('edit-surat/{id}', [App\Http\Controllers\OutboxController::class, 'edit'])->name('outbox.edit');
+    Route::get('lihat-surat/{id}', [App\Http\Controllers\OutboxController::class, 'show'])->name('outbox.show');
+
     Route::post('update-surat', [App\Http\Controllers\OutboxController::class, 'update'])->name('outbox.update');
     // Route::post('nomor-urut', [App\Http\Controllers\OutboxController::class, 'nomor_urut'])->name('outbox.urut');
     Route::post('hapus-surat', [App\Http\Controllers\OutboxController::class, 'destroy'])->name('outbox.destroy');
-    Route::get('lihat-surat/{id}', [App\Http\Controllers\OutboxController::class, 'show'])->name('outbox.show');
+    Route::post('cek-nomor-surat', [App\Http\Controllers\OutboxController::class, 'check_surat'])->name('outbox.check');
 });
 
 Route::prefix('/sppd')->middleware(['auth'])->group(function () {
@@ -83,8 +86,12 @@ Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(functi
 Route::prefix('/laporan')->middleware(['auth'])->group(function () {
     Route::get('/statistik', [App\Http\Controllers\LaporanController::class, 'statistik'])->name('report.statistik');
     Route::get('/tindak-lanjut', [App\Http\Controllers\LaporanController::class, 'tindak_lanjut'])->name('report.next');
+    Route::get('/agenda', [App\Http\Controllers\LaporanController::class, 'agenda'])->name('report.agenda');
     Route::get('/tabel-statistik', [App\Http\Controllers\LaporanController::class, 'statistik_ssr'])->name('report.statistik.ssr');
     Route::get('/tabel-tindak-lanjut', [App\Http\Controllers\LaporanController::class, 'tindak_lanjut_ssr'])->name('report.next.ssr');
+    Route::get('/tabel-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_ssr'])->name('report.agenda.ssr');
+    
+    Route::get('/print-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_print'])->name('report.agenda.print');
 });
 
 Route::prefix('/instansi')->middleware(['auth', 'role:administrator'])->group(function () {
