@@ -50,11 +50,13 @@ Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {
     Route::post('simpan-surat', [App\Http\Controllers\OutboxController::class, 'store'])->name('outbox.store');
     Route::get('edit-surat/{id}', [App\Http\Controllers\OutboxController::class, 'edit'])->name('outbox.edit');
     Route::get('lihat-surat/{id}', [App\Http\Controllers\OutboxController::class, 'show'])->name('outbox.show');
+    Route::get('nomor-sppd', [App\Http\Controllers\OutboxController::class, 'last_sppd'])->name('outbox.sppd.last');
 
     Route::post('update-surat', [App\Http\Controllers\OutboxController::class, 'update'])->name('outbox.update');
     // Route::post('nomor-urut', [App\Http\Controllers\OutboxController::class, 'nomor_urut'])->name('outbox.urut');
     Route::post('hapus-surat', [App\Http\Controllers\OutboxController::class, 'destroy'])->name('outbox.destroy');
     Route::post('cek-nomor-surat', [App\Http\Controllers\OutboxController::class, 'check_surat'])->name('outbox.check');
+    Route::post('duplikat-surat', [App\Http\Controllers\OutboxController::class, 'duplikat'])->name('outbox.duplikat');
 });
 
 Route::prefix('/sppd')->middleware(['auth'])->group(function () {

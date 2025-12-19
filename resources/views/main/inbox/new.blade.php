@@ -67,7 +67,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_terima" class="col-sm-3 col-form-label">Tanggal Terima</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_terima" name="tgl_terima" value="" required>
+                                                <input type="date" class="form-control" id="tgl_terima" name="tgl_terima" value="{{ date('Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -165,6 +165,15 @@
                                             <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="no_surat" name="no_surat" value="" maxlength="15" required>
+                                                <div class="invalid-feedback">
+                                                    Field ini wajib di isi.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="lampiran" class="col-sm-3 col-form-label">Jumlah Lampiran</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" id="lampiran" name="lampiran" value="-" maxlength="15" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -345,8 +354,9 @@
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="diteruskan_kpd" name="diteruskan_kpd" value=""> --}}
                                                 <select class="form-select lbl-diteruskan" id="diteruskan_kpd" name="diteruskan_kpd" required>
-                                                    <option value="Sekretaris Daerah">Sekretaris Daerah</option>
-                                                    <option value="Bupati">Bupati</option>
+                                                    <option value="Sekretaris Daerah" selected>Sekretaris Daerah</option>
+                                                    <option value="Wakil Bupati">Wakil Bupati</option>
+                                                    {{-- <option value="Bupati">Bupati</option> --}}
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -371,8 +381,8 @@
 
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
-                        <div class="row">
-                            <div class="col-md-6">
+                        <div class="row justify-content-center">
+                            {{-- <div class="col-md-6">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <h5 class="card-title mb-5">
@@ -397,25 +407,25 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
+                            </div> --}}
+                            <div class="col-md-8">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <h5 class="card-title mb-5">
                                             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                                            File Lampiran
+                                            Scan Surat Masuk
                                         </h5>
                                         
                                         <div class="row mb-3">
                                             <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Lampiran (maksimum 5Mb, format PDF)</label>
+                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Hasil Scan Surat Masuk (maksimum 10Mb, format PDF/Gambar)</label>
                                                 <div class="multiple-file-upload">
                                                     <input type="file" 
-                                                        class="filepond file-upload-lampiran"
-                                                        name="lampiran" 
+                                                        class="filepond file-upload-scan"
+                                                        name="is_scan" 
                                                         multiple 
                                                         data-allow-reorder="true"
-                                                        data-max-file-size="5MB"
+                                                        data-max-file-size="10MB"
                                                     >
                                                 </div>
                                             </div>
@@ -483,9 +493,9 @@
                 }),
             });
 
-            var lampiran = FilePond.create(document.querySelector('.file-upload-lampiran'), {
-                acceptedFileTypes: ['application/pdf'],
-                fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
+            var lampiran = FilePond.create(document.querySelector('.file-upload-scan'), {
+                acceptedFileTypes: ['application/pdf', 'image/jpg', 'image/png', 'image/jpeg'],
+                fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf', 'image/*': '.jpg, .png, .jpeg' },
             });
 
             const autoCompleteJS = new autoComplete({
@@ -531,20 +541,27 @@
                             // Replace Input value with the selected value
                             const splitSelection = selection.split(' - ');
 
-                            autoCompleteJS.input.value = splitSelection[0];
-                            document.getElementById('berkas').value = splitSelection[1]
-                            document.getElementById('no_surat').value = splitSelection[0] + '/   /' + new Date().getFullYear();
                             focusNextInput();
-                            get_nomor_urut();
+                            get_nomor_urut();                            
                             set_jra(selection);
 
-                            const inputElement = document.getElementById('no_surat');
-                            inputElement.focus(); // Set focus on the input field
+                            document.getElementById('no_surat').value = 'Generating...';
+                            document.getElementById('no_surat').readOnly = true;
+                            setTimeout(() => {
+                                const nomor = document.getElementById('urut').value;
+                                autoCompleteJS.input.value = splitSelection[0];
+                                document.getElementById('berkas').value = splitSelection[1]
+                                document.getElementById('no_surat').value = splitSelection[0] + '/'+ nomor +'/' + new Date().getFullYear();
+                                document.getElementById('no_surat').readOnly = false;
 
-                            const textLength = inputElement.value.length;
-                            const middleIndex = Math.floor(textLength / 2);
+                                const inputElement = document.getElementById('no_surat');
+                                inputElement.focus(); // Set focus on the input field
 
-                            inputElement.setSelectionRange(middleIndex, middleIndex);
+                                // const textLength = inputElement.value.length;
+                                // const middleIndex = Math.floor(textLength / 2);
+
+                                // inputElement.setSelectionRange(middleIndex, middleIndex);
+                            }, 2000);
                         },
                     },
                 },
@@ -594,6 +611,7 @@
 
                 const data = await response.json();
                 document.getElementById('urut').value = data.urut;
+                return data.urut;
             } catch (error) {
                 console.error('Error fetching nomor urut:', error);
                 return null;

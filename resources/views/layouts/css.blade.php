@@ -11,3 +11,6 @@
     <link rel="stylesheet" href="{{ asset('templates/plugins/src/sweetalerts2/sweetalerts2.css') }}">
     <link href="{{ asset('templates/plugins/css/light/sweetalerts2/custom-sweetalert.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/plugins/css/dark/sweetalerts2/custom-sweetalert.css') }}" rel="stylesheet" type="text/css" />
+
+    <link href="{{ asset('templates/assets/css/light/elements/tooltip.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/assets/css/dark/elements/tooltip.css') }}" rel="stylesheet" type="text/css" />

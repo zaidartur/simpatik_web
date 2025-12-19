@@ -11,7 +11,7 @@
                         </a>
                     </div>
                     <div class="nav-item theme-text">
-                        <a href="/" class="nav-link"> SIMPATIK </a>
+                        <a href="/" class="nav-link"> SIPERMAS </a>
                     </div>
                 </div>
                 <div class="nav-item sidebar-toggle">
@@ -28,6 +28,7 @@
                     <div class="profile-content">
                         <h6 class="">{{ Auth::user()->nama_lengkap }}</h6>
                         <p class="">{{ Auth::user()->jurusan }}</p>
+                        <p>{{ Auth::user()->level }}</p>
                     </div>
                 </div>
             </div>
@@ -61,9 +62,11 @@
                         </div>
                     </a>
                     <ul class="collapse submenu list-unstyled {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'show' : '' }}" id="inbox" data-bs-parent="#menusidebar">
+                        @role(['administrator','umum'])
                         <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
-                            <a href="{{ route('inbox.create') }}"> Buat Surat </a>
+                            <a href="{{ route('inbox.create') }}"> Input Surat </a>
                         </li>
+                        @endrole
                         <li class="{{ request()->routeIs(['inbox']) ? 'active' : '' }}">
                             <a href="{{ route('inbox') }}"> Daftar Surat </a>
                         </li>
@@ -82,7 +85,7 @@
                     </a>
                     <ul class="collapse submenu list-unstyled {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit', 'outbox.duplicate']) ? 'show' : '' }}" id="outbox" data-bs-parent="#menusidebar">
                         <li class="{{ request()->routeIs(['outbox.create']) ? 'active' : '' }}">
-                            <a href="{{ route('outbox.create') }}"> Buat Surat </a>
+                            <a href="{{ route('outbox.create') }}"> Input Surat </a>
                         </li>
                         <li class="{{ request()->routeIs(['outbox']) ? 'active' : '' }}">
                             <a href="{{ route('outbox') }}"> Daftar Surat </a>
@@ -192,6 +195,14 @@
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span>Daftar User</span>
+                        </div>
+                    </a>
+                </li>
+                <li class="menu {{ request()->routeIs(['user']) ? 'active' : '' }}">
+                    <a href="{{ route('user') }}" aria-expanded="false" class="dropdown-toggle">
+                        <div class="">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span>Data Pimpinan</span>
                         </div>
                     </a>
                 </li>

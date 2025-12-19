@@ -51,8 +51,8 @@
                             {{-- <img src="{{ asset('templates/assets/img/auth-cover.svg') }}" alt="auth-img"> --}}
                             <img src="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" alt="auth-img" style="width: 200px; height: auto;">
     
-                            <h1 class="mt-5 text-white font-weight-bolder px-2">SIMPATIK</h1>
-                            <h2 class="mt-5 text-white font-weight-bolder px-2">Sistem Pengelolaan Arsip Dinamis<br>Kabupaten Karanganyar</h2>
+                            <h1 class="mt-5 text-white font-weight-bolder px-2">SIPERMAS</h1>
+                            <h2 class="mt-5 text-white font-weight-bolder px-2">Sistem Informasi Persuratan Masuk dan Keluar Kabupaten Karanganyar</h2>
                         </div>
                         
                     </div>

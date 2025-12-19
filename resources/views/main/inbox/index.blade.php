@@ -413,15 +413,15 @@
         function followUp(uid) {
             Swal.fire({
                 title: 'Tindak Lanjut Surat',
+                // text: 'Surat akan ditandai sebagai telah ditanggapi (selesai) setelah Anda mengonfirmasi tindakan ini.',
                 html: `
                     <select id="tujuan" class="swal2-select" style="width: 80%; margin: auto;">
                         <option value="" disabled selected>Pilih Tindakan</option>
                         <option value="Wakil Bupati">Wakil Bupati</option>
                         <option value="Bupati">Bupati</option>
                     </select>
-                    <br/><br/>
-                    <textarea id="notes" class="swal2-textarea" placeholder="Catatan (opsional)" style="width: 80%;"></textarea>
                 `,
+                icon: 'question',
                 focusConfirm: false,
                 showCancelButton: true,
                 cancelButtonText: 'Batal',
@@ -432,13 +432,80 @@
                 preConfirm: async() => {
                     const forward = document.getElementById('tujuan').value;
                     if (!forward) {
-                        Swal.showValidationMessage('Tindakan harus dipilih!');
+                        Swal.showValidationMessage('Mohon untuk memilih tujuan');
+                        return false;
+                    }
+
+                    try {
+                        return $.ajax({
+                            url: `{{ route('inbox.forward') }}`,
+                            type: "POST",
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content'),
+                                uid: uid,
+                                tujuan: forward,
+                            },
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    return response;
+                                } else {
+                                    Swal.showValidationMessage(response.message || 'Gagal menandai surat sebagai telah ditanggapi.');
+                                    return false;
+                                }
+                            },
+                            error: function() {
+                                Swal.showValidationMessage('Terjadi kesalahan pada sistem.');
+                                return false;
+                            }
+                        });
+                    } catch(error) {
+                        Swal.showValidationMessage('Terjadi kesalahan pada sistem.');
+                        return false;
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value && result.value.status === 'success') {
+                        $('#zero-config').DataTable().ajax.reload(null, false);
+                        Swal.fire({
+                            icon: 'success',
+                            title: result.value.message || 'Surat berhasil ditandai sebagai telah ditanggapi.',
+                        });
+                    } else {
+                        Toast.fire({
+                            icon: 'error',
+                            title: result.value.message || 'Gagal menandai surat sebagai telah ditanggapi.'
+                        });
+                    }
+                }
+            });
+        }
+        @endrole
+
+        @role(['administrator', 'wabup', 'bupati', 'setda'])
+        function _reply(uid) {
+            Swal.fire({
+                title: 'Tanggapi Surat',
+                html: `
+                    <textarea id="notes" class="swal2-textarea" placeholder="Catatan" style="width: 80%;"></textarea>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Konfirmasi',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showLoaderOnConfirm: true,
+                preConfirm: async() => {
+                    const forward = document.getElementById('notes').value;
+                    if (!forward) {
+                        Swal.showValidationMessage('Mohon untuk mengisi catatan!');
                         return false;
                     }
 
                     try {
                         return await $.ajax({
-                            url: `{{ route('inbox.forward') }}`,
+                            url: `{{ route('inbox.reply') }}`,
                             type: "POST",
                             data: {
                                 _token: $('meta[name="csrf-token"]').attr('content'),
@@ -488,79 +555,22 @@
         }
         @endrole
 
-        @role(['administrator', 'wabup', 'bupati', 'setda'])
-        function _reply(uid) {
-            Swal.fire({
-                title: 'Tanggapi Surat',
-                text: 'Surat akan ditandai sebagai telah ditanggapi (selesai) setelah Anda mengonfirmasi tindakan ini.',
-                icon: 'question',
-                focusConfirm: false,
-                showCancelButton: true,
-                cancelButtonText: 'Batal',
-                confirmButtonText: 'Konfirmasi',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showLoaderOnConfirm: true,
-                preConfirm: async() => {
-                    try {
-                        return $.ajax({
-                            url: `{{ route('inbox.reply') }}`,
-                            type: "POST",
-                            data: {
-                                _token: $('meta[name="csrf-token"]').attr('content'),
-                                uid: uid,
-                            },
-                            success: function(response) {
-                                if (response.status === 'success') {
-                                    return response;
-                                } else {
-                                    Swal.showValidationMessage(response.message || 'Gagal menandai surat sebagai telah ditanggapi.');
-                                    return false;
-                                }
-                            },
-                            error: function() {
-                                Swal.showValidationMessage('Terjadi kesalahan pada sistem.');
-                                return false;
-                            }
-                        });
-                    } catch(error) {
-                        Swal.showValidationMessage('Terjadi kesalahan pada sistem.');
-                        return false;
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (result.value && result.value.status === 'success') {
-                        $('#zero-config').DataTable().ajax.reload(null, false);
-                        Swal.fire({
-                            icon: 'success',
-                            title: result.value.message || 'Surat berhasil ditandai sebagai telah ditanggapi.',
-                        });
-                    } else {
-                        Toast.fire({
-                            icon: 'error',
-                            title: result.value.message || 'Gagal menandai surat sebagai telah ditanggapi.'
-                        });
-                    }
-                }
-            });
-        }
-        @endrole
-
         @role(['setda', 'wabup', 'bupati'])
         // Initialize the stepper
-        var stepperWizardIcon = document.querySelector('.stepper-icons');
-        var stepperIcon = new Stepper(stepperWizardIcon, {
-            animation: true
-        })
-        var lastLoc = 0;
+        // var stepperWizardIcon = document.querySelector('.stepper-icons');
+        // var stepperIcon = new Stepper(stepperWizardIcon, {
+        //     animation: true
+        // })
+        // var lastLoc = 0;
 
         $('#detailSurat').on('shown.bs.modal', function (event) {
-            stepperIcon.goTo(lastLoc);
+            // stepperIcon.goTo(lastLoc);
         });
 
         function viewSurat(uid) {
-            let detail = `
+            const data = JSON.parse(atob(uid));
+            console.log(data)
+            let header = `
                 <div class="bs-stepper stepper-icons">
                     <div class="bs-stepper-header" role="tablist">
                         <div class="step" data-target="#withIconsStep-one">
@@ -593,8 +603,89 @@
                     </div>
                 </div>
             `
+            let detail = `
+                <div class="col-12 mt-4">
+                    <table class="table table-bordered table-hover" width="100%">
+                        <tr>
+                            <td colspan="4">
+                                <h3 class="text-center">DETAIL SURAT MASUK</h3>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td><label><b>No. Urut</b></label></td>
+                            <td><label>${data.NOAGENDA}</label></td>
+                            <td><label><b>Kode</b></label></td>
+                            <td><label>${data.KLAS3}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Berkas</b></label></td>
+                            <td colspan="3"><label>${data.NAMABERKAS}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Perihal</b></label></td>
+                            <td><label>${data.PERIHAL}</label></td>
+                            <td><label><b>Lampiran</b></label></td>
+                            <td><label>${data.lampiran ?? '-'}</label></td>
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; vertical-align: top; text-align: left;"><label><b>Isi</b></label></td>
+                            <td colspan="3" style="height: 100px; vertical-align: top; text-align: left;"><label>${data.ISI}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Dari</b></label></td>
+                            <td colspan="3"><label>${data.drkpd}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Alamat</b></label></td>
+                            <td colspan="3"><label>${data.NAMAKOTA}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Tgl. Surat</b></label></td>
+                            <td><label>${data.TGLSURAT}</label></td>
+                            <td><label><b>No. Surat</b></label></td>
+                            <td><label>${data.NOSURAT}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Tgl. Terima</b></label></td>
+                            <td><label>${data.TGLTERIMA}</label></td>
+                            <td><label><b>Diteruskan?</b></label></td>
+                            <td><label>${data.NAMAUP ? 'Ya' : 'Tidak'}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Sifat</b></label></td>
+                            <td><label>${data.SIFAT_SURAT}</label></td>
+                            <td><label><b>Tindakan</b></label></td>
+                            <td><label>${data.BALAS ?? '-'}</label></td>
+                        </tr>`
+            if (data.NAMAUP && data.NAMAUP.length > 0) {
+                detail += `
+                        <tr>
+                            <td><label><b>Diterukan Kpd.</b></label></td>
+                            <td><label>${data.NAMAUP}</label></td>
+                            <td><label><b>Tanggal Diteruskan</b></label></td>
+                            <td><label>${data.TGLTERUS}</label></td>
+                        </tr>
+                `
+            }    
+                        
+            detail += `<tr>
+                            <td><label><b>Status Surat</b></label></td>
+                            <td><label>${data.statussurat}</label></td>
+                            <td><label><b>Posisi Terakhir Surat</b></label></td>
+                            <td><label>${data.Posisi}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>File Arsip</b></label></td>
+                            <td colspan="3"><label>${data.pdf ?? '-'}</label></td>
+                        </tr>
+                    </table>
+                </div>
+            `
             $('#detail').html(detail);
-            lastLoc = 3;
+            // lastLoc = 3;
             $('#detailSurat').modal('show');
         }
         @endrole

@@ -104,6 +104,7 @@
                         </div> --}}
                     </div>
                     <div class="col-12 row g-4">
+                        <input type="hidden" name="id_surat" id="id_surat" value="">
                         <hr class="col-12 mb-5">
                         <div class="col-md-4 col-sm-12">
                             <div id="results"></div>
@@ -144,6 +145,7 @@
             let text = $('#nosurat').val()
             if (text) {
                 let serach = $('#btsearch')
+                $('#id_surat').val('')
 
                 serach.html(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin me-2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg> Memproses...`)
                 serach.removeClass('btn-outline-primary')
@@ -195,12 +197,15 @@
 
                                 $('#results').html(content)
                                 $('#description').html(desc)
+                                $('#id_surat').val(res.data[0].NO)
                                 _show_print()
 
                                 $('#list-tab a').on('click', function (e) {
                                     e.preventDefault()
                                     // console.log(e.target.id)
                                     const id = e.target.id
+                                    // console.log(id)
+                                    $('#id_surat').val(id.split('_')[1])
                                     $('#list-tab a').each(function () {
                                         $(this).find('span').remove();
                                     });
@@ -262,7 +267,7 @@
                             <div class="row justify-content-center">
                                 <button type="button" class="btn btn-outline-secondary col-6" id="btprint" onclick="_print()">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                    <span class="btn-text-inner">Cetak</span>
+                                    <span class="btn-text-inner">Konfirmasi & Cetak</span>
                                 </button>
                             </div>
                         </div>`
@@ -290,23 +295,24 @@
                 prints.removeClass('btn-outline-secondary')
                 prints.addClass('btn-secondary')
                 prints.attr('disabled', '')
+                const uid = $('#id_surat').val()
                 await new Promise((resolve) => {
                     $.ajax({
-                        url: "",
+                        url: "{{ route('outbox.duplikat') }}",
                         type: "POST",
-                        data: {},
+                        data: {uid: btoa(uid), jumlah: parseInt(jml), _token: $('meta[name="csrf-token"]').attr('content')},
                         dataType: "JSON",
                         success: function (r) {
                             //
 
-                            prints.html('<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span class="btn-text-inner">Cetak</span>')
+                            prints.html('<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span class="btn-text-inner">Konfirmasi & Cetak</span>')
                             prints.removeClass('btn-secondary')
                             prints.addClass('btn-outline-secondary')
                             prints.removeAttr('disabled')
                             resolve()
                         },
                         error: function() {
-                            prints.html('<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span class="btn-text-inner">Cetak</span>')
+                            prints.html('<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span class="btn-text-inner">Konfirmasi & Cetak</span>')
                             prints.removeClass('btn-secondary')
                             prints.addClass('btn-outline-secondary')
                             prints.removeAttr('disabled')

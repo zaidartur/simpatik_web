@@ -8,10 +8,13 @@ use App\Models\Jra;
 use App\Models\Sppd;
 use App\Models\TempatBerkas;
 use App\Models\UnitKerja;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class OutboxController extends Controller
 {
@@ -419,10 +422,118 @@ class OutboxController extends Controller
             'nosurat'   => 'required|string|max:100',
         ]);
 
-        $res = ArsipSurat::where('JENISSURAT', 'Keluar')->where('NOSURAT', 'like', '%'.$request->nosurat.'%')->orderBy('noagenda2', 'asc')->get();
+        $res = ArsipSurat::where('JENISSURAT', 'Keluar')
+                ->where('NOSURAT', 'like', '%'.$request->nosurat.'%')
+                ->where(function($q) {
+                    $q->whereNull('nosppd')
+                      ->orWhere('nosppd', '');
+                })
+                ->orderBy('noagenda2', 'asc')->get();
 
         if (!$res || count($res) < 1) return response()->json(['status' => 'failed', 'message' => 'Nomor surat tidak ditemukan.', 'data' => []]);
 
         return response()->json(['status' => 'success', 'message' => 'Nomor surat ditemukan.', 'data' => $res]);
+    }
+
+    public function last_sppd()
+    {
+        $last = Sppd::orderBy('id', 'desc')->first();
+        Log::info('Last SPPD: ' . Carbon::parse($last->tglsurat)->format('Y'));
+        if (!$last) {
+            return response()->json(['nomor' => 1]);
+        }
+        if ($last && (Carbon::parse($last->tglsurat)->format('Y') < date('Y'))) {
+            return response()->json(['nomor' => 1]);
+        }
+
+        $split = explode('/', $last->nosppd)[1];
+        $lastNumber = intval(explode('.', $split)[0]) + 1;
+        // $lastNumber = intval(substr($last->nosppd, 4)) + 1;
+        // $newNosppd = 'SPPD' . str_pad($lastNumber, 4, '0', STR_PAD_LEFT);
+
+        return response()->json(['nomor' => $lastNumber]);
+    }
+
+    public function duplikat(Request $request)
+    {
+        $request->validate([
+            'uid'    => 'required|string',
+            'jumlah' => 'required|integer|min:1'
+        ]);
+
+        $id = base64_decode($request->uid);
+        if (!$id || intval($id) < 1) {
+            return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
+        }
+
+        $surat = ArsipSurat::where('NO', intval($id))->first();
+        if (!$surat) {
+            return response()->json(['status' => 'failed', 'message' => 'Surat tidak ditemukan.']);
+        }
+
+        $last = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('NO', 'desc')->first();
+        $kode_urut = ($last->TAHUN == date('Y') ? intval($last->NOURUT) + 1 : 1);
+
+        $data  = [
+            'id_surat'   => $surat->NO,
+            'nomor_surat' => $surat->NOSURAT,
+            'nomor_awal' => $kode_urut,
+            'jumlah'     => intval($request->jumlah),
+            'tahun'      => date('Y'),
+        ];
+        $start = $kode_urut;
+        $list  = [$surat];
+        for ($i = 0; $i < intval($request->jumlah); $i++) {
+            $newSurat = $surat->replicate();
+            $newSurat->NOURUT = $start;
+            $newSurat->NOAGENDA = $start;
+            $newSurat->noagenda2 = $start;
+            $newSurat->poenx = 'K' . $start . date('d') . '/' . date('m') . '/' . date('Y') . ' ' . date('H:i:s');
+            $newSurat->TGLENTRY = date('Y-m-d');
+            $newSurat->JAM = date('H:i:s');
+
+            $pass1 = explode('/', $surat->NOSURAT);
+            $pass2 = count($pass1) > 1 ? explode('.', $pass1[1]) : [];
+            $newNumber = '';
+            foreach ($pass1 as $key => $value) {
+                if ($key == 0) {
+                    $newNumber .= $value;
+                } elseif ($key == 1) {
+                    foreach ($pass2 as $k => $item) {
+                        if ($k == 0) {
+                            $newNumber .= '/'. $start;
+                        } else {
+                            $newNumber .= '.' . $item;
+                        }
+                    }
+                } else {
+                    $newNumber .= '/' . $value;
+                }
+            }
+
+            $newSurat->NOSURAT = $newNumber;
+            $newSurat->save();
+
+            $list[] = $newSurat;
+            if ($i < (intval($request->jumlah) - 1)) {
+                $start++;
+            }
+        }
+        Log::info('Duplikat Surat Keluar: ', $list);
+
+        $pdf = Pdf::loadView('main.outbox.templates.duplikat_full', ['data' => $list]);
+        $folder = public_path('datas/uploads/duplikat');
+        $name  = 'duplikat_surat_keluar_' . date('Ymd_His') . '.pdf';
+        $path  = $folder . '/' . $name;
+        if (!File::exists($folder)) {
+            File::makeDirectory($folder, 0755, true, true);
+        }
+        $pdf->save($path);
+
+        $data += [
+            'nomor_akhir' => $start,
+        ];
+
+        return response()->json(['status' => 'success', 'message' => 'Surat berhasil diduplikat.', 'data' => $list]);
     }
 }

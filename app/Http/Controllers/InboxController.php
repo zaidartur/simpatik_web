@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
 use App\Models\Jra;
+use App\Models\Pimpinan;
 use App\Models\TempatBerkas;
+use App\Services\PdfSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -12,6 +14,11 @@ use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Modifiers\AutoRotate;
 
 class InboxController extends Controller
 {
@@ -54,10 +61,10 @@ class InboxController extends Controller
             $query->where('Posisi', $request->posisi);
         } else {
             if (Auth::user()->level == 'operator' && Auth::user()->jurusan == 'Sekretaris Daerah') {
-                $query->whereIn('Posisi', ['Sekretaris Daerah', 'Bupati', 'Wakil Bupati']);
+                $query->whereIn('Posisi', ['Sekretaris Daerah', 'Bupati']);
             }
             if (Auth::user()->level == 'operator' && Auth::user()->jurusan == 'Wakil Bupati') {
-                $query->whereIn('Posisi', ['Wakil Bupati']);
+                $query->whereIn('Posisi', ['Wakil Bupati', 'Bupati']);
             }
             if (Auth::user()->level == 'operator' && Auth::user()->jurusan == 'Bupati') {
                 $query->whereIn('Posisi', ['Bupati']);
@@ -107,29 +114,58 @@ class InboxController extends Controller
                 'class'     => ($ibx->Posisi == 'Sekretaris Daerah' ? 'badge-info' : ($ibx->Posisi == 'Wakil Bupati' ? 'badge-secondary' : ($ibx->Posisi == 'Bupati' ? 'badge-primary' : 'badge-dark'))),
                 'uid'       => Crypt::encryptString($ibx->NO),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">'.
-                                    (!Auth::user()->hasRole(['administrator','umum']) ? '<button type="button" class="btn btn-info bs-tooltip" title="Detail Surat" onclick="viewSurat(`'. base64_encode(json_encode($ibx)) .'`)">
+                                    // Detail Surat
+                                    (Auth::user()->hasRole(['administrator', 'setda', 'wabup', 'bupati']) ? '<button type="button" class="btn btn-info bs-tooltip" title="Detail Surat" onclick="viewSurat(`'. base64_encode(json_encode($ibx)) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                                     </button>' : '') .
+
+                                    // Edit Surat
                                     (Auth::user()->hasRole(['administrator','umum']) ? '<a href="'. route('inbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>' : '') .
-                                    ((Auth::user()->hasRole(['administrator','setda']) && ($ibx->statussurat == 'disposisi') && ($ibx->Posisi == Auth::user()->jurusan || Auth::user()->level == 'administrator')) ? '<button type="button" class="btn btn-outline-primary bs-tooltip" title="Tindak Lanjut (Teruskan)" onclick="followUp(`'. Crypt::encryptString($ibx->NO) .'`)">
+
+                                    // Tindak Lanjut
+                                    ((Auth::user()->hasRole(['administrator','setda', 'wabup']) && ($ibx->statussurat == 'disposisi') && ($ibx->Posisi == Auth::user()->jurusan || Auth::user()->level == 'administrator')) ? '<button type="button" class="btn btn-outline-primary bs-tooltip" title="Tindak Lanjut (Teruskan)" onclick="followUp(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                                     </button>' : '') .
+
+                                    // Selesai Tindak Lanjut
                                     (($ibx->statussurat == 'selesai') ? '<button type="button" class="btn btn-outline-success bs-tooltip" title="Surat sudah ditindak lanjuti">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                    </button>' : ((Auth::user()->level == 'administrator' || $ibx->Posisi == Auth::user()->jurusan) ? '' : '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
+                                    </button>' : '') .
+
+                                    // Menunggu Tindakan
+                                    ((Auth::user()->hasRole(['umum']) && $ibx->statussurat == 'disposisi') ? '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-                                    </button>')) .
-                                    (Auth::user()->hasRole(['administrator','umum']) ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Surat" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    </button>' : '') .
+                                    ((Auth::user()->hasRole(['setda']) && $ibx->Posisi == 'Bupati' && empty($ibx->tglbupati1) && !empty($ibx->pengirimsekda) && $ibx->statussurat == 'disposisi') ? '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                                    </button>' : '') .
+                                    ((Auth::user()->hasRole(['bupati']) && $ibx->Posisi == 'Bupati' && !empty($ibx->tglbupati1) && !empty($ibx->pengirimsekda) && empty($ibx->tglsekda1) && $ibx->statussurat == 'disposisi') ? '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                                    </button>' : '') .
+
+                                    // Cetak Surat
+                                    ((Auth::user()->hasRole(['administrator', 'umum']) && $ibx->statussurat == 'selesai') ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Surat" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                    </button>
-                                    <button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat" onclick="_delete(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    </button>' : '') .
+
+                                    // Hapus Surat
+                                    ((Auth::user()->hasRole(['administrator', 'umum'])) ? '<button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat" onclick="_delete(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                     </button>' : '') .
-                                    ((Auth::user()->level == 'administrator' || Auth::user()->jurusan == $ibx->Posisi) && $ibx->statussurat == "disposisi" ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+
+                                    // Tanggapi Surat
+                                    ((Auth::user()->hasRole(['administrator', 'setda']) && $ibx->statussurat == 'disposisi' && (($ibx->Posisi == 'Bupati' && !empty($ibx->tglbupati1) && !empty($ibx->pengirimsekda)) || $ibx->Posisi == 'Sekretaris Daerah')) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                     </button>' : '') .
+                                    ((Auth::user()->hasRole(['administrator', 'wabup']) && $ibx->statussurat == 'disposisi' && empty($ibx->wakil)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                    </button>' : '') .
+                                    ((Auth::user()->hasRole(['administrator', 'bupati']) && $ibx->statussurat == 'disposisi' && empty($ibx->tglbupati1)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                    </button>' : '') .
+
                                 '</div>',
             ];
         }
@@ -232,9 +268,11 @@ class InboxController extends Controller
             'sifat_surat'   => 'nullable|string|max:100',
             'tindakan'      => 'nullable|string|max:255',
             'tgl_balas'     => 'nullable|date',
-            'gambar'        => 'nullable|array|max:5',
-            'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
-            'lampiran'      => 'nullable|mimes:pdf|max:5126',
+            'lampiran'      => 'nullable|string|max:100',
+            'is_scan'       => 'nullable|mimes:pdf,jpeg,jpg,png|max:10240',
+            // 'gambar'        => 'nullable|array|max:5',
+            // 'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
+            // 'lampiran'      => 'nullable|mimes:pdf|max:5126',
         ]);
 
         $last = ArsipSurat::where('JENISSURAT', 'Masuk')->orderBy('NO', 'desc')->first();
@@ -329,9 +367,11 @@ class InboxController extends Controller
             'sifat_surat'   => 'nullable|string|max:100',
             'tindakan'      => 'nullable|string|max:255',
             'tgl_balas'     => 'nullable|date',
-            'gambar'        => 'nullable|array|max:5',
-            'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
-            'lampiran'      => 'nullable|mimes:pdf|max:5126',
+            'lampiran'      => 'nullable|string|max:100',
+            'is_scan'       => 'nullable|mimes:pdf,jpeg,jpg,png|max:10240',
+            // 'gambar'        => 'nullable|array|max:5',
+            // 'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
+            // 'lampiran'      => 'nullable|mimes:pdf|max:5126',
         ]);
 
         $inbox = ArsipSurat::where('NO', $request->id)->first();
@@ -407,12 +447,79 @@ class InboxController extends Controller
         }
     }
 
+    public function upload_file($file, $id)
+    {
+        //
+        return;
+    }
+
+    public function sanitize_image($file, $id)
+    {
+        $manager = new ImageManager(new Driver());
+        // $manager = ImageManager::gd(autoOrientation: false);
+        $image = $manager->read($file)
+                ->orient()
+                ->toJpeg(quality: 90);
+
+        // 3. Save to temporary path
+        $tempPath = storage_path('app/tmp/sanitized_' .$id. '.jpg');
+        File::ensureDirectoryExists(dirname($tempPath));
+        file_put_contents($tempPath, $image->toString());
+
+        // 4. Move to public folder
+        $fileName = $id . '_sanitized_' .date('YmdHis'). '.jpg';
+        $folder = public_path('datas/uploads/suratmasuk');
+        if (!File::exists($folder)) {
+            File::makeDirectory($folder, 0755, true);
+        }
+
+        $path = $folder . '/' . $fileName;
+        $move = File::move($tempPath, $path);
+
+        if (!$move) {
+            return false;
+        }
+        return $fileName;
+    }
+
+    public function sanitize_pdf($file, $id)
+    {
+        $sanitizer = new PdfSanitizer();
+        // Store original temporarily
+        $tempInput = storage_path('app/tmp/original_' .date('YmdHis'). '.pdf');
+        $tempOutput = storage_path('app/tmp/sanitized_' .date('YmdHis'). '.pdf');
+        $file->move(dirname($tempInput), basename($tempInput));
+
+        // Sanitize
+        $sanitizer->sanitize($tempInput, $tempOutput);
+
+        // Store sanitized PDF (never store original)
+        $folder = public_path('datas/uploads/suratmasuk');
+        if (! File::exists($folder)) {
+            File::makeDirectory($folder, 0755, true);
+        }
+        
+        $fileName = $id . '_sanitized_' .date('YmdHis'). '.pdf';
+        $path = $folder . '/' . $fileName;
+        $move = File::move($tempOutput, $path);
+
+        // Cleanup
+        @unlink($tempInput);
+        @unlink($tempOutput);
+
+        if ($move) {
+            return $fileName;
+        } else {
+            return false;
+        }
+    }
+
     public function forward(Request $request)
     {
         $request->validate([
             'uid'       => 'required|string',
             'tujuan'    => 'required|string|max:100',
-            'catatan'   => 'nullable|string|max:255',
+            // 'catatan'   => 'nullable|string|max:255',
         ]);
 
         $id = json_decode(Crypt::decryptString($request->uid));
@@ -422,12 +529,11 @@ class InboxController extends Controller
 
         $inbox = ArsipSurat::where('NO', $id)->first();
         $inbox->Posisi      = $request->tujuan;
-        if ($request->tujuan == 'Wakil Bupati') {
-            $inbox->DisposisiWakil = $request->catatan;
-            $inbox->tglwakil     = date('Y-m-d H:i:s');
-        } elseif ($request->tujuan == 'Bupati') {
-            $inbox->DisposisiBupati = $request->catatan;
-            $inbox->tglbupati1      = date('Y-m-d H:i:s');
+        if (Auth::user()->hasRole(['setda'])) {
+            $inbox->pengirimsekda = Auth::user()->nama_lengkap;
+        }
+        if (Auth::user()->hasRole(['wabup'])) {
+            $inbox->pengirimwakil = Auth::user()->nama_lengkap;
         }
         
         if ($inbox->save()) {
@@ -441,6 +547,7 @@ class InboxController extends Controller
     {
         $request->validate([
             'uid'       => 'required|string',
+            'notes'     => 'required|string|max:255',
         ]);
 
         $id = json_decode(Crypt::decryptString($request->uid));
@@ -448,8 +555,26 @@ class InboxController extends Controller
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
 
+        $user  = Auth::user();
         $inbox = ArsipSurat::where('NO', $id)->first();
-        $inbox->statussurat = 'selesai';
+        if (($user->hasRole(['setda']) && $inbox->Posisi == 'Sekretaris Daerah') || ($user->hasRole(['setda']) && !empty($inbox->DisposisiBupati)) || ($user->level == 'administrator' && $inbox->Posisi == 'Sekretaris Daerah') || ($user->level == 'administrator' && !empty($inbox->DisposisiBupati))) {
+            $inbox->statussurat = 'selesai';
+            $inbox->DisposisiSekda = $request->notes;
+            $inbox->tglsekda1      = date('Y-m-d H:i:s');
+        }
+        if ($user->hasRole(['bupati']) && $inbox->Posisi == 'Bupati') {
+            if (empty($inbox->pengirimsekda)) {
+                $inbox->statussurat = 'selesai';
+            }
+            $inbox->DisposisiBupati = $request->notes;
+            $inbox->tglbupati1      = date('Y-m-d H:i:s');
+        }
+        if ($user->hasRole(['wakil_bupati']) && $inbox->Posisi == 'Wakil Bupati') {
+            $inbox->statussurat = 'selesai';
+            $inbox->DisposisiWakil = $request->notes;
+            $inbox->tglwakil     = date('Y-m-d H:i:s');
+        }
+
         if ($inbox->save()) {
             return response()->json(['status' => 'success', 'message' => 'Surat berhasil ditanggapi.']);
         } else {
@@ -478,10 +603,24 @@ class InboxController extends Controller
 
     public function build_pdf($inbox)
     {
-        $pdf = Pdf::setPaper('letter', 'portrait');
+        if ($inbox->Posisi == 'Bupati') {
+            $template = 'main.inbox.templates.bupati_full';
+            // $template = 'main.inbox.templates.wabup_full';
+            // $template = 'main.inbox.templates.setda_full';
+            // $template = 'main.inbox.templates.umum_full';
+            // $template = 'main.inbox.template';
+        } elseif ($inbox->Posisi == 'Wakil Bupati') {
+            $template = 'main.inbox.templates.wabup_full';
+        } elseif ($inbox->Posisi == 'Sekretaris Daerah') {
+            $template = 'main.inbox.templates.setda_full';
+        } else {
+            $template = 'main.inbox.templates.umum_full';
+        }
+        // $pdf = Pdf::setPaper('letter', 'portrait');
         // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
+        $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
 
-        $pdf->loadView('main.inbox.template', ['data' => $inbox]);
+        $pdf = Pdf::loadView($template, ['data' => $inbox, 'sign' => $sign]);
         return $pdf;
     }
 }
