@@ -555,7 +555,7 @@
         }
         @endrole
 
-        @role(['setda', 'wabup', 'bupati'])
+        @role(['setda', 'wabup', 'bupati', 'administrator'])
         // Initialize the stepper
         // var stepperWizardIcon = document.querySelector('.stepper-icons');
         // var stepperIcon = new Stepper(stepperWizardIcon, {

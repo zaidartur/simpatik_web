@@ -1,6 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'SPPD')
+@section('title', 'SPD')
 
 
 @section('css')

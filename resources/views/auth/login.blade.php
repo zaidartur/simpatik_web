@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
-    <title>Login | Simpatik </title>
+    <meta name="author" content="Diskominfo Karanganyar">
+    <meta name="description" content="Sistem Informasi Persuratan Masuk dan Keluar Kabupaten Karanganyar">
+    <title>Login | Sipermas </title>
     <link rel="icon" type="image/x-icon" href="{{ asset('templates/images/Lambang_Kabupaten_Karanganyar.png') }}" />
     <link href="{{ asset('templates/layouts/vertical-light-menu/css/light/loader.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/layouts/vertical-light-menu/css/dark/loader.css') }}" rel="stylesheet" type="text/css" />

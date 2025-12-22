@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 
@@ -114,9 +115,30 @@ class LaporanController extends Controller
             $start = $request->start;
             $length = $request->length;
 
-            $query = ArsipSurat::whereNotNull('DisposisiSekda')->orWhereNotNull('DisposisiSekda2')->orWhereNotNull('DisposisiBupati')->orWhereNotNull('DisposisiWakil')
+            // $query = ArsipSurat::whereNotNull('DisposisiSekda')->orWhereNotNull('DisposisiSekda2')->orWhereNotNull('DisposisiBupati')->orWhereNotNull('DisposisiWakil')
+            $query = ArsipSurat::where(function($q) {
+                        return $q->whereNotNull('DisposisiSekda')->whereRaw('TRIM(DisposisiSekda) != ""');
+                    })
+                    ->orWhere(function($q) {
+                        return $q->whereNotNull('DisposisiSekda2')->whereRaw('TRIM(DisposisiSekda2) != ""');
+                    })
+                    ->orWhere(function($q) {
+                        return $q->whereNotNull('DisposisiBupati')->whereRaw('TRIM(DisposisiBupati) != ""');
+                    })
+                    ->orWhere(function($q) {
+                        return $q->whereNotNull('DisposisiWakil')->whereRaw('TRIM(DisposisiWakil) != ""');
+                    })
                     ->where('JENISSURAT', 'Masuk')
                     ->orderBy('NO', 'DESC');
+            if (Auth::user()->hasRole('setda')) {
+                $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Bupati']);
+            }
+            if (Auth::user()->hasRole('wabup')) {
+                $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Wakil Bupati']);
+            }
+            if (Auth::user()->hasRole('bupati')) {
+                $query->whereIn('Posisi', ['Bupati']);
+            }
 
             $totalData = $query->count();
 
@@ -160,6 +182,7 @@ class LaporanController extends Controller
                     'tbupati'   => empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY'),
                     'twakil'    => empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY'),
                     'option'    => '',
+                    'status'    => $row->statussurat == 'selesai' ? '<span class="badge badge-success mb-2 me-4">Selesai</span>' : '<span class="badge badge-secondary mb-2 me-4">Menunggu</span>',
                 ];
             }
 

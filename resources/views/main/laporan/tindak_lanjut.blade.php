@@ -1,6 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'SPPD')
+@section('title', 'Tindak Lanjut')
 
 
 @section('css')
@@ -91,7 +91,7 @@
                                 <th style="width: 20%; text-align: center;" rowspan="2">Perihal</th>
                                 <th style="width: 20%; text-align: center;" colspan="3">Tindak Lanjut</th>
                                 <th style="width: 10%; text-align: center;" rowspan="2">Posisi</th>
-                                <th style="width: 10%; text-align: center;" rowspan="2">Opsi</th>
+                                <th style="width: 10%; text-align: center;" rowspan="2">Status</th>
                             </tr>
                             <tr>
                                 <th>Sekda</th>
@@ -155,7 +155,8 @@
                     { data: 'sekda', orderable: false },
                     { data: 'wakil', orderable: false },
                     { data: 'bupati', orderable: false },
-                    { data: 'option', orderable: false, searchable: false},
+                    { data: 'posisi', orderable: false, searchable: false},
+                    { data: 'status', orderable: false, searchable: false},
                 ],
             });
 
