@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
+use App\Models\Pimpinan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
@@ -17,6 +19,7 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('permission:aplikasi', ['only' => ['list_pejabat', 'save_pimpinan', 'update_pimpinan', 'set_default', 'delete_pimpinan']]);
     }
 
     /**
@@ -49,5 +52,115 @@ class HomeController extends Controller
         }
 
         return response()->json($lists);
+    }
+
+    public function list_pejabat()
+    {
+        $data = [
+            'lists'     => Pimpinan::orderBy('level')->get(),
+            'instansi'  => DB::table('instansi')->get(),
+        ];
+
+        return view('main.pimpinan', $data);
+    }
+
+    public function save_pimpinan(Request $request)
+    {
+        $request->validate([
+            'jabatan'   => 'required|string|max:100',
+            'nama'      => 'required|string|max:100',
+            'nip'       => 'nullable|string|max:255',
+            'pangkat'   => 'nullable|string|max:100',
+            'role'      => 'required|string|max:50',
+            'is_default'=> 'required|string|in:yes,no',
+        ]);
+
+        if ($request->is_default == 'yes') {
+            Pimpinan::where('level', $request->level)->update(['is_default' => 0]);
+        }
+
+        $pimpinan = new Pimpinan();
+        $pimpinan->nama = $request->nama;
+        $pimpinan->jabatan = $request->jabatan;
+        $pimpinan->nip = $request->nip;
+        $pimpinan->pangkat_golongan = $request->pangkat;
+        $pimpinan->level = $request->role;
+        $pimpinan->is_default = $request->is_default == 'yes' ? 1 : 0;
+        $save = $pimpinan->save();
+
+        if ($save) {
+            return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil disimpan.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal disimpan.']);
+        }
+    }
+
+    public function update_pimpinan(Request $request)
+    {
+        $request->validate([
+            'uid'       => 'required|numeric',
+            'jabatan'   => 'required|string|max:100',
+            'nama'      => 'required|string|max:100',
+            'nip'       => 'nullable|string|max:255',
+            'pangkat'   => 'nullable|string|max:100',
+            'role'      => 'required|string|max:50',
+            'is_default'=> 'required|string|in:yes,no',
+        ]);
+
+        if ($request->is_default == 'yes') {
+            Pimpinan::where('level', $request->level)->update(['is_default' => 0]);
+        }
+
+        $pimpinan = Pimpinan::where('id', $request->uid)->first();
+        $pimpinan->nama = $request->nama;
+        $pimpinan->jabatan = $request->jabatan;
+        $pimpinan->nip = $request->nip;
+        $pimpinan->pangkat_golongan = $request->pangkat;
+        $pimpinan->level = $request->role;
+        $pimpinan->is_default = $request->is_default == 'yes' ? 1 : 0;
+        $save = $pimpinan->save();
+
+        if ($save) {
+            return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil diubah.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal diubah.']);
+        }
+    }
+
+    public function set_default(Request $request)
+    {
+        $request->validate([
+            'uid'       => 'required|string|max:100',
+            'role'      => 'required|string|max:50',
+        ]);
+
+        $id = base64_decode($request->uid);
+        if (!$id) return response()->json(['status' => 'failed', 'message' => 'Data pimpinan tidak ditemukan.']);
+        Pimpinan::where('level', $request->role)->update(['is_default' => 0]);
+        $pimpinan = Pimpinan::where('id', $id)->first();
+        $pimpinan->is_default = 1;
+        $save = $pimpinan->save();
+
+        if ($save) {
+            return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil dijadikan default.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal dijadikan default.']);
+        }
+    }
+
+    public function delete_pimpinan(Request $request)
+    {
+        $request->validate([
+            'uid'   => 'required|string'
+        ]);
+
+        $id = base64_decode($request->uid);
+        if (!$id) return response()->json(['status' => 'failed', 'message' => 'Data pimpinan tidak ditemukan.']);
+        $drop = Pimpinan::where('id', $id)->delete();
+        if ($drop) {
+            return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil dihapus.']);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal dihapus.']);
+        }
     }
 }

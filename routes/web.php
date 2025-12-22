@@ -103,6 +103,14 @@ Route::prefix('/instansi')->middleware(['auth', 'role:administrator'])->group(fu
     Route::post('/hapus-instansi', [App\Http\Controllers\InstansiController::class, 'delete_instansi'])->name('instansi.delete');
 });
 
+Route::prefix('/pimpinan')->middleware(['auth'])->group(function () {
+    Route::get('/view', [App\Http\Controllers\HomeController::class, 'list_pejabat'])->name('pimpinan');
+    Route::post('/simpan-pimpinan', [App\Http\Controllers\HomeController::class, 'save_pimpinan'])->name('pimpinan.save');
+    Route::post('/update-pimpinan', [App\Http\Controllers\HomeController::class, 'update_pimpinan'])->name('pimpinan.update');
+    Route::post('/set-default-pimpinan', [App\Http\Controllers\HomeController::class, 'set_default'])->name('pimpinan.default');
+    Route::post('/hapus-pimpinan', [App\Http\Controllers\HomeController::class, 'delete_pimpinan'])->name('pimpinan.delete');
+});
+
 Route::prefix('/aplikasi')->middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('/view', [App\Http\Controllers\ApplicationController::class, 'index'])->name('apps');
     Route::post('/update-permission', [App\Http\Controllers\ApplicationController::class, 'update_permission'])->name('apps.permission.update');

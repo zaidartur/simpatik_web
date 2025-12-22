@@ -18,6 +18,13 @@ use Illuminate\Support\Facades\Log;
 
 class OutboxController extends Controller
 {
+    public function __construct() {
+        $this->middleware('permission:surat keluar', ['only' => ['index', 'serverside', 'show']]);
+        $this->middleware('permission:input surat keluar', ['only' => ['store', 'create', 'last_sppd', 'check_surat']]);
+        $this->middleware('permission:edit surat keluar', ['only' => ['edit', 'update', 'duplikat']]);
+        $this->middleware('permission:hapus surat keluar', ['only' => ['destroy']]);
+    }
+    
     public function index()
     {
         // $outbox  = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('TGLENTRY', 'desc')->limit(20)->get();

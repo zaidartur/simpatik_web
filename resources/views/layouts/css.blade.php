@@ -14,3 +14,6 @@
 
     <link href="{{ asset('templates/assets/css/light/elements/tooltip.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/assets/css/dark/elements/tooltip.css') }}" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="{{ asset('templates/assets/css/light/elements/alert.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('templates/assets/css/dark/elements/alert.css') }}">

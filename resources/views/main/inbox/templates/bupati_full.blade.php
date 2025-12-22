@@ -176,11 +176,15 @@
                 <td style="height: 40mm; width: 80mm; border-right: none">&nbsp;</td>
                 <td style="height: 40mm; width: 80mm; border-left: none">
                     <div style="height: 8mm; margin-left: 3mm; margin-top: 3mm;">
-                        <label style="display: inline-block; width: 30mm; vertical-align: bottom;">{{ $sign ? $sign->jabatan : 'Bupati,' }}</label>
+                        <label style="display: inline-block; width: 30mm; vertical-align: bottom;">{!! $sign ? nl2br($sign->jabatan .',') : 'Bupati,' !!}</label>
                     </div>
                     <div style="height: 22mm; margin-left: 3mm;">&nbsp;</div>
                     <div style="height: 10mm; margin-left: 3mm;">
-                        <label style="display: inline-block; vertical-align: bottom;">{{ $sign ? $sign->nama : 'H. Rober Christanto, S.E., M.M.' }}</label>
+                        <label style="display: inline-block; vertical-align: bottom;">
+                            {{ $sign ? $sign->nama : '' }}
+                            {!! $sign ? ($sign->pangkat_golongan ? ('<br>' . $sign->pangkat_golongan) : '') : '' !!}
+                            {!! $sign ? ($sign->nip ? ('<br>NIP ' . $sign->nip) : '') : '' !!}
+                        </label>
                     </div>
                 </td>
             </tr>

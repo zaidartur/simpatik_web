@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Crypt;
 
 class SppdController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:spd', ['only' => ['index', 'serverside', 'create', 'list', 'save', 'store', 'edit', 'update', 'destroy']]);
+    }
+
     public function index()
     {
         $data = [

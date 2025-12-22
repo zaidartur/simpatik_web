@@ -139,7 +139,7 @@
                         {{-- <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Disposisi </a>
                         </li> --}}
-                        @role(['administrator','umum'])
+                        @role(['administrator','umum', 'setda'])
                         <li class="{{ request()->routeIs(['report.next']) ? 'active' : '' }}">
                             <a href="{{ route('report.next') }}"> Tindak Lanjut </a>
                         </li>
@@ -182,14 +182,14 @@
                         </div>
                     </a>
                 </li>
-                <li class="menu">
+                {{-- <li class="menu">
                     <a href="./app-chat.html" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                             <span>Reset Nomor</span>
                         </div>
                     </a>
-                </li>
+                </li> --}}
                 <li class="menu {{ request()->routeIs(['user']) ? 'active' : '' }}">
                     <a href="{{ route('user') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -198,8 +198,8 @@
                         </div>
                     </a>
                 </li>
-                <li class="menu {{ request()->routeIs(['user']) ? 'active' : '' }}">
-                    <a href="{{ route('user') }}" aria-expanded="false" class="dropdown-toggle">
+                <li class="menu {{ request()->routeIs(['pimpinan']) ? 'active' : '' }}">
+                    <a href="{{ route('pimpinan') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span>Data Pimpinan</span>

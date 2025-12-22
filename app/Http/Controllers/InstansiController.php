@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Crypt;
 
 class InstansiController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:instansi', ['only' => ['index', 'save_instansi', 'update_instansi', 'delete_instansi']]);
+    }
+
     public function index()
     {
         $data = [

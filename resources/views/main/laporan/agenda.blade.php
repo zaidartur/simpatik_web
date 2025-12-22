@@ -12,6 +12,10 @@
 
     <link href="{{ asset('templates/assets/css/light/components/modal.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/assets/css/dark/components/modal.css') }}" rel="stylesheet" type="text/css" />
+
+    <link href="{{ asset('templates/plugins/src/flatpickr/flatpickr.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('templates/plugins/css/light/flatpickr/custom-flatpickr.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('templates/plugins/css/dark/flatpickr/custom-flatpickr.css') }}" rel="stylesheet" type="text/css">
     <!-- END PAGE LEVEL STYLES -->
 
     <style>
@@ -88,7 +92,13 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group col-md-3 col-sm-6 mb-2 row">
+                        <div class="form-group col-md-6 col-sm-12 mb-2 row">
+                            <label for="rangeCalendar" class="col-3">Rentang Waktu</label>
+                            <div class="col-9">
+                                <input id="rangeCalendar" class="form-control form-control-sm flatpickr flatpickr-input active" type="text" placeholder="Pilih Rentang Waktu" readonly="readonly">
+                            </div>
+                        </div>
+                        {{-- <div class="form-group col-md-3 col-sm-6 mb-2 row">
                             <label for="" class="col-3">Bulan</label>
                             <div class="col-9">
                                 <select class="form-control form-control-sm bs-tooltip col-12" id="bulan" name="bulan" placeholder="Bulan" title="Bulan">
@@ -108,7 +118,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="col-md-3 col-sm-6 mb-2 row">
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-info" onclick="_filter()" id="btfilter">
@@ -183,6 +193,8 @@
 @section('js')
     <!-- BEGIN PAGE LEVEL SCRIPTS -->
     <script src="{{ asset('templates/plugins/src/table/datatable/datatables.js') }}"></script>
+    <script src="{{ asset('templates/plugins/src/flatpickr/flatpickr.js') }}"></script>
+    <script src="https://unpkg.com/flatpickr@4.6.13/dist/l10n/id.js"></script>
     <script>
         $(document).ready(function() {
             let tb_inbox = $('#zero-config').DataTable({
@@ -256,6 +268,12 @@
             //         cell.innerHTML = i + 1 + PageInfo.start;
             //     });
             // });
+
+            var f3 = flatpickr(document.getElementById('rangeCalendar'), {
+                mode: "range",
+                locale: "id",
+                dateFormat: "Y-m-d",
+            });
         });
 
         window.addEventListener('load', function() {
@@ -304,19 +322,20 @@
             const month = $('#bulan').val()
             const jenis = $('#jenis').val()
             let tb_inbox = $('#zero-config').DataTable()
+            let date_range = $('#rangeCalendar').val()
 
             $('#btfilter').attr('disabled', '')
             $('#btprint').attr('disabled', '')
             await new Promise(resolve => {
-                tb_inbox.ajax.url(`{{ route('report.agenda.ssr') }}?jenis=${jenis}&bulan=${month}&year=${year}`).load(() => {
-                    // $('.is-loading').addClass('d-none');
-                    // $('.is-active').removeClass('d-none');
-                    // $('.is-status').removeAttr('disabled');
-
-                    // $('.is-status').html(`<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg><span class="btn-text-inner">Belum Ditanggapi</span>`);
-                    // $('.is-status').val('unfinish')
-                    // $('.is-status').attr('onclick', '_disposisi()')
-
+                let startDate = ''
+                let endDate = ''
+                if (date_range && date_range.includes(' - ')) {
+                    const dates = date_range.split(' - ')
+                    startDate = dates[0]
+                    endDate = dates[1]
+                }
+                // tb_inbox.ajax.url(`{{ route('report.agenda.ssr') }}?jenis=${jenis}&bulan=${month}&year=${year}`).load(() => {
+                tb_inbox.ajax.url(`{{ route('report.agenda.ssr') }}?jenis=${jenis}&start_date=${startDate}&end_date=${endDate}`).load(() => {
                     $('#btfilter').removeAttr('disabled')
                     $('#btprint').removeAttr('disabled')
                     resolve()
@@ -328,8 +347,17 @@
             const year = $('#tahun').val()
             const month = $('#bulan').val()
             const jenis = $('#jenis').val()
+            let date_range = $('#rangeCalendar').val()
+            let startDate = ''
+            let endDate = ''
+            if (date_range && date_range.includes(' - ')) {
+                const dates = date_range.split(' - ')
+                startDate = dates[0]
+                endDate = dates[1]
+            }
 
-            window.open(`/laporan/print-agenda?tahun=${year}&bulan=${month}&jenis=${jenis}`, '_blank')
+            // window.open(`/laporan/print-agenda?tahun=${year}&bulan=${month}&jenis=${jenis}`, '_blank')
+            window.open(`/laporan/print-agenda?start_date=${startDate}&end_date=${endDate}&jenis=${jenis}`, '_blank')
         }
     </script>
 @endsection

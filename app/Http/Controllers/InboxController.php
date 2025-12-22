@@ -24,8 +24,9 @@ class InboxController extends Controller
 {
 
     public function __construct() {
-        $this->middleware('permission:input surat masuk', ['only' => ['store', 'create']]);
-        $this->middleware('permission:edit surat masuk', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:surat masuk', ['only' => ['index', 'serverside', 'show']]);
+        $this->middleware('permission:input surat masuk', ['only' => ['store', 'create', 'view_pdf', 'nomor_urut', 'upload_file']]);
+        $this->middleware('permission:edit surat masuk', ['only' => ['edit', 'update', 'upload_file']]);
         $this->middleware('permission:hapus surat masuk', ['only' => ['destroy']]);
     }
 
@@ -156,13 +157,16 @@ class InboxController extends Controller
                                     </button>' : '') .
 
                                     // Tanggapi Surat
-                                    ((Auth::user()->hasRole(['administrator', 'setda']) && $ibx->statussurat == 'disposisi' && (($ibx->Posisi == 'Bupati' && !empty($ibx->tglbupati1) && !empty($ibx->pengirimsekda)) || $ibx->Posisi == 'Sekretaris Daerah')) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    ((Auth::user()->hasRole(['administrator']) && $ibx->statussurat == 'disposisi') ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                    </button>' : '') . 
+                                    ((Auth::user()->hasRole(['setda']) && $ibx->statussurat == 'disposisi' && (($ibx->Posisi == 'Bupati' && !empty($ibx->tglbupati1) && !empty($ibx->pengirimsekda)) || $ibx->Posisi == 'Sekretaris Daerah')) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                     </button>' : '') .
-                                    ((Auth::user()->hasRole(['administrator', 'wabup']) && $ibx->statussurat == 'disposisi' && empty($ibx->wakil)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    ((Auth::user()->hasRole(['wabup']) && $ibx->statussurat == 'disposisi' && empty($ibx->wakil)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                     </button>' : '') .
-                                    ((Auth::user()->hasRole(['administrator', 'bupati']) && $ibx->statussurat == 'disposisi' && empty($ibx->tglbupati1)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    ((Auth::user()->hasRole(['bupati']) && $ibx->statussurat == 'disposisi' && empty($ibx->tglbupati1)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Tanggapi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->NO) .'`)">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                     </button>' : '') .
 

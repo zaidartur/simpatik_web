@@ -169,7 +169,9 @@
                     <div style="height: 33mm; margin-left: 5mm;">&nbsp;</div>
                     <div style="height: 10mm; margin-left: 5mm;">
                         <label style="display: inline-block; vertical-align: bottom;">
-                            {!! $sign ? ($sign->nama ? $sign->nama. '<br>' : 'H. Adhe Eliana, S.E. <br>') : 'H. Adhe Eliana, S.E. <br>' !!}
+                            {!! $sign ? ($sign->nama ? $sign->nama : '') : '' !!}
+                            {!! $sign ? ($sign->pangkat_golongan ? ('<br>' . $sign->pangkat_golongan) : '') : '' !!}
+                            {!! $sign ? ($sign->nip ? ('<br>NIP ' . $sign->nip) : '') : '' !!}
                         </label>
                     </div>
                 </td>

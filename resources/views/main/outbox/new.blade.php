@@ -295,7 +295,7 @@
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <div class="row mb-3">
-                                                            <label for="sppd" class="col-sm-2 col-form-label">No. SPPD</label>
+                                                            <label for="sppd" class="col-sm-2 col-form-label">No. SPD</label>
                                                             <div class="col-sm-10">
                                                                 <div class="input-group is-sppd">
                                                                     <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="">
@@ -641,7 +641,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Data SPPD</h5>
+                <h5 class="modal-title">Data SPD</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
@@ -661,7 +661,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="sppdLabel">Buat SPPD</h5>
+                <h5 class="modal-title" id="sppdLabel">Buat SPD</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>

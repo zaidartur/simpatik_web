@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pimpinans', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('jabatan');
+            $table->text('jabatan');
             $table->string('pangkat_golongan')->nullable();
             $table->string('nip')->nullable();
             $table->string('level');

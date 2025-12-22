@@ -179,14 +179,14 @@
                 <td style="height: 80mm; border-left: none;" class="v-top">
                     <div style="height: 30mm;">&nbsp;</div>
                     <div style="height: 8mm; margin-left: 5mm;">
-                        <label style="display: inline-block; vertical-align: bottom;">{{ $sign ? $sign->jabatan : 'Kepala Bagian Umum,' }}</label>
+                        <label style="display: inline-block; vertical-align: bottom;">{!! $sign ? nl2br($sign->jabatan) . ',' : 'Kepala Bagian Umum,' !!}</label>
                     </div>
                     <div style="height: 22mm; margin-left: 5mm;">&nbsp;</div>
                     <div style="height: 10mm; margin-left: 5mm;">
                         <label style="display: inline-block; vertical-align: bottom;">
-                            {!! $sign ? $sign->nama : 'Miko Aditia Kristanto, S.I.P., M.M. <br>' !!}
-                            {!! $sign ? ($sign->pangkat_golongan ? ($sign->pangkat_golongan . '<br>') : 'Pembina (IV/a) <br>') : 'Pembina (IV/a) <br>' !!}
-                            {!! $sign ? ($sign->nip ? ('NIP ' . $sign->nip) : 'NIP 19870606 200701 1 001') : 'NIP 19870606 200701 1 001' !!}
+                            {!! $sign ? $sign->nama : 'Miko Aditia Kristanto, S.I.P., M.M' !!}
+                            {!! $sign ? ($sign->pangkat_golongan ? ('<br>' . $sign->pangkat_golongan) : '') : '' !!}
+                            {!! $sign ? ($sign->nip ? ('<br>NIP ' . $sign->nip) : '') : '' !!}
                         </label>
                     </div>
                 </td>

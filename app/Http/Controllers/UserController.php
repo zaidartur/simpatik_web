@@ -13,6 +13,12 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:aplikasi', ['only' => ['index', 'store', 'update', 'destroy', 'change_pwd', 'check_user']]);
+    }
+
     public function index()
     {
         $data = [

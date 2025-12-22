@@ -8,15 +8,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Permission;
 
 ini_set('memory_limit', '1024M');
-ini_set('max_execution_time', '300');
+// ini_set('max_execution_time', '300');
+set_time_limit(0); //unlimited time limit
 class LaporanController extends Controller
 {
     public function __construct() {
         $this->middleware('permission:statistik', ['only' => ['statistik', 'statistik_ssr']]);
-        // $this->middleware('permission:edit surat masuk', ['only' => ['edit', 'update']]);
-        // $this->middleware('permission:hapus surat masuk', ['only' => ['destroy']]);
+        $this->middleware('permission:tindak lanjut', ['only' => ['tindak_lanjut', 'tindak_lanjut_ssr']]);
+        $this->middleware('permission:agenda', ['only' => ['agenda', 'agenda_ssr', 'agenda_print']]);
     }
 
     public function statistik()
@@ -190,8 +192,13 @@ class LaporanController extends Controller
             if (isset($request->jenis) && in_array($request->jenis, ['Masuk', 'Keluar'])) {
                 $query->where('JENISSURAT', $request->jenis);
             }
-            if (isset($request->bulan) && !empty($request->bulan) && (intval($request->bulan) > 0 && intval($request->bulan) < 13)) {
-                $query->where('BULAN', $request->bulan);
+            // if (isset($request->bulan) && !empty($request->bulan) && (intval($request->bulan) > 0 && intval($request->bulan) < 13)) {
+            //     $query->where('BULAN', intval($request->bulan));
+            // }
+            if (isset($request->start_date) && !empty($request->start_date) && isset($request->end_date) && !empty($request->end_date)) {
+                $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
+                $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
+                $query->whereBetween('TGLENTRY', [$startDate, $endDate]);
             }
 
             $query->orderBy('noagenda2', 'ASC');
@@ -289,25 +296,40 @@ class LaporanController extends Controller
         if (!empty($type) && in_array($type, ['Masuk', 'Keluar'])) {
             $query->where('JENISSURAT', $type);
         }
-        if (!empty($month) && (intval($month) > 0 && intval($month) < 13)) {
-            $query->where('BULAN', (intval($month) < 10 ? '0'.$month : $month));
+        // if (!empty($month) && (intval($month) > 0 && intval($month) < 13)) {
+        //     $query->where('BULAN', (intval($month) < 10 ? '0'.$month : $month));
+        // }
+        if (isset($request->start_date) && !empty($request->start_date) && isset($request->end_date) && !empty($request->end_date)) {
+            $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
+            $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
+            $query->whereBetween('TGLENTRY', [$startDate, $endDate]);
+        } else {
+            return '<script>alert("Rentang waktu harus diisi untuk mencetak laporan agenda."); window.close();</script>';
         }
         
         $res = $query->orderBy('noagenda2', 'ASC')->get();
 
-        $pdf = $this->build_pdf($res, $type, $year, $month);
+        $pdf = $this->build_pdf($res, $type, $year, $month, $request->start_date, $request->end_date);
         return $pdf->stream('agenda_' .$year.$month. '.pdf');
     }
 
-    public function build_pdf($agenda, $type, $tahun, $bulan)
+    public function build_pdf($agenda, $type, $tahun, $bulan, $start_date = null, $end_date = null)
     {
         $pdf = Pdf::setPaper('legal', 'landscape');
+        $pdf->setOption([
+            'dpi' => 96,
+            'interpolate' => false,
+            'isPhpEnabled' => false,
+            'isRemoteEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+        ]);
         // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
         $data = [
             'data'  => $agenda,
             'jenis' => $type,
             'tahun' => $tahun,
             'bulan' => $bulan,
+            'range' => (!empty($start_date) && !empty($end_date) ? Carbon::createFromFormat('Y-m-d', $start_date)->isoFormat('DD MMMM YYYY') . ' s/d ' . Carbon::createFromFormat('Y-m-d', $end_date)->isoFormat('DD MMMM YYYY') : ''),
         ];
         $pdf->loadView('main.laporan.template_agenda', $data);
         return $pdf;

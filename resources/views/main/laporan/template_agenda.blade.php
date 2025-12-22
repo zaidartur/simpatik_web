@@ -69,7 +69,10 @@
             </tr>
         </table>
         <div style="width: 100%; text-align: center">
-            <h2>Daftar Agenda {{ empty($jenis) ? 'Surat Masuk dan Keluar' : ('Surat '. $jenis) }} Tahun {{ $tahun }} {{ !empty($bulan) ? ('Bulan ' . (intval($bulan) < 10 ? '0'.$bulan : $bulan)) : '' }}</h2>
+            <h2>
+                Daftar Agenda {{ empty($jenis) ? 'Surat Masuk dan Keluar' : ('Surat '. $jenis) }}
+                {!! !empty($range) ? '<br>'.$range : '' !!}
+            </h2>
         </div>
     </div>
     <table style="width:100%">
