@@ -54,6 +54,26 @@ class HomeController extends Controller
         return response()->json($lists);
     }
 
+    public function view_duplikat($name)
+    {
+        $folder = public_path('datas/uploads/duplikat');
+        if (!file_exists($folder . '/' . $name)) return abort(404);
+
+        return response()->file($folder. '/' . $name, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    public function download_duplikat($name)
+    {
+        $folder = public_path('datas/uploads/duplikat');
+        if (!file_exists($folder . '/' . $name)) return abort(404);
+
+        return response()->download($folder .'/'. $name, $name, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
     public function list_pejabat()
     {
         $data = [

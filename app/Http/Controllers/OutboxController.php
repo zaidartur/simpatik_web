@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
+use App\Models\Duplikat;
 use App\Models\Instansi;
 use App\Models\Jra;
 use App\Models\Sppd;
@@ -10,11 +11,13 @@ use App\Models\TempatBerkas;
 use App\Models\UnitKerja;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use setasign\Fpdi\Fpdi;
 
 class OutboxController extends Controller
 {
@@ -134,7 +137,9 @@ class OutboxController extends Controller
 
     public function duplicate()
     {
-        $data = [];
+        $data = [
+            'lists' => Duplikat::orderBy('created_at', 'desc')->get(),
+        ];
 
         return view('main.outbox.duplikat', $data);
     }
@@ -488,8 +493,13 @@ class OutboxController extends Controller
             'jumlah'     => intval($request->jumlah),
             'tahun'      => date('Y'),
         ];
+
         $start = $kode_urut;
         $list  = [$surat];
+        $raw_pdf = [];
+        $nosurat = [];
+        $folder = public_path('datas/uploads/duplikat');
+
         for ($i = 0; $i < intval($request->jumlah); $i++) {
             $newSurat = $surat->replicate();
             $newSurat->NOURUT = $start;
@@ -519,28 +529,86 @@ class OutboxController extends Controller
             }
 
             $newSurat->NOSURAT = $newNumber;
-            $newSurat->save();
+            $nosurat[] = $newNumber;
+            // $save = $newSurat->save();
+            $save = true;
+            if ($save) {
+                $pdf = Pdf::loadView('main.outbox.template_duplikat', ['data' => $newSurat]);
+                $name  = 'raw_' . $id . '_' . $start . '_' . date('Ymd') . '.pdf';
+                $path  = $folder . '/' . $name;
+                if (!File::exists($folder)) {
+                    File::makeDirectory($folder, 0755, true, true);
+                }
+                $pdf->save($path);
+                $raw_pdf[] = $name;
+            }
 
             $list[] = $newSurat;
             if ($i < (intval($request->jumlah) - 1)) {
                 $start++;
             }
         }
-        Log::info('Duplikat Surat Keluar: ', $list);
+        // Log::info('Duplikat Surat Keluar: ', $list);
 
-        $pdf = Pdf::loadView('main.outbox.templates.duplikat_full', ['data' => $list]);
-        $folder = public_path('datas/uploads/duplikat');
-        $name  = 'duplikat_surat_keluar_' . date('Ymd_His') . '.pdf';
-        $path  = $folder . '/' . $name;
-        if (!File::exists($folder)) {
-            File::makeDirectory($folder, 0755, true, true);
-        }
-        $pdf->save($path);
-
+        $mergeName = 'surat_keluar_' . $kode_urut . '-' . $start . '_' . date('Ymd_His') . '.pdf';
+        $merge = $this->merge_pdf($raw_pdf, $mergeName);
         $data += [
             'nomor_akhir' => $start,
+            'path_file'   => $merge ?? 'none',
+            'list'        => json_encode($nosurat),
+            'created_at'  => date('Y-m-d H:i:s'),
         ];
 
-        return response()->json(['status' => 'success', 'message' => 'Surat berhasil diduplikat.', 'data' => $list]);
+        $dup = Duplikat::insert($data);
+
+        if ($dup) {
+            return response()->json(['status' => 'success', 'message' => 'Surat berhasil diduplikat.', 'data' => ($merge ?? 'none')]);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Surat gagal diduplikat.', 'data' => ($merge ?? 'none')]);
+        }
+    }
+
+    public function merge_pdf($files, $name)
+    {
+        $folder = public_path('datas/uploads/duplikat');
+        $pdf = new Fpdi();
+        if (count($files) > 0) {
+            foreach ($files as $key => $value) {
+                $pageCount = $pdf->setSourceFile($folder .'/'. $value);
+
+                for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                    $templateId = $pdf->importPage($pageNo);
+                    $size = $pdf->getTemplateSize($templateId);
+
+                    $pdf->AddPage(
+                        $size['orientation'],
+                        [$size['width'], $size['height']]
+                    );
+
+                    $pdf->useTemplate($templateId);
+                }
+            }
+
+            try {
+                $pdf->Output($folder . '/'. $name, 'F');
+                Log::info('success merged');
+                foreach ($files as $file) {
+                    unlink($folder .'/'. $file);
+                }
+                return $name;
+            } catch(\Exception $e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public function template_test($uid)
+    {
+        $data = ArsipSurat::where('NO', $uid)->first();
+        $pdf = Pdf::loadView('main.outbox.template_duplikat', ['data' => $data]);
+
+        return $pdf->stream('test.pdf');
     }
 }

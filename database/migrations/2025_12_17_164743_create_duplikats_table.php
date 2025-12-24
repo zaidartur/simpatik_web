@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('nomor_surat');
             $table->integer('nomor_awal');
             $table->integer('nomor_akhir');
+            $table->json('list');
             $table->integer('tahun');
             $table->text('path_file');
             $table->timestamps();

@@ -82,7 +82,44 @@
             <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
                 <div class="widget-content widget-content-area br-8 m-3 p-4" style="position: relative;">
                     <div class="row g-4 mb-5 justify-content-between header-div">
+                        <div class="col-12 table-responsive">
+                            <h5>Daftar Surat Duplikat</h5>
+                            <table class="table table-hover" width="100%" id="tbdup">
+                                <thead>
+                                    <th>#</th>
+                                    <th>No. Surat</th>
+                                    <th>Jumlah Duplikat</th>
+                                    <th>No. Urut</th>
+                                    <th>Tahun</th>
+                                    <th>Tanggal Duplikat</th>
+                                    <th>Opsi</th>
+                                </thead>
+                                <tbody>
+                                    @foreach ($lists as $i => $item)
+                                        <tr>
+                                            <td>{{ $i+1 }}</td>
+                                            <td>{{ $item->nomor_surat }}</td>
+                                            <td>{{ $item->jumlah }}</td>
+                                            <td>{{ $item->nomor_awal }} - {{ $item->nomor_akhir }}</td>
+                                            <td>{{ $item->tahun }}</td>
+                                            <td>{{ $item->created_at }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-info" onclick="_download('{{ $item->path_file }}')">
+                                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg>
+                                                    <span class="btn-text-inner">Unduh</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="progress br-30">
+                            <div class="progress-bar-ok" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+
                         <div class="col-md-12 col-sm-12 search-div">
+                            <h5>Buat Surat Duplikat</h5>
                             <input type="text" class="form-control mb-2" name="nosurat" id="nosurat" placeholder="Masukkan nomor surat..." onkeypress="_input_cari(event)">
                             <div class="row justify-content-center">
                                 <button type="button" class="btn btn-outline-primary col-6" id="btsearch" onclick="_cari()">
@@ -129,18 +166,36 @@
     <script src="{{ asset('templates/plugins/src/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js') }}"></script>
     {{-- <script src="{{ asset('templates/plugins/src/bootstrap-touchspin/custom-bootstrap-touchspin.js') }}"></script> --}}
     <script>
-        //
+        $(document).ready(function() {
+            let tb = $('#tbdup').DataTable({
+                "dom": "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-12 col-sm-6 d-flex justify-content-sm-end justify-content-center mt-sm-0 mt-3'f>>>" +
+                        "<'table-responsive'tr>" +
+                        "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                "language": {
+                    "paginate": { 
+                        "previous": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>', 
+                        "next": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>' 
+                    },
+                    // "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
+                    "info": "Menampilkan data _START_ sampai _END_ dari _TOTAL_ entri total",
+                    "infoEmpty": "Menampilkan 0 sampai 0 dari 0 entri total",
+                    "search": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+                    "searchPlaceholder": "Pencarian...",
+                    "lengthMenu": "Results :  _MENU_",
+                    "emptyTable": "Tidak ada data yang tersedia di tabel",
+                    "zeroRecords": "Tidak ada data yang ditemukan",
+                    // "processing": "Memproses data...",
+                    "processing": " ",
+                },
+                "stripeClasses": [],
+                "lengthMenu": [7, 10, 20, 50],
+                "pageLength": 10,
+            });
+        })
     </script>
     <!-- END PAGE LEVEL SCRIPTS -->
 
     <script>
-        // $(document).ready(function() {
-        //     $("input[name='jmlsurat']").TouchSpin({
-        //         buttondown_class: "btn btn-danger",
-        //         buttonup_class: "btn btn-success"
-        //     });
-        // })
-
         async function _cari() {
             let text = $('#nosurat').val()
             if (text) {
@@ -281,15 +336,19 @@
             });
         }
 
+        function reset_page() {
+            $('.print-div').remove()
+            $('#id_surat').val('')
+            $('#results').html('')
+            $('#description').html('')
+            $('#nosurat').val('')
+            $('#nosurat').focus()
+        }
+
         async function _print() {
             let jml = $('#jmlsurat').val()
             // console.log(Number.isInteger(parseInt(jml)), parseInt(jml))
             if (Number.isInteger(parseInt(jml)) && parseInt(jml) > 0) {
-                Toast.fire({
-                    icon: 'success',
-                    title: jml
-                });
-
                 let prints = $('#btprint')
                 prints.html(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin me-2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg> Memproses...`)
                 prints.removeClass('btn-outline-secondary')
@@ -303,7 +362,17 @@
                         data: {uid: btoa(uid), jumlah: parseInt(jml), _token: $('meta[name="csrf-token"]').attr('content')},
                         dataType: "JSON",
                         success: function (r) {
-                            //
+                            if (r.status === 'success') {
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: r.message
+                                });
+                                if (r.data !== 'none') {
+                                    // reset_page()
+                                    window.open(`/surat-keluar/lihat-surat-duplikat/${r.data}`, '_blank')
+                                    location.reload()
+                                }
+                            }
 
                             prints.html('<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span class="btn-text-inner">Konfirmasi & Cetak</span>')
                             prints.removeClass('btn-secondary')
@@ -366,6 +435,10 @@
             txt += '</div>'
 
             return txt
+        }
+
+        function _download(file) {
+            window.open(`/surat-keluar/unduh-surat-duplikat/${file}`, '_blank')
         }
     </script>
 @endsection
