@@ -16,9 +16,11 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Modifiers\AutoRotate;
+use setasign\Fpdi\Fpdi;
 
 class InboxController extends Controller
 {
@@ -588,21 +590,82 @@ class InboxController extends Controller
 
     public function view_pdf($uid)
     {
-        // if (empty($uid)) return abort(404);
+        $folder = public_path('datas/uploads/suratmasuk');
         $id  = Crypt::decryptString($uid);
         if (!$id) return abort(404);
 
         $surat = ArsipSurat::where('NO', $id)->first();
         if (!$surat) return abort(404);
 
-        $pdf = $this->build_pdf($surat);
-        return $pdf->stream('surat_masuk.pdf');
+        if (empty($surat->pdf)) {
+            $pdf = $this->save_pdf($surat);
+            if (!$pdf) return abort(404);
+        } else {
+            $pdf = $surat->pdf;
+        }
+        // return $pdf->stream('surat_masuk.pdf');
+        return response()->file($folder. '/' . $pdf, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     public function download_pdf(Request $request)
     {
         $pdf = $this->build_pdf($request->inbox);
         return $pdf->download('surat_masuk.pdf');
+    }
+
+    public function save_pdf($inbox)
+    {
+        $folder = public_path('datas/uploads/suratmasuk');
+        $uid = Str::uuid();
+        if (!File::exists($folder)) {
+            File::makeDirectory($folder, 0755, true, true);
+        }
+
+        $surat = $this->build_pdf($inbox);
+        if (!$surat) return false;
+        $suratName = $uid . '_surat.pdf';
+        $saveSurat = $surat->save($folder . '/' . $suratName);
+        if (!$saveSurat) return false;
+
+        $kartu = $this->build_kartu($inbox);
+        if (!$kartu) return false;
+        $kartuName = $uid . '_kartu.pdf';
+        $saveKartu = $surat->save($folder . '/' . $kartuName);
+        if (!$saveKartu) return false;
+
+        // merge pdf
+        $datas = [$suratName, $kartuName];
+        $pdf = new Fpdi();
+        foreach ($datas as $key => $value) {
+            $pageCount = $pdf->setSourceFile($folder .'/'. $value);
+
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($templateId);
+
+                $pdf->AddPage(
+                    $size['orientation'],
+                    [$size['width'], $size['height']]
+                );
+
+                $pdf->useTemplate($templateId);
+            }
+        }
+
+        try {
+            $fileName = $uid . '.pdf';
+            $pdf->Output($folder . '/'. $fileName, 'F');
+            Log::info('success merged');
+            foreach ($datas as $file) {
+                unlink($folder .'/'. $file);
+            }
+            ArsipSurat::where('NO', $inbox->NO)->update(['pdf' => $fileName]);
+            return $fileName;
+        } catch(\Exception $e) {
+            return false;
+        }
     }
 
     public function build_pdf($inbox)
@@ -625,6 +688,14 @@ class InboxController extends Controller
         $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
 
         $pdf = Pdf::loadView($template, ['data' => $inbox, 'sign' => $sign]);
+        return $pdf;
+    }
+
+    public function build_kartu($inbox)
+    {
+        $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
+
+        $pdf = Pdf::loadView('main.inbox.templates.kartu', ['data' => $inbox, 'sign' => $sign]);
         return $pdf;
     }
 }
