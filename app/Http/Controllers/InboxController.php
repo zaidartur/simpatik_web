@@ -600,6 +600,9 @@ class InboxController extends Controller
         if (empty($surat->pdf)) {
             $pdf = $this->save_pdf($surat);
             if (!$pdf) return abort(404);
+        } elseif (!file_exists($folder . '/' . $surat->pdf)) {
+            $pdf = $this->save_pdf($surat);
+            if (!$pdf) return abort(404);
         } else {
             $pdf = $surat->pdf;
         }
@@ -632,7 +635,7 @@ class InboxController extends Controller
         $kartu = $this->build_kartu($inbox);
         if (!$kartu) return false;
         $kartuName = $uid . '_kartu.pdf';
-        $saveKartu = $surat->save($folder . '/' . $kartuName);
+        $saveKartu = $kartu->save($folder . '/' . $kartuName);
         if (!$saveKartu) return false;
 
         // merge pdf
