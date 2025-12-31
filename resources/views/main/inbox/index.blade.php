@@ -305,7 +305,7 @@
         });
 
         function printPdf(id) {
-            window.open(`/surat-masuk/print-pdf/${id}`, '_blank')
+            window.open(`/surat-masuk/print-pdf/${id}?type=textonly`, '_blank')
         }
     </script>
     <!-- END PAGE LEVEL SCRIPTS -->

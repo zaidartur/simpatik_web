@@ -478,6 +478,7 @@ class OutboxController extends Controller
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
 
+        $add = '_textonly';
         $surat = ArsipSurat::where('NO', intval($id))->first();
         if (!$surat) {
             return response()->json(['status' => 'failed', 'message' => 'Surat tidak ditemukan.']);
@@ -533,7 +534,7 @@ class OutboxController extends Controller
             // $save = $newSurat->save();
             $save = true;
             if ($save) {
-                $pdf = Pdf::loadView('main.outbox.template_duplikat', ['data' => $newSurat]);
+                $pdf = Pdf::loadView('main.outbox.template_duplikat' . $add, ['data' => $newSurat]);
                 $name  = 'raw_' . $id . '_' . $start . '_' . date('Ymd') . '.pdf';
                 $path  = $folder . '/' . $name;
                 if (!File::exists($folder)) {

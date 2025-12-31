@@ -591,17 +591,19 @@ class InboxController extends Controller
     public function view_pdf($uid)
     {
         $folder = public_path('datas/uploads/suratmasuk');
+        $request = Request();
         $id  = Crypt::decryptString($uid);
         if (!$id) return abort(404);
 
         $surat = ArsipSurat::where('NO', $id)->first();
         if (!$surat) return abort(404);
 
+        $add = (isset($request->type) && !empty($request->type) && $request->type == 'textonly') ? ('_' . $request->type) : null;
         if (empty($surat->pdf)) {
-            $pdf = $this->save_pdf($surat);
+            $pdf = $this->save_pdf($surat, $add);
             if (!$pdf) return abort(404);
         } elseif (!file_exists($folder . '/' . $surat->pdf)) {
-            $pdf = $this->save_pdf($surat);
+            $pdf = $this->save_pdf($surat, $add);
             if (!$pdf) return abort(404);
         } else {
             $pdf = $surat->pdf;
@@ -618,7 +620,7 @@ class InboxController extends Controller
         return $pdf->download('surat_masuk.pdf');
     }
 
-    public function save_pdf($inbox)
+    public function save_pdf($inbox, $add = null)
     {
         $folder = public_path('datas/uploads/suratmasuk');
         $uid = Str::uuid();
@@ -626,15 +628,15 @@ class InboxController extends Controller
             File::makeDirectory($folder, 0755, true, true);
         }
 
-        $surat = $this->build_pdf($inbox);
+        $surat = $this->build_pdf($inbox, $add);
         if (!$surat) return false;
-        $suratName = $uid . '_surat.pdf';
+        $suratName = $uid . $add . '_surat.pdf';
         $saveSurat = $surat->save($folder . '/' . $suratName);
         if (!$saveSurat) return false;
 
-        $kartu = $this->build_kartu($inbox);
+        $kartu = $this->build_kartu($inbox, $add);
         if (!$kartu) return false;
-        $kartuName = $uid . '_kartu.pdf';
+        $kartuName = $uid. $add . '_kartu.pdf';
         $saveKartu = $kartu->save($folder . '/' . $kartuName);
         if (!$saveKartu) return false;
 
@@ -658,20 +660,20 @@ class InboxController extends Controller
         }
 
         try {
-            $fileName = $uid . '.pdf';
+            $fileName = $uid . $add . '.pdf';
             $pdf->Output($folder . '/'. $fileName, 'F');
             Log::info('success merged');
             foreach ($datas as $file) {
                 unlink($folder .'/'. $file);
             }
-            ArsipSurat::where('NO', $inbox->NO)->update(['pdf' => $fileName]);
+            if (empty($add)) ArsipSurat::where('NO', $inbox->NO)->update(['pdf' => $fileName]);
             return $fileName;
         } catch(\Exception $e) {
             return false;
         }
     }
 
-    public function build_pdf($inbox)
+    public function build_pdf($inbox, $add = null)
     {
         if ($inbox->Posisi == 'Bupati') {
             $template = 'main.inbox.templates.bupati_full';
@@ -690,15 +692,15 @@ class InboxController extends Controller
         // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
         $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
 
-        $pdf = Pdf::loadView($template, ['data' => $inbox, 'sign' => $sign]);
+        $pdf = Pdf::loadView($template . $add, ['data' => $inbox, 'sign' => $sign]);
         return $pdf;
     }
 
-    public function build_kartu($inbox)
+    public function build_kartu($inbox, $add = null)
     {
         $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
 
-        $pdf = Pdf::loadView('main.inbox.templates.kartu', ['data' => $inbox, 'sign' => $sign]);
+        $pdf = Pdf::loadView('main.inbox.templates.kartu' . $add, ['data' => $inbox, 'sign' => $sign]);
         return $pdf;
     }
 }
