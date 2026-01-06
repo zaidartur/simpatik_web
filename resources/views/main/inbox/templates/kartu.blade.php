@@ -86,7 +86,7 @@
         .content {
             margin-top: 1.5mm;
             margin-left: 1.5mm;
-            font-size: 10;
+            font-size: 12pt;
             font-weight: normal;
         }
         .center { text-align: center; }
@@ -106,7 +106,7 @@
                 <col style="width: 63.5mm;">
             </colgroup>
             <tr>
-                <td rowspan="5" class="sidebar">
+                <td rowspan="4" class="sidebar">
                     <div>
                         <img src="{{ public_path('templates/images/kop/kra-bw.jpg') }}" alt="Logo" class="sidebar-logo">
                     </div>
@@ -132,7 +132,7 @@
                     <div class="margin">
                         Nomor Urut : <br>
                     </div>
-                    <div class="content">{{ $data->NOAGENDA }}.{{ $data->KODEUP }}</div>
+                    <div class="content" style="font-size: 20pt;">{{ $data->NOAGENDA }}</div>
                 </td>
             </tr>
             <tr>
@@ -153,43 +153,70 @@
             </tr>
             <tr>
                 <td colspan="3">
-                    <table style="width: 162mm; height: 21mm;">
+                    <table style="width: 162mm; height: 45mm;">
                         <colgroup>
                             <col style="width: 44mm;">
                             <col style="width: 50mm;">
                             <col style="width: 68mm;">
                         </colgroup>
                         <tr>
-                            <td style="height: 20.5mm; width: 69mm;">
-                                <div class="margin">
-                                    Pengolah : <br>
-                                </div>
-                                <div class="content">{{ $data->NAMAUP }}</div>
-                            </td>
-                            <td style="height: 20.5mm; width: 41mm;">
+                            <td style="height: 15mm; width: 69mm;">
                                 <div class="margin">
                                     Tgl Surat : <br>
                                 </div>
                                 <div class="content">{{ $data->TGLSURAT }}</div>
                             </td>
-                            <td style="height: 20.5mm; width: 51.5mm;">
+                            <td style="height: 15mm; width: 41mm;">
+                                <div class="margin">
+                                    Nomor Surat : <br>
+                                </div>
+                                <div class="content">{{ $data->NOSURAT }}</div>
+                            </td>
+                            <td style="height: 15mm; width: auto;">
                                 <div class="margin">
                                     Lampiran : <br>
                                 </div>
                                 <div class="content">{{ $data->lampiran }}</div>
                             </td>
                         </tr>
+                        <tr>
+                            <td style="height: 15mm; width: 69mm;">
+                                <div class="margin">
+                                    Pengolah : <br>
+                                </div>
+                                <div class="content">{{ $data->NAMAUP }}</div>
+                            </td>
+                            <td style="height: 15mm; width: 41mm;">
+                                <div class="margin">
+                                    Tgl Diteruskan : <br>
+                                </div>
+                                <div class="content">{{ $data->TGLTERUS }}</div>
+                            </td>
+                            <td rowspan="2" style="width: auto;">
+                                <div class="margin">
+                                    Tanda Terima : <br>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="height: 15mm; width: auto;">
+                                <div class="margin">
+                                    Catatan : <br>
+                                </div>
+                                <div class="content">{{ $data->CATATAN }}</div>
+                            </td>
+                        </tr>
                     </table>
                 </td>
             </tr>
-            <tr>
+            {{-- <tr>
                 <td colspan="3" style="height: 24.5mm; width: 163mm;">
                     <div class="margin">
                         Catatan : <br>
                     </div>
                     <div class="content">{{ $data->CATATAN }}</div>
                 </td>
-            </tr>
+            </tr> --}}
         </table>
     </div>
 </div>

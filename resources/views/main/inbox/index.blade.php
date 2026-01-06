@@ -142,11 +142,11 @@
                         <div class="spinner"></div>
                     </div>
 
-                    <table id="zero-config" class="table dt-table-bordered" style="width:100%" width="100%">
+                    <table id="zero-config" class="table dt-table-bordered" style="width: 100%; table-layout: fixed;" width="100%">
                         <thead>
                             <tr>
                                 <th style="width: 5%">#</th>
-                                <th style="width: 10%">No. Surat</th>
+                                <th style="width: 10%;" class="text-break">No. Surat</th>
                                 <th style="width: 10%">No. Agenda</th>
                                 <th style="width: 10%">Klasifikasi</th>
                                 <th style="width: 10%">Nama Berkas</th>
@@ -305,7 +305,7 @@
         });
 
         function printPdf(id) {
-            window.open(`/surat-masuk/print-pdf/${id}?type=textonly`, '_blank')
+            window.open(`/surat-masuk/print-pdf/${id}?type=disposisi`, '_blank')
         }
     </script>
     <!-- END PAGE LEVEL SCRIPTS -->
@@ -356,6 +356,10 @@
                     });
                 }
             });
+        }
+
+        function printKartu(id) {
+            window.open(`/surat-masuk/print-pdf/${id}?type=kartu`, '_blank')
         }
         @endrole
 
@@ -605,7 +609,7 @@
             `
             let detail = `
                 <div class="col-12 mt-4">
-                    <table class="table table-bordered table-hover" width="100%">
+                    <table class="table table-bordered table-hover" style="table-layout: fixed; border-collapse: collapse; width: 100%;">
                         <tr>
                             <td colspan="4">
                                 <h3 class="text-center">DETAIL SURAT MASUK</h3>
@@ -615,10 +619,10 @@
                             <td colspan="4">&nbsp;</td>
                         </tr>
                         <tr>
-                            <td><label><b>No. Urut</b></label></td>
-                            <td><label>${data.NOAGENDA}</label></td>
-                            <td><label><b>Kode</b></label></td>
-                            <td><label>${data.KLAS3}</label></td>
+                            <td width="20%"><label><b>No. Urut</b></label></td>
+                            <td class="text-wrap" style="width: 30%; white-space: normal !important;"><label>${data.NOAGENDA}</label></td>
+                            <td width="20%"><label><b>Kode</b></label></td>
+                            <td style="white-space: normal; overflow-wrap: break-word; word-wrap: break-word; width: 30%;"><label>${data.KLAS3}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Berkas</b></label></td>

@@ -27,6 +27,12 @@
             /* padding: 4px 6px; */
             vertical-align: top;
         }
+        .tb-fix { table-layout: fixed; }
+        .tb-wrap {
+            white-space: normal; 
+            overflow-wrap: break-word; 
+            word-wrap: break-word;
+        }
         .center { text-align: center; }
         .v-center { vertical-align: middle; }
         .v-top { vertical-align: top; }
@@ -61,31 +67,31 @@
 
         <div style="height: 4.8mm;">&nbsp;</div>
 
-        <table style="width: 167.5mm; margin-left: 20mm; margin-right: 28mm;">
+        <table style="width: 167.5mm; margin-left: 20mm; margin-right: 28mm;" class="tb-fix">
             <tr>
                 <td colspan="2" style="height: 11.7mm;" class="center v-center">
                     LEMBAR DISPOSISI
                 </td>
             </tr>
             <tr>
-                <td style="height: 29.5mm; width: 72.5mm;" class="v-top">
-                    <div style="height: 14.5mm; margin-left: 3mm;">
+                <td style="height: auto; width: 72.5mm;" class="v-top tb-wrap">
+                    <div style="height: auto; margin-left: 3mm;">
                         <label style="display: inline-block; width: 20mm; vertical-align: top; margin-top: 0.75mm;">Surat dari</label>
                         <label style="display: inline-block; vertical-align: top; width: 3mm; margin-top: 0.75mm;">:</label>
                         <label style="display: inline-block; vertical-align: top; width: 46mm; margin-top: 0.75mm;">{{ $data->drkpd }}</label>
                     </div>
-                    <div style="height: 7mm; margin-left: 3mm;">
-                        <label style="display: inline-block; width: 20mm; vertical-align: bottom;">No. Surat</label>
-                        <label style="display: inline-block; vertical-align: bottom; width: 3mm;">:</label>
-                        <label style="display: inline-block; vertical-align: bottom; width: 46mm;">{{ $data->NOSURAT }}</label>
+                    <div style="height: auto; margin-left: 3mm;">
+                        <label style="display: inline-block; width: 20mm; vertical-align: top;">No. Surat</label>
+                        <label style="display: inline-block; vertical-align: top; width: 3mm;">:</label>
+                        <label style="display: inline-block; vertical-align: top; width: 46mm;">{{ $data->NOSURAT }}</label>
                     </div>
-                    <div style="height: 8mm; margin-left: 3mm;">
+                    <div style="height: auto; margin-left: 3mm;">
                         <label style="display: inline-block; width: 20mm; vertical-align: bottom;">Tgl. Surat</label>
                         <label style="display: inline-block; vertical-align: bottom; width: 3mm;">:</label>
                         <label style="display: inline-block; vertical-align: bottom; width: 46mm;">{{ date_format(date_create($data->TGLSURAT), 'd-m-Y') }}</label>
                     </div>
                 </td>
-                <td style="width: 95mm;" class="v-top">
+                <td style="width: 95mm;" class="v-top tb-wrap">
                     <div style="height: 7.5mm; margin-left: 3mm;">
                         <label style="display: inline-block; width: 25mm; vertical-align: bottom;">Diterima Tgl.</label>
                         <label>:</label>
@@ -102,26 +108,26 @@
                         <label></label>
                     </div>
                     <div style="height: 7.5mm; margin-left: 3mm;">
-                        <input type="checkbox" name="sangat" id="sangat" style="display: inline-block; vertical-align: bottom;"> 
-                        <label style="display: inline-block; vertical-align: bottom;">Sangat Segera &nbsp;&nbsp;</label>
+                        <input type="checkbox" name="sangat" id="sangat" style="display: inline-block; vertical-align: bottom;" {{ $data->SIFAT_SURAT == 'Penting' ? 'checked' : '' }}> 
+                        <label style="display: inline-block; vertical-align: bottom;">Sangat Segera </label>
 
-                        <input type="checkbox" name="segera" id="segera" style="display: inline-block; vertical-align: bottom;">
-                        <label style="display: inline-block; vertical-align: bottom;">Segera &nbsp;&nbsp;</label>
+                        <input type="checkbox" name="segera" id="segera" style="display: inline-block; vertical-align: bottom;" {{ $data->SIFAT_SURAT == 'Segera' ? 'checked' : '' }}>
+                        <label style="display: inline-block; vertical-align: bottom;">Segera </label>
 
-                        <input type="checkbox" name="rahasia" id="rahasia" style="display: inline-block; vertical-align: bottom;">
-                        <label style="display: inline-block; vertical-align: bottom;">Rahasia &nbsp;&nbsp;</label>
+                        <input type="checkbox" name="rahasia" id="rahasia" style="display: inline-block; vertical-align: bottom;" {{ $data->SIFAT_SURAT == 'Rahasia' ? 'checked' : '' }}>
+                        <label style="display: inline-block; vertical-align: bottom;">Rahasia </label>
                     </div>
                 </td>
             </tr>
             <tr>
-                <td style="height: 34mm;" colspan="2">
+                <td style="height: 34mm;" colspan="2" class="tb-wrap">
                     <label style="display: inline-block; width: 20mm; vertical-align: bottom; margin-left: 3mm;">Hal</label>
                     <label>: </label>
                     <label style="display: inline-block; width: auto; vertical-align: bottom; margin-left: 3mm;">{{ $data->ISI }}</label>
                 </td>
             </tr>
             <tr>
-                <td style="height: 44mm; width: 77.5mm;" class="v-top">
+                <td style="height: 44mm; width: 77.5mm;" class="v-top tb-wrap">
                     <div style="height: 9mm; margin-left: 3mm;">
                         <label>Diteruskan Kepada Sdr.:</label>
                     </div>
@@ -149,7 +155,7 @@
                         </label>
                     </div>
                 </td>
-                <td style="width: 90mm;" class="v-top">
+                <td style="width: 90mm;" class="v-top tb-wrap">
                     <div style="height: 7mm; margin-left: 3mm;">
                         <label>Dengan hormat, harap:</label>
                     </div>
@@ -171,12 +177,12 @@
                 </td>
             </tr>
             <tr>
-                <td style="height: 80mm; border-right: none;" class="v-top">
+                <td style="height: 80mm; border-right: none;" class="v-top tb-wrap">
                     <label style="display: inline-block; width: 20mm; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">Catatan</label>
                     <label>: </label>
                     <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! $data->DisposisiSekda2 ? '&quot;'. $data->DisposisiSekda2 .'&quot;' : '' !!}</label>
                 </td>
-                <td style="height: 80mm; border-left: none;" class="v-top">
+                <td style="height: 80mm; border-left: none;" class="v-top tb-wrap">
                     <div style="height: 30mm;">&nbsp;</div>
                     <div style="height: 8mm; margin-left: 5mm;">
                         <label style="display: inline-block; vertical-align: bottom;">{!! $sign ? nl2br($sign->jabatan) . ',' : 'Kepala Bagian Umum,' !!}</label>

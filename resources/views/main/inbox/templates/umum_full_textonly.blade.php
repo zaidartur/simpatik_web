@@ -185,7 +185,7 @@
                     <div style="height: 22mm; margin-left: 5mm;">&nbsp;</div>
                     <div style="height: 10mm; margin-left: 5mm;">
                         <label style="display: inline-block; vertical-align: bottom;">
-                            {!! $sign ? $sign->nama : 'Miko Aditia Kristanto, S.I.P., M.M' !!}
+                            {!! $sign ? $sign->nama : '-' !!}
                             {!! $sign ? ($sign->pangkat_golongan ? ('<br>' . $sign->pangkat_golongan) : '') : '' !!}
                             {!! $sign ? ($sign->nip ? ('<br>NIP ' . $sign->nip) : '') : '' !!}
                         </label>

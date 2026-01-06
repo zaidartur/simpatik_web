@@ -435,12 +435,13 @@ class OutboxController extends Controller
         ]);
 
         $res = ArsipSurat::where('JENISSURAT', 'Keluar')
-                ->where('NOSURAT', 'like', '%'.$request->nosurat.'%')
+                // ->where('NOSURAT', 'like', '%'.$request->nosurat.'%')
+                ->where('NOAGENDA', $request->nosurat)
                 ->where(function($q) {
                     $q->whereNull('nosppd')
                       ->orWhere('nosppd', '');
                 })
-                ->orderBy('noagenda2', 'asc')->get();
+                ->orderBy('TGLENTRY', 'desc')->get();
 
         if (!$res || count($res) < 1) return response()->json(['status' => 'failed', 'message' => 'Nomor surat tidak ditemukan.', 'data' => []]);
 
@@ -501,7 +502,7 @@ class OutboxController extends Controller
         $nosurat = [];
         $folder = public_path('datas/uploads/duplikat');
 
-        for ($i = 0; $i < intval($request->jumlah); $i++) {
+        for ($i = 0; $i < intval($request->jumlah)-1; $i++) {
             $newSurat = $surat->replicate();
             $newSurat->NOURUT = $start;
             $newSurat->NOAGENDA = $start;

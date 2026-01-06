@@ -117,10 +117,13 @@
                         <div class="progress br-30">
                             <div class="progress-bar-ok" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
+                        <div class="col-12 text-center">
+                            <h2>Buat Duplikat Surat Keluar</h3>
+                        </div>
 
                         <div class="col-md-12 col-sm-12 search-div">
-                            <h5>Buat Surat Duplikat</h5>
-                            <input type="text" class="form-control mb-2" name="nosurat" id="nosurat" placeholder="Masukkan nomor surat..." onkeypress="_input_cari(event)">
+                            <h5>Nomor Urut</h5>
+                            <input type="text" class="form-control mb-2" name="nosurat" id="nosurat" placeholder="Masukkan nomor urut..." onkeypress="_input_cari(event)">
                             <div class="row justify-content-center">
                                 <button type="button" class="btn btn-outline-primary col-6" id="btsearch" onclick="_cari()">
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -228,7 +231,7 @@
 
                                 res.data.forEach((dt, d) => {
                                     content += `<a class="list-group-item list-group-item-action ${d === 0 ? 'active' : ''} d-flex justify-content-between align-items-center" data-value="${dt.NO}" id="list_${dt.NO}_list" data-bs-toggle="list" href="#list_${dt.NO}" role="tab" aria-controls="list_${dt.NO}">
-                                                    ${dt.NOSURAT}
+                                                    ${dt.NOAGENDA} (${dt.TGLENTRY})
                                                     ${d === 0 ? '<span class="badge bg-warning rounded-pill"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>' : ''}
                                                 </a>`
 
@@ -317,7 +320,8 @@
         function _show_print() {
             let print = `<div class="col-md-6 col-sm-12 row justify-content-center print-div">
                             <div class="col-12 mb-2 mt-4">
-                                <input type="text" class="" name="jmlsurat" id="jmlsurat" placeholder="Masukkan jumlah duplikat..." onkeypress="_input_print(event)">
+                                <h5>Jumlah Duplikat</h5>
+                                <input type="text" class="" name="jmlsurat" id="jmlsurat" placeholder="Masukkan jumlah duplikat..." onkeypress="_input_print(event)" value="0">
                             </div>
                             <div class="row justify-content-center">
                                 <button type="button" class="btn btn-outline-secondary col-6" id="btprint" onclick="_print()">
@@ -404,7 +408,7 @@
 
         function template_content(datas) {
             let txt = ''
-            txt += `<h5 class="mb-3">Nomor Surat: <b>${datas.NOSURAT}</b></h5>`
+            txt += `<h5 class="mb-3">Nomor Urut: <b>${datas.NOAGENDA}</b></h5>`
             txt += `<div class="">`
             txt += `<table class="table table-bordered" style="width: 100%">
                         <tr>

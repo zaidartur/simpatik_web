@@ -149,9 +149,18 @@ class InboxController extends Controller
                                     </button>' : '') .
 
                                     // Cetak Surat
-                                    ((Auth::user()->hasRole(['administrator', 'umum']) && $ibx->statussurat == 'selesai') ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Surat" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
+                                    ((!Auth::user()->hasRole(['administrator', 'umum']) && $ibx->statussurat == 'selesai') ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Disposisi" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                     </button>' : '') .
+                                    ((Auth::user()->hasRole(['administrator', 'umum']) && $ibx->statussurat == 'selesai') ? '<div class="btn-group" role="group">
+                                        <button id="btndefault" type="button" class="btn btn-outline-info bs-tooltip dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Cetak">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="btndefault">
+                                            <a href="javascript:void(0);" class="dropdown-item" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)"><i class="flaticon-home-fill-1 mr-1"></i>Disposisi</a>
+                                            <a href="javascript:void(0);" class="dropdown-item" onclick="printKartu(`'. Crypt::encryptString($ibx->NO) .'`)"><i class="flaticon-gear-fill mr-1"></i>Kartu Surat Masuk</a>
+                                        </div>
+                                    </div>' : '') .
 
                                     // Hapus Surat
                                     ((Auth::user()->hasRole(['administrator', 'umum'])) ? '<button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat" onclick="_delete(`'. Crypt::encryptString($ibx->NO) .'`)">
@@ -598,20 +607,32 @@ class InboxController extends Controller
         $surat = ArsipSurat::where('NO', $id)->first();
         if (!$surat) return abort(404);
 
-        $add = (isset($request->type) && !empty($request->type) && $request->type == 'textonly') ? ('_' . $request->type) : null;
-        if (empty($surat->pdf)) {
-            $pdf = $this->save_pdf($surat, $add);
-            if (!$pdf) return abort(404);
-        } elseif (!file_exists($folder . '/' . $surat->pdf)) {
-            $pdf = $this->save_pdf($surat, $add);
-            if (!$pdf) return abort(404);
+        if (empty($request->type)) return abort(404);
+
+        // $add = (isset($request->type) && !empty($request->type) && $request->type == 'textonly') ? ('_' . $request->type) : null;
+        // if (empty($surat->pdf)) {
+        //     $pdf = $this->save_pdf($surat, $add);
+        //     if (!$pdf) return abort(404);
+        // } elseif (!file_exists($folder . '/' . $surat->pdf)) {
+        //     $pdf = $this->save_pdf($surat, $add);
+        //     if (!$pdf) return abort(404);
+        // } else {
+        //     $pdf = $surat->pdf;
+        // }
+
+        // return response()->file($folder. '/' . $pdf, [
+        //     'Content-Type' => 'application/pdf',
+        // ]);
+
+        if ($request->type == 'disposisi') {
+            $pdf = $this->build_pdf($surat, null);
+        } elseif ($request->type == 'kartu') {
+            $pdf = $this->build_kartu($surat, '_textonly');
         } else {
-            $pdf = $surat->pdf;
+            return abort(404);
         }
-        // return $pdf->stream('surat_masuk.pdf');
-        return response()->file($folder. '/' . $pdf, [
-            'Content-Type' => 'application/pdf',
-        ]);
+
+        return $pdf->stream($surat->NOAGENDA . '_' . $surat->TAHUN . '_' . ($request->type == 'kartu' ? 'kartu_surat_masuk' : $request->type) .'.pdf');
     }
 
     public function download_pdf(Request $request)
