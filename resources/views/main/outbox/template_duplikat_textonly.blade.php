@@ -37,7 +37,7 @@
             height: 107mm;
             margin-left: 28mm;
             margin-right: 26mm;
-            margin-top: 2.5mm;
+            /* margin-top: 2.5mm; */
         }
         .sidebar {
             width: 25mm;
@@ -88,7 +88,7 @@
         .content {
             margin-top: 1.5mm;
             margin-left: 1.5mm;
-            font-size: 10;
+            font-size: 12pt;
             font-weight: normal;
         }
         .center { text-align: center; }
@@ -135,7 +135,7 @@
                     <div class="margin">
                         Nomor Urut : <br>
                     </div>
-                    <div class="content">{{ $data->NOAGENDA }}.{{ $data->KODEUP }}</div>
+                    <div class="content" style="font-size: 16pt;">{{ $data->NOAGENDA }}.{{ $data->KODEUP }}</div>
                 </td>
             </tr>
             <tr>

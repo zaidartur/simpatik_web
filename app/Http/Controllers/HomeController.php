@@ -6,6 +6,7 @@ use App\Models\ArsipSurat;
 use App\Models\Pimpinan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -40,8 +41,21 @@ class HomeController extends Controller
         $start = Carbon::parse($request->start)->format('Y-m-d');
         $end = Carbon::parse($request->end)->format('Y-m-d');
 
-        $lists = ArsipSurat::selectRaw('NO as id, drkpd as title, created_at as start, created_at as end, JENISSURAT as jenis, ISI as isi_surat, NAMAKOTA as kota, NOSURAT as surat, TGLSURAT as tgl_surat, PERIHAL as perihal')
-                ->whereBetween('created_at', [$start, $end])->get();
+        $query = ArsipSurat::selectRaw('NO as id, drkpd as title, TGLENTRY as start, TGLENTRY as end, JENISSURAT as jenis, ISI as isi_surat, NAMAKOTA as kota, NOSURAT as surat, TGLSURAT as tgl_surat, PERIHAL as perihal')
+                ->whereBetween('TGLENTRY', [$start, $end]);
+        
+        if (Auth::user()->hasRole(['setda'])) {
+            $query->whereIn('Posisi', ['Sekretaris Daerah', 'Bupati', 'Wakil Bupati']);
+        }
+        if (Auth::user()->hasRole(['wabup'])) {
+            $query->whereIn('Posisi', ['Bupati', 'Wakil Bupati']);
+        }
+        if (Auth::user()->hasRole(['bupati'])) {
+            $query->whereIn('Posisi', ['Bupati']);
+        }
+        
+        $lists = $query->get();
+        
         // $lists = ArsipSurat::whereDate('created_at', '>=', $start)->whereDate('created_at', '<=', $end)->get();
         
         foreach ($lists as $key => $value) {

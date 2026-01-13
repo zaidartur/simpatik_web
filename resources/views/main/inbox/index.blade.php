@@ -124,7 +124,7 @@
                             @can ('input surat masuk')
                             <button class="btn btn-info mb-2 me-4 float-end" onclick="location.href='{{ route('inbox.create') }}'">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                <span class="btn-text-inner">Buat Surat Masuk</span>
+                                <span class="btn-text-inner">Buat Data</span>
                             </button>
                             @endcan
                             <button class="btn btn-secondary is-status mb-2 me-4 float-end" value="unfinish" onclick="_disposisi()">

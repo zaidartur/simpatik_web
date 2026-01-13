@@ -27,9 +27,10 @@ class InboxController extends Controller
 
     public function __construct() {
         $this->middleware('permission:surat masuk', ['only' => ['index', 'serverside', 'show']]);
-        $this->middleware('permission:input surat masuk', ['only' => ['store', 'create', 'view_pdf', 'nomor_urut', 'upload_file']]);
+        $this->middleware('permission:input surat masuk', ['only' => ['store', 'create', 'nomor_urut', 'upload_file']]);
         $this->middleware('permission:edit surat masuk', ['only' => ['edit', 'update', 'upload_file']]);
         $this->middleware('permission:hapus surat masuk', ['only' => ['destroy']]);
+        $this->middleware('permission:cetak surat masuk', ['only' => ['view_pdf']]);
     }
 
     public function index()
@@ -627,6 +628,7 @@ class InboxController extends Controller
         if ($request->type == 'disposisi') {
             $pdf = $this->build_pdf($surat, null);
         } elseif ($request->type == 'kartu') {
+            if (!Auth::user()->hasRole(['administrator', 'umum'])) return abort(404);
             $pdf = $this->build_kartu($surat, '_textonly');
         } else {
             return abort(404);

@@ -89,7 +89,7 @@
         .content {
             margin-top: 1.5mm;
             margin-left: 1.5mm;
-            font-size: 10;
+            font-size: 12pt;
             font-weight: normal;
         }
         .center { text-align: center; }

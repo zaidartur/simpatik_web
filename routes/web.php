@@ -54,6 +54,7 @@ Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {
     Route::get('/template/{uid}', [App\Http\Controllers\OutboxController::class, 'template_test'])->name('outbox.template');
     Route::get('/lihat-surat-duplikat/{name}', [App\Http\Controllers\HomeController::class, 'view_duplikat'])->name('outbox.dup.view');
     Route::get('/unduh-surat-duplikat/{name}', [App\Http\Controllers\HomeController::class, 'download_duplikat'])->name('outbox.dup.download');
+    Route::get('/print-pdf/{id}', [App\Http\Controllers\OutboxController::class, 'view_pdf'])->name('outbox.pdf');
 
     Route::post('/update-surat', [App\Http\Controllers\OutboxController::class, 'update'])->name('outbox.update');
     // Route::post('nomor-urut', [App\Http\Controllers\OutboxController::class, 'nomor_urut'])->name('outbox.urut');

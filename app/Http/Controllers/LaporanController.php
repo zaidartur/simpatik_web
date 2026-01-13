@@ -210,7 +210,8 @@ class LaporanController extends Controller
             $start = $request->start;
             $length = $request->length;
 
-            $query = ArsipSurat::where('TAHUN', (!empty($request->year) ? $request->year : date('Y')));
+            // $query = ArsipSurat::where('TAHUN', (!empty($request->year) ? $request->year : date('Y')));
+            $query = ArsipSurat::select('*');
 
             if (isset($request->jenis) && in_array($request->jenis, ['Masuk', 'Keluar'])) {
                 $query->where('JENISSURAT', $request->jenis);
@@ -221,7 +222,7 @@ class LaporanController extends Controller
             if (isset($request->start_date) && !empty($request->start_date) && isset($request->end_date) && !empty($request->end_date)) {
                 $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
                 $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-                $query->whereBetween('TGLENTRY', [$startDate, $endDate]);
+                $query->whereBetween('TGLENTRY', [Carbon::parse($startDate)->format('Y-m-d'), Carbon::parse($endDate)->format('Y-m-d')]);
             }
 
             $query->orderBy('noagenda2', 'ASC');

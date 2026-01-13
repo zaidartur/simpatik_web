@@ -64,7 +64,7 @@
                     <ul class="collapse submenu list-unstyled {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'show' : '' }}" id="inbox" data-bs-parent="#menusidebar">
                         @role(['administrator','umum'])
                         <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
-                            <a href="{{ route('inbox.create') }}"> Input Surat </a>
+                            <a href="{{ route('inbox.create') }}"> Input Data </a>
                         </li>
                         @endrole
                         <li class="{{ request()->routeIs(['inbox']) ? 'active' : '' }}">
@@ -85,7 +85,7 @@
                     </a>
                     <ul class="collapse submenu list-unstyled {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit', 'outbox.duplicate']) ? 'show' : '' }}" id="outbox" data-bs-parent="#menusidebar">
                         <li class="{{ request()->routeIs(['outbox.create']) ? 'active' : '' }}">
-                            <a href="{{ route('outbox.create') }}"> Input Surat </a>
+                            <a href="{{ route('outbox.create') }}"> Input Data </a>
                         </li>
                         <li class="{{ request()->routeIs(['outbox']) ? 'active' : '' }}">
                             <a href="{{ route('outbox') }}"> Daftar Surat </a>

@@ -37,7 +37,7 @@
             height: 107mm;
             margin-left: 28mm;
             margin-right: 26mm;
-            margin-top: 2.5mm;
+            /* margin-top: 2.5mm; */
         }
         .sidebar {
             width: 25mm;

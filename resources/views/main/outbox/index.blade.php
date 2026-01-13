@@ -71,7 +71,7 @@
                         <div class="col-6">
                             <button class="btn btn-info mb-2 me-4 float-end" onclick="location.href='{{ route('outbox.create') }}'">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                <span class="btn-text-inner">Buat Surat Keluar</span>
+                                <span class="btn-text-inner">Buat Data</span>
                             </button>
                         </div>
                     </div>
@@ -177,6 +177,7 @@
     <!-- END PAGE LEVEL SCRIPTS -->
 
     <script>
+        @role(['administrator', 'umum'])
         function _delete(uid) {
             Swal.fire({
                 title: 'Apakah Anda yakin?',
@@ -222,5 +223,11 @@
                 }
             });
         }
+
+        function printPdf(id) {
+            window.open(`/surat-keluar/print-pdf/${id}?type=kartu`, '_blank')
+        }
+
+        @endrole
     </script>
 @endsection

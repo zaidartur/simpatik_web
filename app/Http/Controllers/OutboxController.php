@@ -6,6 +6,7 @@ use App\Models\ArsipSurat;
 use App\Models\Duplikat;
 use App\Models\Instansi;
 use App\Models\Jra;
+use App\Models\Pimpinan;
 use App\Models\Sppd;
 use App\Models\TempatBerkas;
 use App\Models\UnitKerja;
@@ -26,6 +27,7 @@ class OutboxController extends Controller
         $this->middleware('permission:input surat keluar', ['only' => ['store', 'create', 'last_sppd', 'check_surat']]);
         $this->middleware('permission:edit surat keluar', ['only' => ['edit', 'update', 'duplikat']]);
         $this->middleware('permission:hapus surat keluar', ['only' => ['destroy']]);
+        $this->middleware('permission:cetak surat keluar', ['only' => ['view_pdf']]);
     }
     
     public function index()
@@ -100,20 +102,21 @@ class OutboxController extends Controller
                 'tgl_buat'  => Carbon::parse($ibx->TGLENTRY)->isoFormat('DD-MMM-YYYY'),
                 'tujuan'    => $ibx->NAMAUP,
                 'uid'       => Crypt::encryptString($ibx->NO),
-                'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">
-                                    <a href="'. route('outbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
+                'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">' .
+                                    '<button type="button" class="btn btn-outline-info bs-tooltip" title="Detail">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    </button>' .
+                                    ((Auth::user()->hasRole(['administrator', 'umum'])) ? '<a href="'. route('outbox.edit', Crypt::encryptString($ibx->NO)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Data">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </a>
-                                    <button type="button" class="btn btn-outline-info bs-tooltip" title="Tindak Lanjut">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-success bs-tooltip" title="Cetak Surat">
+                                    </a>' : '') .
+                                    ((Auth::user()->hasRole(['administrator', 'umum'])) ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Kartu" onclick="printPdf(`'. Crypt::encryptString($ibx->NO) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                    </button>
-                                    <button type="button" class="btn btn-danger bs-tooltip" title="Hapus Surat" onclick="_delete(\''. Crypt::encryptString($ibx->NO) .'\')">
+                                    </button>' : '') .
+
+                                    ((Auth::user()->hasRole(['administrator', 'umum'])) ? '<button type="button" class="btn btn-danger bs-tooltip" title="Hapus Data" onclick="_delete(\''. Crypt::encryptString($ibx->NO) .'\')">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                    </button>
-                                </div>',
+                                    </button>' : '') .
+                                '</div>',
             ];
         }
 
@@ -612,5 +615,33 @@ class OutboxController extends Controller
         $pdf = Pdf::loadView('main.outbox.template_duplikat', ['data' => $data]);
 
         return $pdf->stream('test.pdf');
+    }
+
+    public function view_pdf($uid)
+    {
+        $request = Request();
+        $id  = Crypt::decryptString($uid);
+        if (!$id) return abort(404);
+
+        $surat = ArsipSurat::where('NO', $id)->first();
+        if (!$surat) return abort(404);
+
+        if (empty($request->type)) return abort(404);
+        
+        if ($request->type == 'kartu') {
+            $pdf = $this->build_kartu($surat, '_textonly');
+        } else {
+            return abort(404);
+        }
+
+        return $pdf->stream($surat->NOAGENDA . '_' . $surat->TAHUN . '_' . ($request->type == 'kartu' ? 'kartu_surat_masuk' : $request->type) .'.pdf');
+    }
+
+    public function build_kartu($inbox, $add = null)
+    {
+        $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
+
+        $pdf = Pdf::loadView('main.outbox.template_duplikat' . $add, ['data' => $inbox, 'sign' => $sign]);
+        return $pdf;
     }
 }
