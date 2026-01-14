@@ -7,11 +7,10 @@
     
     <style>
         @page {
-            size: legal portrait;
-            margin: 1cm;
-            margin-bottom: 0;
-            /* size: 243mm 114.5mm; */
-            /* margin: 0mm; */
+            /* size: A4 portrait; */
+            /* margin: 1cm; */
+            size: 243mm 114.5mm;
+            margin: 0mm;
         }
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -34,40 +33,39 @@
             box-sizing: border-box;
         }
         .main-table {
-            width: 100%;
-            height: auto;
-            table-layout: fixed;
-            border-collapse: collapse;
-            /* width: 188mm; */
-            /* height: 107mm; */
-            /* margin-left: 28mm; */
-            /* margin-right: 26mm; */
-            /* margin-top: 2.5mm; */
+            width: 188mm;
+            height: 107mm;
+            margin-left: 28mm;
+            margin-right: 26mm;
+            margin-top: 2.5mm;
         }
         .sidebar {
-            width: 15%;
+            width: 25mm;
+            min-width: 25mm;
+            max-width: 25mm;
             overflow: hidden; 
             /* line-height: 1.2;  */
             vertical-align: middle; 
             text-align: left;
         }
         .sidebar-logo {
-            width: 12mm;
+            width: 11mm;
             transform: rotate(-90deg);
             position: relative;
-            bottom: -47mm;
+            bottom: -42mm;
             left: 7mm;
         }
         .sidebar-title {
             transform: rotate(-90deg); 
-            transform-origin: center;
             white-space: nowrap; 
             text-transform: uppercase; 
             font-size: 13; 
             font-family: 'Times New Roman', Times, serif;
             font-weight: bold;
-            margin-left: -2mm;
-            margin-top: 8mm;
+
+            position: relative;
+            left: 0.5mm;
+            bottom: -9mm;
         }
         table {
             width: 100%;
@@ -78,23 +76,17 @@
             border: 2px solid #000;
             /* padding: 4px 6px; */
             vertical-align: top;
-            white-space: normal;
-        }
-        td {
-            word-break: break-word;
-            overflow-wrap: break-word;
         }
         .margin {
             margin-top: 1.5mm;
             margin-left: 1.5mm;
             font-size: 10;
             font-weight: bold;
-            
         }
         .content {
             margin-top: 1.5mm;
             margin-left: 1.5mm;
-            font-size: 11pt;
+            font-size: 12pt;
             font-weight: normal;
         }
         .center { text-align: center; }
@@ -105,12 +97,16 @@
 </head>
 <body>
 <div class="">
-    @for ($i=0; $i<3; $i++)
-        
-    <div style="margin-bottom: 3mm;">
+    <div style="">
         <table class="main-table">
+            <colgroup>
+                <col style="width: 25mm;">
+                <col style="width: 43.5mm;">
+                <col style="width: 56mm;">
+                <col style="width: 63.5mm;">
+            </colgroup>
             <tr>
-                <td rowspan="6" class="sidebar">
+                <td rowspan="4" class="sidebar">
                     <div>
                         <img src="{{ public_path('templates/images/kop/kra-bw.jpg') }}" alt="Logo" class="sidebar-logo">
                     </div>
@@ -120,19 +116,19 @@
                         kartu surat masuk
                     </div>
                 </td>
-                <td style="width: 25%;">
+                <td style="height: 19.5mm; width: 43.5mm;">
                     <div class="margin">
                         Indeks : <br>
                     </div>
-                    <div class="content">{{ $data->KODEOPR }} <br>{{ \Carbon\Carbon::parse($data->TGLTERUS)->format('d/m/Y') }}</div>
+                    <div class="content">{{ $data->KODEOPR }} <br>{{ $data->TGLTERUS }}</div>
                 </td>
-                <td style="width: 35%;">
+                <td style="height: 19.5mm; width: 56mm;">
                     <div class="margin">
                         Kode : <br>
                     </div>
                     <div class="content">{{ $data->KLAS3 }}</div>
                 </td>
-                <td style="width: 25%;">
+                <td style="height: 19.5mm; width: 63.5mm;">
                     <div class="margin">
                         Nomor Urut : <br>
                     </div>
@@ -140,7 +136,7 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="">
+                <td colspan="3" style="height: 21.5mm; width: 163mm;">
                     <div class="margin">
                         Isi Ringkas : {!! !empty($data->nosppd) ? '<span style="margin-left: 50mm;">No. SPD : <span style="font-weight: normal;">'.$data->nosppd.'</span></span>' : '' !!}
                     </div>
@@ -148,62 +144,14 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="3" style="height: 17.5mm;">
+                <td colspan="3" style="height: 17.5mm; width: 163mm;">
                     <div class="margin">
-                        Dari : <br>
+                        Kepada : <br>
                     </div>
                     <div class="content">{{ $data->drkpd }}</div>
                 </td>
             </tr>
             <tr>
-                <td style="height: 15mm; border-bottom: none;">
-                    <div class="margin">
-                        Tgl Surat : <br>
-                    </div>
-                    <div class="content">{{ \Carbon\Carbon::parse($data->TGLSURAT)->format('d/m/Y') }}</div>
-                </td>
-                <td style="height: 15mm; border-bottom: none;">
-                    <div class="margin">
-                        Nomor Surat : <br>
-                    </div>
-                    <div class="content">{{ $data->NOSURAT }}</div>
-                </td>
-                <td style="height: 15mm;">
-                    <div class="margin">
-                        Lampiran : <br>
-                    </div>
-                    <div class="content">{{ $data->lampiran }}</div>
-                </td>
-            </tr>
-            <tr>
-                <td style="height: 15mm;">
-                    <div class="margin">
-                        Pengolah : <br>
-                    </div>
-                    <div class="content">{{ $data->NAMAUP }}</div>
-                </td>
-                <td style="height: 15mm;">
-                    <div class="margin">
-                        Tgl Diteruskan : <br>
-                    </div>
-                    <div class="content">{{ \Carbon\Carbon::parse($data->TGLTERUS)->format('d/m/Y') }}</div>
-                </td>
-                <td rowspan="2">
-                    <div class="margin">
-                        Tanda Terima : <br>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="height: 15mm;">
-                    <div class="margin">
-                        Catatan : <br>
-                    </div>
-                    <div class="content">{{ $data->CATATAN }}</div>
-                </td>
-            </tr>
-
-            {{-- <tr>
                 <td colspan="3">
                     <table style="width: 162mm; height: 45mm;">
                         <colgroup>
@@ -260,7 +208,7 @@
                         </tr>
                     </table>
                 </td>
-            </tr> --}}
+            </tr>
             {{-- <tr>
                 <td colspan="3" style="height: 24.5mm; width: 163mm;">
                     <div class="margin">
@@ -271,11 +219,6 @@
             </tr> --}}
         </table>
     </div>
-    @if($i < 2)
-    <hr style="border-top: 1px dashed black; color: transparent; margin-bottom: 3mm; margin-left: -10mm; margin-right: -10mm;">
-    @endif
-
-    @endfor
 </div>
 </body>
 </html>

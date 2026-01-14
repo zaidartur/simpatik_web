@@ -629,7 +629,8 @@ class OutboxController extends Controller
         if (empty($request->type)) return abort(404);
         
         if ($request->type == 'kartu') {
-            $pdf = $this->build_kartu($surat, '_textonly');
+            // $pdf = $this->build_kartu($surat, '_textonly');
+            $pdf = $this->build_kartu($surat, null);
         } else {
             return abort(404);
         }

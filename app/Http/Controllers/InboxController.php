@@ -629,7 +629,8 @@ class InboxController extends Controller
             $pdf = $this->build_pdf($surat, null);
         } elseif ($request->type == 'kartu') {
             if (!Auth::user()->hasRole(['administrator', 'umum'])) return abort(404);
-            $pdf = $this->build_kartu($surat, '_textonly');
+            // $pdf = $this->build_kartu($surat, '_textonly');
+            $pdf = $this->build_kartu($surat, null);
         } else {
             return abort(404);
         }
