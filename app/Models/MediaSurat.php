@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TempatBerkas extends Model
+class MediaSurat extends Model
 {
     //
 }

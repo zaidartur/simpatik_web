@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Instansi extends Model
 {
-    protected $table = 'tbl_instansi';
+    // protected $table = 'tbl_instansi';
 }

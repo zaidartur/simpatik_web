@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pimpinans', function (Blueprint $table) {
+        Schema::create('instansis', function (Blueprint $table) {
             $table->id();
+            $table->string('kode', '20');
             $table->string('nama');
-            $table->text('jabatan');
-            $table->string('pangkat_golongan')->nullable();
-            $table->string('nip')->nullable();
-
-            $table->foreignId('level')->nullable()->constrained('level_users')->nullOnDelete()->cascadeOnUpdate();
-
-            $table->boolean('is_default')->default(false);
+            $table->string('akronim')->nullable();
+            $table->text('alamat')->nullable();
+            $table->string('email', '100')->nullable();
+            $table->string('phone', '30')->nullable();
+            $table->string('website')->nullable();
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pimpinans');
+        Schema::dropIfExists('instansis');
     }
 };

@@ -45,7 +45,7 @@
                                         <div class="row mb-3">
                                             <label for="berkas" class="col-sm-3 col-form-label">Nama Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="berkas" value="{{ $inbox->NAMABERKAS }}" required>
+                                                <input type="text" class="form-control" id="berkas" value="{{ $inbox->nama_berkas }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -54,7 +54,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_terima" class="col-sm-3 col-form-label">Tanggal Terima</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_terima" value="{{ date_format(date_create($inbox->TGLTERIMA), 'Y-m-d') }}" required>
+                                                <input type="date" class="form-control" id="tgl_terima" value="{{ date_format(date_create($inbox->tgl_diterima), 'Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -63,7 +63,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_surat" class="col-sm-3 col-form-label">Tanggal Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_surat" value="{{ date_format(date_create($inbox->TGLSURAT), 'Y-m-d') }}" required>
+                                                <input type="date" class="form-control" id="tgl_surat" value="{{ date_format(date_create($inbox->tgl_surat), 'Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -80,7 +80,7 @@
                                         <div class="row mb-3">
                                             <label for="darikepada" class="col-sm-2 col-form-label">Dari Kepada</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="darikepada" value="{{ $inbox->drkpd }}" required autofocus>
+                                                <input type="text" class="form-control" id="darikepada" value="{{ $inbox->dari }}" required autofocus>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -89,7 +89,7 @@
                                         <div class="row mb-3">
                                             <label for="wilayah" class="col-sm-2 col-form-label">Wilayah</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="wilayah" value="{{ $inbox->NAMAKOTA }}" required>
+                                                <input type="text" class="form-control" id="wilayah" value="{{ $inbox->wilayah }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -98,7 +98,7 @@
                                         <div class="row mb-3">
                                             <label for="perihal" class="col-sm-2 col-form-label">Perihal</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="perihal" value="{{ $inbox->PERIHAL }}" required>
+                                                <input type="text" class="form-control" id="perihal" value="{{ $inbox->perihal }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -108,7 +108,7 @@
                                             <label for="isi" class="col-sm-2 col-form-label">Isi Surat</label>
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="isi" value="" required> --}}
-                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required>{{ $inbox->ISI }}</textarea>
+                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required>{{ $inbox->isi_surat }}</textarea>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -132,7 +132,7 @@
                                         <div class="row mb-3">
                                             <label for="klasifikasi_kode" class="col-sm-3 col-form-label">Kode Klasifikasi</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="klasifikasi_kode" value="{{ $inbox->KLAS3 }}" required>
+                                                <input type="text" class="form-control" id="klasifikasi_kode" value="{{ $inbox->klasifikasi->klas3 }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -141,7 +141,7 @@
                                         <div class="row mb-3">
                                             <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="no_surat" value="{{ $inbox->NOSURAT }}" required>
+                                                <input type="text" class="form-control" id="no_surat" value="{{ $inbox->no_surat }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -150,7 +150,7 @@
                                         <div class="row mb-3">
                                             <label for="urut" class="col-sm-3 col-form-label">Nomor Urut</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="urut" value="{{ $inbox->NOURUT }}" required readonly>
+                                                <input type="text" class="form-control" id="urut" value="{{ $inbox->no_agenda }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -176,7 +176,7 @@
                                         <div class="row mb-3">
                                             <label for="aktif" class="col-sm-2 col-form-label">Retensi Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="aktif" value="{{ $inbox->AKTIF }}" required readonly>
+                                                <input type="text" class="form-control" id="aktif" value="{{ $inbox->klasifikasi->r_aktif }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -185,7 +185,7 @@
                                         <div class="row mb-3">
                                             <label for="inaktif" class="col-sm-2 col-form-label">Retensi Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="inaktif" value="{{ $inbox->INAKTIF }}" required readonly>
+                                                <input type="text" class="form-control" id="inaktif" value="{{ $inbox->klasifikasi->r_inaktif }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -194,7 +194,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_aktif" class="col-sm-2 col-form-label">Tahun Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_aktif" value="{{ $inbox->THAKTIF }}" required readonly>
+                                                <input type="text" class="form-control" id="thn_aktif" value="{{ intval(Carbon::parse($inbox->tgl_surat)->format('Y')) + intval($inbox->klasifikasi->r_aktif) }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -203,7 +203,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_inaktif" class="col-sm-2 col-form-label">Tahun Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_inaktif" value="{{ $inbox->THINAKTIF }}" required readonly>
+                                                <input type="text" class="form-control" id="thn_inaktif" value="{{ intval(Carbon::parse($inbox->tgl_surat)->format('Y')) + intval($inbox->klasifikasi->r_aktif) + intval($inbox->klasifikasi->r_inaktif) }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -212,7 +212,7 @@
                                         <div class="row mb-3">
                                             <label for="jra" class="col-sm-2 col-form-label">JRA</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="jra" value="{{ $inbox->KETJRA }}" required readonly>
+                                                <input type="text" class="form-control" id="jra" value="{{ $inbox->klasifikasi->ket_jra }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -221,7 +221,7 @@
                                         <div class="row mb-3">
                                             <label for="nilai_guna" class="col-sm-2 col-form-label">Nilai Guna</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="nilai_guna" value="{{ $inbox->NILAIGUNA }}" required readonly>
+                                                <input type="text" class="form-control" id="nilai_guna" value="{{ $inbox->klasifikasi->nilai_guna }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -245,7 +245,13 @@
                                         <div class="row mb-3">
                                             <label for="darikepada" class="col-sm-3 col-form-label">Tempat Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                {{-- <input type="text" class="form-control" id="darikepada" value="" required> --}}
+                                                <select class="form-select" id="tempat_berkas" name="tempat_berkas" required>
+                                                    <option value="">Pilih Tempat Berkas</option>
+                                                    @foreach ($berkas as $br)
+                                                        <option value="{{ $br->id }}" {{ $br->id == $inbox->tempat_berkas ? 'selected' : '' }}>{{ $br->nama }}</option>
+                                                    @endforeach
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -254,7 +260,11 @@
                                         <div class="row mb-3">
                                             <label for="darikepada" class="col-sm-3 col-form-label">Tk Penyimpanan</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" value="" required>
+                                                <select class="form-select" id="perkembangan" name="perkembangan" required>
+                                                    @foreach ($perkembangan as $pk)
+                                                        <option value="{{ $pk->id }}" {{ $pk->id == $inbox->id_perkembangan ? 'selected' : '' }}>{{ $pk->nama }}</option>
+                                                    @endforeach
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -271,7 +281,11 @@
                                         <div class="row mb-3">
                                             <label for="sifat_surat" class="col-sm-2 col-form-label">Sifat Surat</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="sifat_surat" value="{{ $inbox->SIFAT_SURAT }}" required>
+                                                <select class="form-select" id="sifat_surat" name="sifat_surat" required>
+                                                    @foreach ($sifat as $sf)
+                                                        <option value="{{ $sf->id }}" {{ $sf->id == $inbox->sifat_surat ? 'selected' : '' }}>{{ $sf->nama_sifat }}</option>
+                                                    @endforeach
+                                                </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -280,7 +294,7 @@
                                         <div class="row mb-3">
                                             <label for="tindakan" class="col-sm-2 col-form-label">Tindakan</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="tindakan" value="{{ $inbox->TDT }}" required>
+                                                <input type="text" class="form-control" id="tindakan" value="{{ $inbox->tindakan }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -289,7 +303,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_balas" class="col-sm-2 col-form-label">Tanggal Balas</label>
                                             <div class="col-sm-10">
-                                                <input type="date" class="form-control" id="tgl_balas" value="{{ $inbox->TGLBALAS }}" required>
+                                                <input type="date" class="form-control" id="tgl_balas" value="{{ $inbox->tgl_balas }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -308,7 +322,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Tanggal Diteruskan</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control lbl-diteruskan" id="tgl_diteruskan" value="{{ $inbox->TGLTERUS }}" required>
+                                                <input type="text" class="form-control lbl-diteruskan" id="tgl_diteruskan" value="{{ $inbox->tgl_diteruskan }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -317,7 +331,7 @@
                                         <div class="row mb-3">
                                             <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control lbl-diteruskan" id="diteruskan_kpd" value="{{ $inbox->NAMAUP }}" required>
+                                                <input type="text" class="form-control lbl-diteruskan" id="diteruskan_kpd" value="{{ $inbox->level->nama }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>

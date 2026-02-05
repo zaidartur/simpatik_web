@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -54,13 +55,28 @@ class User extends Authenticatable
         ];
     }
 
+    public function getRouteKeyName()
+    {
+        return 'uuid'; // Agar saat di URL menggunakan UUID, bukan ID
+    }
+
     /**
-     * Get the user associated with the User
+     * Get the leveluser associated with the User
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function instansi(): HasOne
+    // public function leveluser(): HasOne
+    // {
+    //     return $this->hasOne(LevelUser::class);
+    // }
+
+    /**
+     * Get the leveluser associated with the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function leveluser(): HasOne
     {
-        return $this->hasOne(DefaultInstansi::class, 'uuid_user', 'uuid');
+        return $this->hasOne(LevelUser::class, 'id', 'level');
     }
 }

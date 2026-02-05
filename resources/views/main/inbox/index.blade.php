@@ -85,16 +85,15 @@
                                         <div class="col-auto mb-2">
                                             <select class="form-control form-control-sm bs-tooltip" id="klasifikasi" name="klasifikasi" placeholder="Sifat Surat" title="Sifat Surat">
                                                 <option value="" selected>Semua</option>
-                                                <option value="Biasa">Biasa</option>
-                                                <option value="Segera">Segera</option>
-                                                <option value="Penting">Penting</option>
-                                                <option value="Rahasia">Rahasia</option>
+                                                @foreach ($sifat as $sf)
+                                                    <option value="{{ $sf->id }}">{{ $sf->nama_sifat }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <div class="col-auto me-2 mb-2">
                                             <select name="tahun" id="tahun" class="form-control form-control-sm bs-tooltip" placeholder="Tahun Arsip" title="Tahun Arsip">
                                                 @foreach ($years as $y => $year)
-                                                    <option value="{{ $year->TAHUN }}" {{ $y == 0 ? 'selected' : '' }}>{{ $year->TAHUN }}</option>
+                                                    <option value="{{ $year->year }}" {{ $y == 0 ? 'selected' : '' }}>{{ $year->year }}</option>
                                                 @endforeach
                                                 <option value="">Semua</option>
                                             </select>
@@ -103,7 +102,7 @@
                                             <select class="form-control form-control-sm bs-tooltip" id="posisi" name="posisi" placeholder="Posisi Surat" title="Posisi Surat">
                                                 <option value="" selected>Semua</option>
                                                 @foreach ($posisi as $pos)
-                                                    <option value="{{ $pos }}">{{ $pos }}</option>
+                                                    <option value="{{ $pos->id }}">{{ $pos->nama }}</option>
                                                 @endforeach
                                             </select>
                                         </div>

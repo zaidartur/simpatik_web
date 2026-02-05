@@ -261,8 +261,9 @@
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="tempat_berkas" name="tempat_berkas" value="" required> --}}
                                                 <select class="form-select" id="tempat_berkas" name="tempat_berkas" required>
+                                                    <option value="">Pilih Tempat Berkas</option>
                                                     @foreach ($berkas as $br)
-                                                        <option value="{{ $br->Nama }}" {{ $br->Nama == 'Map' ? 'selected' : '' }}>{{ $br->Nama }}</option>
+                                                        <option value="{{ $br->id }}">{{ $br->nama }}</option>
                                                     @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
@@ -275,11 +276,9 @@
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="perkembangan" name="perkembangan" value="" required> --}}
                                                 <select class="form-select" id="perkembangan" name="perkembangan" required>
-                                                    <option value="Asli">Asli</option>
-                                                    <option value="Foto Copy">Foto Copy</option>
-                                                    <option value="Tembusan">Tembusan</option>
-                                                    <option value="Salinan">Salinan</option>
-                                                    <option value="Faksimile">Faksimile</option>
+                                                    @foreach ($perkembangan as $pk)
+                                                        <option value="{{ $pk->id }}">{{ $pk->nama }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -299,10 +298,9 @@
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value=""> --}}
                                                 <select class="form-select" id="sifat_surat" name="sifat_surat" required>
-                                                    <option value="Biasa">Biasa</option>
-                                                    <option value="Segera">Segera</option>
-                                                    <option value="Penting">Penting</option>
-                                                    <option value="Rahasia">Rahasia</option>
+                                                    @foreach ($sifat as $sf)
+                                                        <option value="{{ $sf->id }}">{{ $sf->nama_sifat }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -354,9 +352,11 @@
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="diteruskan_kpd" name="diteruskan_kpd" value=""> --}}
                                                 <select class="form-select lbl-diteruskan" id="diteruskan_kpd" name="diteruskan_kpd" required>
-                                                    <option value="Sekretaris Daerah" selected>Sekretaris Daerah</option>
-                                                    <option value="Wakil Bupati">Wakil Bupati</option>
-                                                    {{-- <option value="Bupati">Bupati</option> --}}
+                                                    {{-- <option value="Sekretaris Daerah" selected>Sekretaris Daerah</option>
+                                                    <option value="Wakil Bupati">Wakil Bupati</option> --}}
+                                                    @foreach ($level as $lvl)
+                                                        <option value="{{ $lvl->id }}" {{ $lvl->id == 3 ? 'selected' : '' }}>{{ $lvl->nama }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -504,7 +504,7 @@
                 data: {
                     src: [
                         @foreach ($jra as $jr)
-                            "{{ $jr->KLAS3 }} - {{ $jr->MASALAH3 }}",
+                            "{{ $jr->klas3 }} - {{ $jr->masalah3 }}",
                         @endforeach
                     ],
                     cache: true,
@@ -635,12 +635,12 @@
                     console.error('Error:', data.message);
                     return;
                 }
-                document.getElementById('aktif').value = data.jra.RAKTIF;
-                document.getElementById('inaktif').value = data.jra.RINAKTIF;
+                document.getElementById('aktif').value = data.jra.r_aktif;
+                document.getElementById('inaktif').value = data.jra.r_inaktif;
                 document.getElementById('thn_aktif').value = data.jra.thn_aktif;
                 document.getElementById('thn_inaktif').value = data.jra.thn_inaktif;
-                document.getElementById('jra').value = data.jra.KETJRA;
-                document.getElementById('nilai_guna').value = data.jra.NILAIGUNA;
+                document.getElementById('jra').value = data.jra.ket_jra;
+                document.getElementById('nilai_guna').value = data.jra.nilai_guna;
             })
             .catch((error) => {
                 console.error('Error:', error);

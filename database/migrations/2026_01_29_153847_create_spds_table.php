@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pimpinans', function (Blueprint $table) {
+        Schema::create('spds', function (Blueprint $table) {
             $table->id();
+            $table->string('no_spd', '100');
             $table->string('nama');
-            $table->text('jabatan');
-            $table->string('pangkat_golongan')->nullable();
-            $table->string('nip')->nullable();
-
-            $table->foreignId('level')->nullable()->constrained('level_users')->nullOnDelete()->cascadeOnUpdate();
-
-            $table->boolean('is_default')->default(false);
+            $table->string('jabatan');
+            $table->string('tujuan');
+            $table->string('kendaraan');
+            $table->date('tgl_surat');
+            $table->date('tgl_berangkat');
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pimpinans');
+        Schema::dropIfExists('spds');
     }
 };

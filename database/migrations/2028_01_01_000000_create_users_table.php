@@ -18,10 +18,13 @@ return new class extends Migration
             $table->string('username', '50')->unique();
             $table->string('email')->nullable()->unique();
             $table->string('no_telp', '16')->nullable();
-            $table->enum('level', ['administrator', 'direktur', 'kajur', 'opdirektur', 'operator'])->default('operator');
-            $table->string('kode', '10');
+            // $table->enum('level', ['administrator', 'direktur', 'kajur', 'opdirektur', 'operator'])->default('operator');
+
+            $table->foreignId('level')->constrained('level_users')->cascadeOnUpdate()->cascadeOnDelete();
+
+            // $table->string('kode', '10');
             $table->string('blokir', '1')->default('N');
-            $table->string('jurusan', '50');
+            // $table->string('jurusan', '50');
             // $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

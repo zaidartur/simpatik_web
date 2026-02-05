@@ -28,7 +28,7 @@
                     <div class="profile-content">
                         <h6 class="">{{ Auth::user()->nama_lengkap }}</h6>
                         <p class="">{{ Auth::user()->jurusan }}</p>
-                        <p>{{ Auth::user()->level }}</p>
+                        <p>{{ Auth::user()->leveluser->nama }}</p>
                     </div>
                 </div>
             </div>
@@ -51,6 +51,7 @@
                     </div>
                 </li>
 
+                @canany(['lihat surat masuk', 'input surat masuk', 'edit surat masuk', 'hapus surat masuk', 'cetak surat masuk'])
                 <li class="menu {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'active' : '' }}">
                     <a  href="#inbox" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -62,17 +63,21 @@
                         </div>
                     </a>
                     <ul class="collapse submenu list-unstyled {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'show' : '' }}" id="inbox" data-bs-parent="#menusidebar">
-                        @role(['administrator','umum'])
+                        @canany(['input surat masuk', 'edit surat masuk'])
                         <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Input Data </a>
                         </li>
-                        @endrole
+                        @endcanany
+                        @canany(['lihat surat masuk', 'edit surat masuk', 'hapus surat masuk', 'cetak surat masuk'])
                         <li class="{{ request()->routeIs(['inbox']) ? 'active' : '' }}">
                             <a href="{{ route('inbox') }}"> Daftar Surat </a>
                         </li>
+                        @endcanany
                     </ul>
                 </li>
-                @role(['administrator','umum'])
+                @endcanany
+
+                @canany(['lihat surat keluar', 'input surat keluar', 'edit surat keluar', 'hapus surat keluar', 'cetak surat keluar', 'duplikat surat'])
                 <li class="menu {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit']) ? 'active' : '' }}">
                     <a href="#outbox" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -84,18 +89,24 @@
                         </div>
                     </a>
                     <ul class="collapse submenu list-unstyled {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit', 'outbox.duplicate']) ? 'show' : '' }}" id="outbox" data-bs-parent="#menusidebar">
+                        @canany(['input surat keluar', 'edit surat keluar'])
                         <li class="{{ request()->routeIs(['outbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('outbox.create') }}"> Input Data </a>
                         </li>
+                        @endcanany
+                        @canany(['lihat surat keluar', 'edit surat keluar', 'hapus surat keluar', 'cetak surat keluar'])
                         <li class="{{ request()->routeIs(['outbox']) ? 'active' : '' }}">
                             <a href="{{ route('outbox') }}"> Daftar Surat </a>
                         </li>
+                        @endcanany
+                        @canany(['duplikat surat'])
                         <li class="{{ request()->routeIs(['outbox.duplicate']) ? 'active' : '' }}">
                             <a href="{{ route('outbox.duplicate') }}"> Duplikat Surat </a>
                         </li>
+                        @endcanany
                     </ul>
                 </li>
-                @endrole
+                @endcanany
                 
                 {{-- <li class="menu">
                     <a href="./app-calendar.html" aria-expanded="false" class="dropdown-toggle">
@@ -114,7 +125,7 @@
                     </a>
                 </li> --}}
 
-                @role(['administrator','umum'])
+                @canany(['spd'])
                 <li class="menu {{ request()->routeIs(['sppd']) ? 'active' : '' }}">
                     <a href="{{ route('sppd') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -123,8 +134,9 @@
                         </div>
                     </a>
                 </li>
-                @endrole
+                @endcanany
 
+                @canany(['tindak lanjut', 'agenda', 'input agenda', 'edit agenda', 'hapus agenda', 'statistik'])
                 <li class="menu {{ request()->routeIs(['report.statistik']) ? 'active' : '' }}">
                     <a  href="#report" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -139,25 +151,26 @@
                         {{-- <li class="{{ request()->routeIs(['inbox.create']) ? 'active' : '' }}">
                             <a href="{{ route('inbox.create') }}"> Disposisi </a>
                         </li> --}}
-                        @role(['administrator','umum', 'setda'])
+                        @can('tindak lanjut')
                         <li class="{{ request()->routeIs(['report.next']) ? 'active' : '' }}">
                             <a href="{{ route('report.next') }}"> Tindak Lanjut </a>
                         </li>
-                        @endrole
-                        @role(['administrator','setda', 'wabup', 'bupati'])
+                        @endcan
+                        @canany(['agenda', 'input agenda', 'edit agenda'])
                         <li class="{{ request()->routeIs(['report.agenda']) ? 'active' : '' }}">
                             <a href="{{ route('report.agenda') }}"> Agenda </a>
                         </li>
-                        @endrole
-                        @role(['administrator','umum'])
+                        @endcanany
+                        @can('statistik')
                         <li class="{{ request()->routeIs(['report.statistik']) ? 'active' : '' }}">
                             <a href="{{ route('report.statistik') }}"> Statistik </a>
                         </li>
-                        @endrole
+                        @endcan
                     </ul>
                 </li>
+                @endcanany
 
-                @role('administrator')
+                @role(['administrator', 'admin'])
                 <li class="menu menu-heading">
                     <div class="heading">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
