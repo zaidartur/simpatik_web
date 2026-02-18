@@ -33,7 +33,7 @@ Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
     Route::get('/buat-surat', [App\Http\Controllers\InboxController::class, 'create'])->name('inbox.create');
     Route::post('/simpan-surat', [App\Http\Controllers\InboxController::class, 'store'])->name('inbox.store');
     Route::get('/edit-surat/{id}', [App\Http\Controllers\InboxController::class, 'edit'])->name('inbox.edit');
-    Route::post('/update-surat/{id}', [App\Http\Controllers\InboxController::class, 'update'])->name('inbox.update');
+    Route::post('/update-surat', [App\Http\Controllers\InboxController::class, 'update'])->name('inbox.update');
     Route::post('/nomor-urut', [App\Http\Controllers\InboxController::class, 'nomor_urut'])->name('inbox.urut');
     Route::post('/hapus-surat', [App\Http\Controllers\InboxController::class, 'destroy'])->name('inbox.destroy');
     Route::get('/lihat-surat/{id}', [App\Http\Controllers\InboxController::class, 'show'])->name('inbox.show');

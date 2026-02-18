@@ -29,7 +29,7 @@ return new class extends Migration
             $table->foreign('pengirim_uuid')->references('uuid')->on('users');
             $table->foreign('penerima_uuid')->references('uuid')->on('users');
 
-            $table->text('catatan_disposisi');
+            $table->text('catatan_disposisi')->nullable();
 
             $table->foreignId('id_pimpinan')->nullable()->constrained('pimpinans')->nullOnDelete();
 

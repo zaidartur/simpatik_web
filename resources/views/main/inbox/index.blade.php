@@ -485,7 +485,7 @@
         }
         @endrole
 
-        @role(['administrator', 'wabup', 'bupati', 'setda'])
+        @role(['administrator', 'admin', 'wabup', 'bupati', 'setda'])
         function _reply(uid) {
             Swal.fire({
                 title: 'Tanggapi Surat',

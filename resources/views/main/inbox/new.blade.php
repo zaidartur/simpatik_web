@@ -42,7 +42,7 @@
             </nav>
         </div>
 
-        <form method="POST" action="{{ route('inbox.store') }}" class="needs-validation" novalidate>
+        <form method="POST" action="{{ route('inbox.store') }}" class="needs-validation" enctype="multipart/form-data" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
                 <input type="hidden" name="uid" value="">
@@ -173,7 +173,7 @@
                                         <div class="row mb-3">
                                             <label for="lampiran" class="col-sm-3 col-form-label">Jumlah Lampiran</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="lampiran" name="lampiran" value="-" maxlength="15" required>
+                                                <input type="text" class="form-control" id="lampiran" name="lampiran" value="-" maxlength="10" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -312,8 +312,8 @@
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="tindakan" name="tindakan" value=""> --}}
                                                 <select class="form-select" id="tindakan" name="tindakan" required>
-                                                    <option value="Non Balas">Non Balas</option>
-                                                    <option value="Balas">Balas</option>
+                                                    <option value="non balas">Non Balas</option>
+                                                    <option value="balas">Balas</option>
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -333,7 +333,7 @@
                                             <label for="is_diteruskan" class="col-sm-2 col-form-label">&nbsp;</label>
                                             <div class="col-sm-10">
                                                 <div class="form-check form-check-info form-check-inline">
-                                                    <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="is_diteruskan" name="is_diteruskan" value="yes" onchange="_forward()" checked>
+                                                    <input class="form-check-input" type="checkbox" id="is_diteruskan" name="is_diteruskan" value="{{ Auth::user()->leveluser->tindak_lanjut ? 'yes' : 'no' }}" onchange="_forward()" {{ Auth::user()->leveluser->tindak_lanjut ? 'checked' : '' }}>
                                                     <label class="form-check-label bs-tooltip" for="is_diteruskan" title="Hapus centang apabila surat tidak akan diteruskan"><span class="badge badge-info mb-2 me-4">Surat Diteruskan?</span></label>
                                                 </div>
                                             </div>
@@ -351,12 +351,16 @@
                                             <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="diteruskan_kpd" name="diteruskan_kpd" value=""> --}}
-                                                <select class="form-select lbl-diteruskan" id="diteruskan_kpd" name="diteruskan_kpd" required>
+                                                <select class="form-select lbl-diteruskan" id="diteruskan_kpd" name="diteruskan_kpd" {{ Auth::user()->leveluser->tindak_lanjut ? 'required' : '' }}>
                                                     {{-- <option value="Sekretaris Daerah" selected>Sekretaris Daerah</option>
                                                     <option value="Wakil Bupati">Wakil Bupati</option> --}}
+                                                    @if (count($level) > 0)
                                                     @foreach ($level as $lvl)
-                                                        <option value="{{ $lvl->id }}" {{ $lvl->id == 3 ? 'selected' : '' }}>{{ $lvl->nama }}</option>
+                                                        <option value="{{ $lvl->id }}">{{ $lvl->nama }}</option>
                                                     @endforeach
+                                                    @else
+                                                        <option value="">Tidak ada pilihan</option>
+                                                    @endif
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.

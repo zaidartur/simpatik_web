@@ -51,7 +51,7 @@
                     </div>
                 </li>
 
-                @canany(['lihat surat masuk', 'input surat masuk', 'edit surat masuk', 'hapus surat masuk', 'cetak surat masuk'])
+                @canany(['surat masuk', 'lihat surat masuk', 'input surat masuk', 'edit surat masuk', 'hapus surat masuk', 'cetak surat masuk'])
                 <li class="menu {{ request()->routeIs(['inbox', 'inbox.show', 'inbox.create', 'inbox.edit']) ? 'active' : '' }}">
                     <a  href="#inbox" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -68,7 +68,7 @@
                             <a href="{{ route('inbox.create') }}"> Input Data </a>
                         </li>
                         @endcanany
-                        @canany(['lihat surat masuk', 'edit surat masuk', 'hapus surat masuk', 'cetak surat masuk'])
+                        @canany(['surat masuk', 'lihat surat masuk', 'edit surat masuk', 'hapus surat masuk', 'cetak surat masuk'])
                         <li class="{{ request()->routeIs(['inbox']) ? 'active' : '' }}">
                             <a href="{{ route('inbox') }}"> Daftar Surat </a>
                         </li>
@@ -77,7 +77,7 @@
                 </li>
                 @endcanany
 
-                @canany(['lihat surat keluar', 'input surat keluar', 'edit surat keluar', 'hapus surat keluar', 'cetak surat keluar', 'duplikat surat'])
+                @canany(['surat keluar', 'lihat surat keluar', 'input surat keluar', 'edit surat keluar', 'hapus surat keluar', 'cetak surat keluar', 'duplikat surat'])
                 <li class="menu {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit']) ? 'active' : '' }}">
                     <a href="#outbox" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -94,7 +94,7 @@
                             <a href="{{ route('outbox.create') }}"> Input Data </a>
                         </li>
                         @endcanany
-                        @canany(['lihat surat keluar', 'edit surat keluar', 'hapus surat keluar', 'cetak surat keluar'])
+                        @canany(['surat keluar', 'lihat surat keluar', 'edit surat keluar', 'hapus surat keluar', 'cetak surat keluar'])
                         <li class="{{ request()->routeIs(['outbox']) ? 'active' : '' }}">
                             <a href="{{ route('outbox') }}"> Daftar Surat </a>
                         </li>
@@ -170,13 +170,15 @@
                 </li>
                 @endcanany
 
-                @role(['administrator', 'admin'])
+                {{-- @role(['administrator', 'admin']) --}}
+                @canany(['instansi', 'aplikasi', 'lihat user', 'reset nomor'])
                 <li class="menu menu-heading">
                     <div class="heading">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>KONFIGURASI SISTEM</span>
                     </div>
                 </li>
+                @endcanany
 
                 {{-- <li class="menu">
                     <a href="/" aria-expanded="false" class="dropdown-toggle">
@@ -186,6 +188,7 @@
                         </div>
                     </a>
                 </li> --}}
+                @canany(['instansi'])
                 <li class="menu {{ request()->routeIs(['instansi']) ? 'active' : '' }}">
                     <a href="{{ route('instansi') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -195,6 +198,7 @@
                         </div>
                     </a>
                 </li>
+                @endcanany
                 {{-- <li class="menu">
                     <a href="./app-chat.html" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -203,6 +207,7 @@
                         </div>
                     </a>
                 </li> --}}
+                @canany(['lihat user', 'buat user', 'edit user', 'hapus user', 'password user'])
                 <li class="menu {{ request()->routeIs(['user']) ? 'active' : '' }}">
                     <a href="{{ route('user') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -211,6 +216,7 @@
                         </div>
                     </a>
                 </li>
+                @endcanany
                 <li class="menu {{ request()->routeIs(['pimpinan']) ? 'active' : '' }}">
                     <a href="{{ route('pimpinan') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -219,6 +225,7 @@
                         </div>
                     </a>
                 </li>
+                @canany(['aplikasi'])
                 <li class="menu {{ request()->routeIs(['apps']) ? 'active' : '' }}">
                     <a href="{{ route('apps') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -228,6 +235,7 @@
                         </div>
                     </a>
                 </li>
+                @endcanany
                 {{-- <li class="menu {{ request()->routeIs(['outbox', 'outbox.show', 'outbox.create', 'outbox.edit']) ? 'active' : '' }}">
                     <a href="#setting" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -247,7 +255,7 @@
                         </li>
                     </ul>
                 </li> --}}
-                @endrole
+                {{-- @endrole --}}
                
             </ul>
             

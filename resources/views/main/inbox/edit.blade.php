@@ -30,10 +30,11 @@
             </nav>
         </div>
 
-        <form class="needs-validation" novalidate>
+        <form method="POST" action="{{ route('inbox.update') }}" class="needs-validation" enctype="multipart/form-data" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
 
+                <input type="hidden" name="uid" value="{{ $inbox->uuid }}">
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
                         <div class="row">
@@ -194,7 +195,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_aktif" class="col-sm-2 col-form-label">Tahun Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_aktif" value="{{ intval(Carbon::parse($inbox->tgl_surat)->format('Y')) + intval($inbox->klasifikasi->r_aktif) }}" required readonly>
+                                                <input type="text" class="form-control" id="thn_aktif" value="{{ intval(\Carbon\Carbon::parse($inbox->tgl_surat)->format('Y')) + intval($inbox->klasifikasi->r_aktif) }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -203,7 +204,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_inaktif" class="col-sm-2 col-form-label">Tahun Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="thn_inaktif" value="{{ intval(Carbon::parse($inbox->tgl_surat)->format('Y')) + intval($inbox->klasifikasi->r_aktif) + intval($inbox->klasifikasi->r_inaktif) }}" required readonly>
+                                                <input type="text" class="form-control" id="thn_inaktif" value="{{ intval(\Carbon\Carbon::parse($inbox->tgl_surat)->format('Y')) + intval($inbox->klasifikasi->r_aktif) + intval($inbox->klasifikasi->r_inaktif) }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -303,7 +304,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_balas" class="col-sm-2 col-form-label">Tanggal Balas</label>
                                             <div class="col-sm-10">
-                                                <input type="date" class="form-control" id="tgl_balas" value="{{ $inbox->tgl_balas }}" required readonly>
+                                                <input type="date" class="form-control" id="tgl_balas" value="{{ date_format(date_create($inbox->tgl_balas), 'Y-m-d') }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -314,7 +315,7 @@
                                             <label for="is_diteruskan" class="col-sm-2 col-form-label">&nbsp;</label>
                                             <div class="col-sm-10">
                                                 <div class="form-check form-check-info form-check-inline">
-                                                    <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="is_diteruskan" name="is_diteruskan" value="yes" onchange="_forward()" {{ !empty($inbox->NAMAUP) ? 'checked' : '' }}>
+                                                    <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="is_diteruskan" name="is_diteruskan" value="yes" onchange="_forward()" {{ Auth::user()->leveluser->tindak_lanjut ? 'checked' : '' }}>
                                                     <label class="form-check-label bs-tooltip" for="is_diteruskan" title="Hapus centang apabila surat tidak akan diteruskan"><span class="badge badge-info mb-2 me-4">Surat Diteruskan?</span></label>
                                                 </div>
                                             </div>
@@ -322,7 +323,7 @@
                                         <div class="row mb-3">
                                             <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Tanggal Diteruskan</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control lbl-diteruskan" id="tgl_diteruskan" value="{{ $inbox->tgl_diteruskan }}" required>
+                                                <input type="text" class="form-control lbl-diteruskan" id="tgl_diteruskan" value="{{ date_format(date_create($inbox->tgl_diteruskan), 'Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -353,7 +354,7 @@
                     </div>
                 </div>
 
-                <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+                {{-- <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
                         <div class="row">
                             <div class="col-md-6">
@@ -400,6 +401,51 @@
                                                         multiple 
                                                         data-allow-reorder="true"
                                                         data-max-file-size="5MB"
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> --}}
+
+                <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+                    <div class="widget-content widget-content-area br-8">
+                        <div class="row justify-content-center">
+                            @if (!empty($inbox->softcopy))
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <button type="button" class="btn btn-info">Lihat File Scan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            <div class="{{ !empty($inbox->softcopy) ? 'col-md-6' : 'col-md-8' }}">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-5 {{ !empty($inbox->softcopy) ? 'text-warning' : '' }}">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                                            @if (!empty($inbox->softcopy))
+                                            <b>Ubah</b> Scan Surat Masuk
+                                            @else
+                                            Scan Surat Masuk
+                                            @endif
+                                        </h5>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-sm-12">
+                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Hasil Scan Surat Masuk (maksimum 10Mb, format PDF/Gambar)</label>
+                                                <div class="multiple-file-upload">
+                                                    <input type="file" 
+                                                        class="filepond file-upload-scan"
+                                                        name="is_scan" 
+                                                        multiple 
+                                                        data-allow-reorder="true"
+                                                        data-max-file-size="10MB"
                                                     >
                                                 </div>
                                             </div>
@@ -467,7 +513,7 @@
                 }),
             });
 
-            var lampiran = FilePond.create(document.querySelector('.file-upload-lampiran'), {
+            var lampiran = FilePond.create(document.querySelector('.file-upload-scan'), {
                 acceptedFileTypes: ['application/pdf'],
                 fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
             });

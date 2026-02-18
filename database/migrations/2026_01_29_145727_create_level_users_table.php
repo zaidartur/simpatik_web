@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('warna')->nullable();
             $table->boolean('is_primary')->default(false);
             $table->boolean('tindak_lanjut')->default(0);
+            $table->json('daftar_terusan')->nullable();
+            $table->boolean('can_disposisi')->default(false);
             $table->timestamps();
         });
     }
