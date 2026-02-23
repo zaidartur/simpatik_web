@@ -67,9 +67,9 @@
                             @foreach ($instansi as $i => $ins)
                                 <tr>
                                     <td>{{ $i+1 }}</td>
-                                    <td><b>{{ $ins->INSTANSI }}</b></td>
-                                    <td>{{ $ins->KODE }}</td>
-                                    <td>{{ $ins->Akronim }}</td>
+                                    <td><b>{{ $ins->nama }}</b></td>
+                                    <td>{{ $ins->kode }}</td>
+                                    <td>{{ $ins->akronim }}</td>
                                     <td>
                                         <div class="btn-group-vertical" role="group" aria-label="Second group">
                                             {{-- <button type="button" class="btn btn-outline-info bs-tooltip" onclick="_detail('{{ base64_encode(json_encode($ins)) }}')" title="Detail Instansi">

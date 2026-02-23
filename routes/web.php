@@ -41,6 +41,7 @@ Route::prefix('/surat-masuk')->middleware(['auth'])->group(function () {
     Route::post('/tanggapi', [App\Http\Controllers\InboxController::class, 'reply'])->name('inbox.reply');
 
     Route::get('/print-pdf/{id}', [App\Http\Controllers\InboxController::class, 'view_pdf'])->name('inbox.pdf');
+    Route::get('/lihat-file/{id}', [App\Http\Controllers\InboxController::class, 'view_file'])->name('inbox.view');
 });
 
 Route::prefix('/surat-keluar')->middleware(['auth'])->group(function () {

@@ -422,8 +422,11 @@
                                         
                                         <div class="row mb-3">
                                             <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Hasil Scan Surat Masuk (maksimum 10Mb, format PDF/Gambar)</label>
-                                                <div class="multiple-file-upload">
+                                                <label for="is_scan" class="col-form-label text-center col-12">Upload File Hasil Scan Surat Masuk (maksimum 10Mb, format PDF/Gambar)</label>
+                                                <div class="alert alert-light-danger fade show border-0 mb-4 is-alert" role="alert">
+                                                    <strong>Perhatian!</strong> <span id="content_alert">Ukuran file melebihi batas dan file tidak akan tersimpan.</span></button>
+                                                </div>
+                                                {{-- <div class="multiple-file-upload">
                                                     <input type="file" 
                                                         class="filepond file-upload-scan"
                                                         name="is_scan" 
@@ -431,7 +434,8 @@
                                                         data-allow-reorder="true"
                                                         data-max-file-size="10MB"
                                                     >
-                                                </div>
+                                                </div> --}}
+                                                <input class="form-control file-upload-input" type="file" id="is_scan" name="is_scan" accept=".pdf,.PDF,.png,.jpg,.jpeg,.PNG,.JPG">
                                             </div>
                                         </div>
                                     </div>
@@ -500,6 +504,9 @@
             var lampiran = FilePond.create(document.querySelector('.file-upload-scan'), {
                 acceptedFileTypes: ['application/pdf', 'image/jpg', 'image/png', 'image/jpeg'],
                 fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf', 'image/*': '.jpg, .png, .jpeg' },
+                instantUpload: false,
+                allowMultiple: false,
+                allowFileEncode: true,
             });
 
             const autoCompleteJS = new autoComplete({
@@ -570,6 +577,26 @@
                     },
                 },
             });
+
+
+            $('.is-alert').hide()
+            var uploadField = document.getElementById("is_scan");
+            uploadField.onchange = function() {
+                const list = ['pdf', 'png', 'jpg', 'jpeg']
+                const myfile = this.files[0]
+                const lastDotIndex = myfile.name.split('.').pop()
+                if(myfile.size > 10485760) { // 10MB limit
+                    $('#content_alert').html('Ukuran file melebihi batas dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else if (!list.includes(lastDotIndex.toLowerCase())) { // check extention
+                    $('#content_alert').html('Jenis file tidak sesuai ketentuan dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else {
+                    $('.is-alert').hide()
+                }
+            };
 
             _forward();
         });
@@ -659,7 +686,10 @@
 
             forwardFields.forEach(field => {
                 field.disabled = !isChecked;
+                field.required = isChecked;
             });
+
+            ask.value = (isChecked ? 'yes' : 'no')
         }
     </script>
 @endsection

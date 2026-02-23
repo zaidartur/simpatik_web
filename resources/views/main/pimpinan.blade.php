@@ -57,7 +57,10 @@
                         <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
                             <div class="card" style="min-height: 300px; max-height: 450px;">
                                 <div class="card-body">
-                                    <h5 class="card-title"><u>{{ $item->level }} :</u></h5>
+                                    <h5 class="card-title">
+                                        {!! $item->is_default == true ? '<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>' : '' !!}
+                                        <b>{{ $item->leveluser->nama }}</b> :
+                                    </h5>
                                     <p class="mb-0">{!! nl2br($item->jabatan) !!}</p>
                                     <p style="height: 35px;">&nbsp;</p>
                                     <p class="mb-0"><b><u>{{ $item->nama }}</u></b></p>
@@ -160,10 +163,13 @@
                                                     <div class="col-sm-9">
                                                         <select name="role" id="role" class="form-control" required>
                                                             <option value="">-- Pilih Role --</option>
-                                                            <option value="Bupati">Bupati</option>
+                                                            @foreach ($instansi as $role)
+                                                                <option value="{{ $role->id }}">{{ $role->nama }}</option>    
+                                                            @endforeach
+                                                            {{-- <option value="Bupati">Bupati</option>
                                                             <option value="Wakil Bupati">Wakil Bupati</option>
                                                             <option value="Sekretaris Daerah">Sekretaris Daerah</option>
-                                                            <option value="Bagian Umum">Bagian Umum</option>
+                                                            <option value="Bagian Umum">Bagian Umum</option> --}}
                                                         </select>
                                                         <div class="invalid-feedback">
                                                             Field ini wajib di isi.

@@ -420,8 +420,9 @@
                 html: `
                     <select id="tujuan" class="swal2-select" style="width: 80%; margin: auto;">
                         <option value="" disabled selected>Pilih Tindakan</option>
-                        <option value="Wakil Bupati">Wakil Bupati</option>
-                        <option value="Bupati">Bupati</option>
+                        @foreach ($terusan as $tr)
+                            <option value="{{ $tr->id }}">{{ $tr->nama }}</option>    
+                        @endforeach
                     </select>
                 `,
                 icon: 'question',
@@ -488,7 +489,7 @@
         @role(['administrator', 'admin', 'wabup', 'bupati', 'setda'])
         function _reply(uid) {
             Swal.fire({
-                title: 'Tanggapi Surat',
+                title: 'Disposisi Surat',
                 html: `
                     <textarea id="notes" class="swal2-textarea" placeholder="Catatan" style="width: 80%;"></textarea>
                 `,
@@ -618,71 +619,80 @@
                             <td colspan="4">&nbsp;</td>
                         </tr>
                         <tr>
-                            <td width="20%"><label><b>No. Urut</b></label></td>
-                            <td class="text-wrap" style="width: 30%; white-space: normal !important;"><label>${data.NOAGENDA}</label></td>
+                            <td width="20%"><label><b>No. Urut / Tahun</b></label></td>
+                            <td class="text-wrap" style="width: 30%; white-space: normal !important;"><label>${data.no_agenda} / ${data.year}</label></td>
                             <td width="20%"><label><b>Kode</b></label></td>
-                            <td style="white-space: normal; overflow-wrap: break-word; word-wrap: break-word; width: 30%;"><label>${data.KLAS3}</label></td>
+                            <td style="white-space: normal; overflow-wrap: break-word; word-wrap: break-word; width: 30%;"><label>${data.id_klasifikasi}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Berkas</b></label></td>
-                            <td colspan="3"><label>${data.NAMABERKAS}</label></td>
+                            <td colspan="3"><label>${data.nama_berkas}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Perihal</b></label></td>
-                            <td><label>${data.PERIHAL}</label></td>
+                            <td><label>${data.perihal}</label></td>
                             <td><label><b>Lampiran</b></label></td>
                             <td><label>${data.lampiran ?? '-'}</label></td>
                         </tr>
                         <tr>
                             <td style="height: 100px; vertical-align: top; text-align: left;"><label><b>Isi</b></label></td>
-                            <td colspan="3" style="height: 100px; vertical-align: top; text-align: left;"><label>${data.ISI}</label></td>
+                            <td colspan="3" style="height: 100px; vertical-align: top; text-align: left;"><label>${data.isi_surat}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Dari</b></label></td>
-                            <td colspan="3"><label>${data.drkpd}</label></td>
+                            <td colspan="3"><label>${data.dari}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Alamat</b></label></td>
-                            <td colspan="3"><label>${data.NAMAKOTA}</label></td>
+                            <td colspan="3"><label>${data.wilayah}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Tgl. Surat</b></label></td>
-                            <td><label>${data.TGLSURAT}</label></td>
+                            <td><label>${data.tgl_surat}</label></td>
                             <td><label><b>No. Surat</b></label></td>
-                            <td><label>${data.NOSURAT}</label></td>
+                            <td><label>${data.no_surat}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Tgl. Terima</b></label></td>
-                            <td><label>${data.TGLTERIMA}</label></td>
+                            <td><label>${data.tgl_diterima}</label></td>
                             <td><label><b>Diteruskan?</b></label></td>
-                            <td><label>${data.NAMAUP ? 'Ya' : 'Tidak'}</label></td>
+                            <td><label>${data.disposisi.length > 0 ? 'Ya' : 'Tidak'}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Sifat</b></label></td>
-                            <td><label>${data.SIFAT_SURAT}</label></td>
+                            <td><label>${data.sifat.nama_sifat}</label></td>
                             <td><label><b>Tindakan</b></label></td>
-                            <td><label>${data.BALAS ?? '-'}</label></td>
-                        </tr>`
-            if (data.NAMAUP && data.NAMAUP.length > 0) {
+                            <td><label>${data.tindakan ?? '-'}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Status Surat</b></label></td>
+                            <td><label>${data.status_surat}</label></td>
+                            <td><label><b>Posisi Terakhir Surat</b></label></td>
+                            <td><label>${data.posisi.leveluser.nama}</label></td>
+                        </tr>
+                        `
+            if (data.disposisi && data.disposisi.length > 0) {
                 detail += `
                         <tr>
-                            <td><label><b>Diterukan Kpd.</b></label></td>
-                            <td><label>${data.NAMAUP}</label></td>
-                            <td><label><b>Tanggal Diteruskan</b></label></td>
-                            <td><label>${data.TGLTERUS}</label></td>
+                            <td colspan="4" class="text-center"><b>DITERUSKAN</b></td>
                         </tr>
-                `
+                        `
+                data.disposisi.forEach(dsp => {
+                   detail += `
+                            <tr>
+                                <td><label><b>Diterukan Kpd.</b></label></td>
+                                <td><label>${dsp.penerima.leveluser.nama}</label></td>
+                                <td><label><b>Tanggal Diteruskan</b></label></td>
+                                {{-- <td><label>${new Intl.DateTimeFormat('id-ID').format(new Date(dsp.created_at))}</label></td> --}}
+                                <td><label>${new Date(dsp.created_at).toLocaleString()}</label></td>
+                            </tr>
+                    ` 
+                });
             }    
                         
             detail += `<tr>
-                            <td><label><b>Status Surat</b></label></td>
-                            <td><label>${data.statussurat}</label></td>
-                            <td><label><b>Posisi Terakhir Surat</b></label></td>
-                            <td><label>${data.Posisi}</label></td>
-                        </tr>
-                        <tr>
                             <td><label><b>File Arsip</b></label></td>
-                            <td colspan="3"><label>${data.pdf ?? '-'}</label></td>
+                            <td colspan="3"><label>${data.softcopy ? '<button class="btn btn-info bs-tooltip" title="Lihat dokumen" onclick="view_file(`'+data.cryptfile+'`)">Lihat</button>' : '-'}</label></td>
                         </tr>
                     </table>
                 </div>
@@ -692,5 +702,9 @@
             $('#detailSurat').modal('show');
         }
         @endrole
+
+        function view_file(file) {
+            window.open(`/surat-masuk/lihat-file/${file}`, '_blank')
+        }
     </script>
 @endsection

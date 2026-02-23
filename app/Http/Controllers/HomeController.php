@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
 use App\Models\Inbox;
+use App\Models\Instansi;
 use App\Models\Klasifikasi;
 use App\Models\LevelUser;
+use App\Models\Outbox;
 use App\Models\Perkembangan;
 use App\Models\Pimpinan;
 use App\Models\SifatSurat;
+use App\Models\Spd;
 use App\Models\TempatBerkas;
 use App\Models\User;
 use Carbon\Carbon;
@@ -48,24 +51,30 @@ class HomeController extends Controller
         if (empty($request->start) || empty($request->end)) return null;
         $start = Carbon::parse($request->start)->format('Y-m-d');
         $end = Carbon::parse($request->end)->format('Y-m-d');
+        $level  = LevelUser::where('id', Auth::user()->level)->first();
 
-        $query = ArsipSurat::selectRaw('NO as id, drkpd as title, TGLENTRY as start, TGLENTRY as end, JENISSURAT as jenis, ISI as isi_surat, NAMAKOTA as kota, NOSURAT as surat, TGLSURAT as tgl_surat, PERIHAL as perihal')
-                ->whereBetween('TGLENTRY', [$start, $end]);
-        
-        if (Auth::user()->hasRole(['setda'])) {
-            $query->whereIn('Posisi', ['Sekretaris Daerah', 'Bupati', 'Wakil Bupati']);
-        }
-        if (Auth::user()->hasRole(['wabup'])) {
-            $query->whereIn('Posisi', ['Bupati', 'Wakil Bupati']);
-        }
-        if (Auth::user()->hasRole(['bupati'])) {
-            $query->whereIn('Posisi', ['Bupati']);
-        }
-        
-        $lists = $query->get();
-        
-        // $lists = ArsipSurat::whereDate('created_at', '>=', $start)->whereDate('created_at', '<=', $end)->get();
-        
+        $query = Inbox::selectRaw('uuid as id, dari as title, created_at as start, created_at as end, isi_surat, wilayah as kota, no_surat as surat, tgl_surat, perihal')
+                ->whereBetween('created_at', [$start, $end])
+                ->whereNull('on_delete')
+                ->whereIn('level_surat', $level->akses)
+                ->orWhereIn('posisi_level', $level->akses);
+        $inbox = $query->get();
+        $inbox->transform(function($inb) {
+            $inb->jenis = 'Masuk';
+            return $inb;
+        });
+
+        $queri = Outbox::selectRaw('uuid as id, kepada as title, created_at as start, created_at as end, isi_surat, wilayah as kota, no_surat as surat, tgl_surat, perihal')
+                ->whereBetween('created_at', [$start, $end])
+                ->whereNull('on_delete')
+                ->whereIn('level_surat', $level->akses);
+        $outbox = $queri->get();
+        $outbox->transform(function($out) {
+            $out->jenis = 'Keluar';
+            return $out;
+        });
+
+        $lists = [...$inbox, ...$outbox];
         foreach ($lists as $key => $value) {
             // $value->extendedProps = ['calendar' => ($value->jenis == 'Masuk' ? 'Work' : 'Important')];
             $value->surat = empty($value->surat) ? '-' : $value->surat;
@@ -100,7 +109,7 @@ class HomeController extends Controller
     {
         $data = [
             'lists'     => Pimpinan::orderBy('level')->get(),
-            'instansi'  => DB::table('instansi')->get(),
+            'instansi'  => Instansi::orderBy('kode')->get(),
         ];
 
         return view('main.pimpinan', $data);
@@ -212,28 +221,80 @@ class HomeController extends Controller
     public function migrate_table()
     {
         ini_set('max_execution_time', 3600);
-        $all = DB::table('aktif')->where('JENISSURAT', 'Masuk')->orderBy('NO')->chunk(100, function ($datas, $int) {
+        $all = DB::table('aktif')->where('JENISSURAT', 'Keluar')->orderBy('NO')->chunk(100, function ($datas, $int) {
             $res = 0;
+
+            // Inbox
+            // foreach ($datas as $key => $value) {
+            //     $klas  = Klasifikasi::where('klas3', $value->KLAS3)->first();
+            //     $sifat = SifatSurat::where('nama_sifat', $value->SIFAT_SURAT)->first();
+            //     $tempat= TempatBerkas::where('nama', $value->TMPTBERKAS)->first();
+            //     $ip    = Perkembangan::where('nama', $value->TK_PERKEMBANGAN)->first();
+            //     $level = LevelUser::where('nama', $value->NAMAUP)->first();
+
+            //     if ($level && $level->id) {
+            //         $user  = User::where('level', $level->id)->first();
+            //         $save = new Inbox();
+            //         $save->uuid         = Str::uuid7();
+            //         $save->no_agenda    = intval($value->NOAGENDA);
+            //         $save->nama_berkas  = $value->NAMABERKAS;
+            //         $save->no_surat     = $value->NOSURAT;
+            //         $save->dari         = $value->drkpd;
+            //         $save->wilayah      = $value->WILAYAH;
+            //         $save->perihal      = $value->PERIHAL;
+            //         $save->isi_surat    = $value->ISI;
+            //         $save->tgl_surat    = date_format(date_create($value->TGLSURAT), 'Y-m-d');
+            //         $save->tgl_diterima = Carbon::now();
+            //         $save->year         = intval($value->TAHUN);
+            //         $save->id_media     = 1;
+            //         if ($klas && $klas->id) {
+            //             $save->id_klasifikasi   = $klas->id;
+            //         }
+            //         if ($sifat && $sifat->id) {
+            //             $save->sifat_surat  = $sifat->id;
+            //         }
+            //         if ($tempat && $tempat->id) {
+            //             $save->tempat_berkas= $tempat->id;
+            //         }
+            //         if ($ip && $ip->id) {
+            //             $save->id_perkembangan  = $ip->id;
+            //         }
+            //         $save->posisi_surat = $user->uuid;
+            //         $save->tindakan     = "non balas";
+            //         $save->tgl_balas    = null;
+            //         $save->level_surat  = $level->id;
+            //         $save->status_surat = "selesai";
+            //         $save->is_primary_agenda = true;
+            //         $save->created_by   = $user->uuid;
+            //         $save->created_at   = Carbon::parse($value->TGLENTRY . ' ' . $value->JAM)->format('Y-m-d H:i:s');
+
+            //         if ($save->save()) {
+            //             $res++;
+            //         }
+            //     }
+            // }
+
+            // Outbox
             foreach ($datas as $key => $value) {
                 $klas  = Klasifikasi::where('klas3', $value->KLAS3)->first();
                 $sifat = SifatSurat::where('nama_sifat', $value->SIFAT_SURAT)->first();
                 $tempat= TempatBerkas::where('nama', $value->TMPTBERKAS)->first();
                 $ip    = Perkembangan::where('nama', $value->TK_PERKEMBANGAN)->first();
-                $level = LevelUser::where('nama', $value->NAMAUP)->first();
+                $spd   = Spd::where('no_spd', $value->nosppd)->first();
+                $level = LevelUser::where('nama', $value->Posisi)->first();
 
                 if ($level && $level->id) {
                     $user  = User::where('level', $level->id)->first();
-                    $save = new Inbox();
+                    $save = new Outbox();
                     $save->uuid         = Str::uuid7();
                     $save->no_agenda    = intval($value->NOAGENDA);
                     $save->nama_berkas  = $value->NAMABERKAS;
                     $save->no_surat     = $value->NOSURAT;
-                    $save->dari         = $value->drkpd;
+                    $save->kepada       = $value->drkpd;
                     $save->wilayah      = $value->WILAYAH;
                     $save->perihal      = $value->PERIHAL;
                     $save->isi_surat    = $value->ISI;
                     $save->tgl_surat    = date_format(date_create($value->TGLSURAT), 'Y-m-d');
-                    $save->tgl_diterima = Carbon::now();
                     $save->year         = intval($value->TAHUN);
                     $save->id_media     = 1;
                     if ($klas && $klas->id) {
@@ -248,13 +309,18 @@ class HomeController extends Controller
                     if ($ip && $ip->id) {
                         $save->id_perkembangan  = $ip->id;
                     }
-                    $save->posisi_surat = $user->uuid;
+                    if ($ip && $ip->id) {
+                        $save->id_perkembangan  = $ip->id;
+                    }
+                    if ($spd && $spd->id) {
+                        $save->id_spd  = $spd->id;
+                    }
+                    // $save->id_unit      = '';
                     $save->tindakan     = "non balas";
-                    $save->tgl_balas    = null;
-                    $save->level_surat  = 8;
-                    $save->status_surat = "selesai";
+                    $save->level_surat  = $level->id;
                     $save->is_primary_agenda = true;
-                    $save->created_by   = 1;
+                    $save->created_by   = $user->uuid;
+                    $save->created_at   = Carbon::parse($value->TGLENTRY . ' ' . $value->JAM)->format('Y-m-d H:i:s');
 
                     if ($save->save()) {
                         $res++;

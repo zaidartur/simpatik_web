@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
+use App\Models\DaftarTerusan;
 use App\Models\Disposisi;
 use App\Models\Inbox;
 use App\Models\Jra;
@@ -63,7 +64,7 @@ class InboxController extends Controller
         $length = $request->length;
         $level  = LevelUser::where('id', Auth::user()->level)->first();
         $akses  = $level->akses;
-        $query  = Inbox::with(['disposisi', 'mydisposisi', 'klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'posisi:id,uuid,nama_lengkap,level', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap']);
+        $query  = Inbox::with(['disposisi.penerima.leveluser', 'mydisposisi', 'getdisposisi', 'klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'posisi:id,uuid,nama_lengkap,level', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap']);
 
         if ($request->has('klasifikasi') && $request->klasifikasi != '') {
             $query->where('sifat_surat', $request->klasifikasi);
@@ -109,6 +110,7 @@ class InboxController extends Controller
 
         $data = [];
         foreach ($inbox as $r => $ibx) {
+            $ibx->cryptfile = !empty($ibx->softcopy) ? Crypt::encryptString($ibx->softcopy) : null;
             $data[] = [
                 'nomor'     => $ibx->no_surat,
                 'no_agenda' => $ibx->no_agenda,
@@ -160,7 +162,7 @@ class InboxController extends Controller
                                     // ((Auth::user()->hasRole(['bupati']) && $ibx->Posisi == 'Bupati' && !empty($ibx->tglbupati1) && !empty($ibx->pengirimsekda) && empty($ibx->tglsekda1) && $ibx->statussurat == 'disposisi') ? '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
                                     //     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
                                     // </button>' : '') .
-                                    ((Auth::user()->leveluser->tindak_lanjut && $ibx->status_surat == 'diproses' && !empty($ibx->mydisposisi)) ? '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
+                                    ((Auth::user()->leveluser->tindak_lanjut && $ibx->status_surat == 'diproses' && !empty($ibx->mydisposisi) && $ibx->mydisposisi->is_completed == false) ? '<button type="button" class="btn btn-outline-secondary bs-tooltip" title="Menunggu Tindakan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader spin"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
                                     </button>' : '') .
 
@@ -184,7 +186,10 @@ class InboxController extends Controller
                                     </button>' : '') .
 
                                     // Tanggapi Surat
-                                    (($ibx->status_surat == 'diproses' && isset($ibx->mydisposisi->is_completed) && $ibx->mydisposisi->is_completed) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Disposisi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->uuid) .'`)">
+                                    ((($ibx->status_surat == 'diproses' && isset($ibx->mydisposisi->is_completed) && $ibx->mydisposisi->is_completed)) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Disposisi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->uuid) .'`)">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                    </button>' : '') .
+                                    (($ibx->status_surat == 'diproses' && !isset($ibx->mydisposisi) && !empty($ibx->getdisposisi->id) && !$ibx->getdisposisi->is_completed) ? '<button type="button" class="btn btn-secondary bs-tooltip" title="Disposisi Surat" onclick="_reply(`'. Crypt::encryptString($ibx->uuid) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                     </button>' : '') .
 
@@ -231,9 +236,10 @@ class InboxController extends Controller
     {
         $no    = Crypt::decryptString($id);
         if (!$no) return abort(404);
-        // Log::info(trim($no));
-        $inbox = Inbox::with(['disposisi', 'mydisposisi', 'klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'posisi:id,uuid,nama_lengkap,level', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap'])->where('uuid', $no)->first();
-        Log::info(json_encode($inbox));
+        $inbox = Inbox::with(['disposisi', 'disposisi.penerima.leveluser', 'mydisposisi', 'klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'posisi:id,uuid,nama_lengkap,level', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap'])->where('uuid', $no)->first();
+        if ($inbox) {
+            $inbox->cryptfile = Crypt::encryptString($inbox->softcopy);
+        }
         $data  = [
             'inbox'     => $inbox,
             'jra'       => Klasifikasi::all(),
@@ -332,6 +338,7 @@ class InboxController extends Controller
 
         $uuid = Str::uuid7();
         if (!empty($request->file('is_scan'))) {
+            Log::info('file exists');
             $file = $this->upload_file($request->file('is_scan'), $uuid);
         } else {
             $file = null;
@@ -370,7 +377,7 @@ class InboxController extends Controller
         $save = $inbox->save();
 
         if ($save) {
-            if (isset($request->is_diteruskan)) {
+            if (isset($request->is_diteruskan) && $request->is_diteruskan == 'yes' && isset($request->diteruskan_kpd) && !empty($request->diteruskan_kpd)) {
                 $rcv   = User::where('level', $request->diteruskan_kpd)->first();
                 $surat = Inbox::where('uuid', $uuid)->first();
                 if ($rcv) {
@@ -471,7 +478,7 @@ class InboxController extends Controller
             'uid'    => 'required|string'
         ]);
 
-        $id = json_decode(Crypt::decryptString($request->uid));
+        $id = (Crypt::decryptString($request->uid));
         if (!$id) {
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
@@ -490,8 +497,10 @@ class InboxController extends Controller
         $extension = $file->extension();
         
         if (in_array(strtolower($extension), $image)) {
+            Log::info('file is image');
             return $this->sanitize_image($file, $id);
         } else if (strtolower($extension) == 'pdf') {
+            Log::info('file pdf');
             return $this->sanitize_pdf($file, $id);
         } else {
             return null;
@@ -563,29 +572,52 @@ class InboxController extends Controller
     {
         $request->validate([
             'uid'       => 'required|string',
-            'tujuan'    => 'required|string|max:100',
+            'tujuan'    => 'required|numeric',
             // 'catatan'   => 'nullable|string|max:255',
         ]);
 
-        $id = json_decode(Crypt::decryptString($request->uid));
+        $id = Crypt::decryptString($request->uid);
         if (!$id) {
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
 
-        $inbox = ArsipSurat::where('NO', $id)->first();
-        $inbox->Posisi      = $request->tujuan;
-        if (Auth::user()->hasRole(['setda'])) {
-            $inbox->pengirimsekda = Auth::user()->nama_lengkap;
+        $dest = LevelUser::find($request->tujuan);
+        if (!$dest) {
+            return response()->json(['status' => 'failed', 'message' => 'ID tujuan tidak diketahui.']);
         }
-        if (Auth::user()->hasRole(['wabup'])) {
-            $inbox->pengirimwakil = Auth::user()->nama_lengkap;
+
+        $inbox = Inbox::where('uuid', $id)->first();
+        if (!$inbox) {
+            return response()->json(['status' => 'failed', 'message' => 'Surat masuk tidak diketahui.']);
         }
-        
-        if ($inbox->save()) {
+
+        $penerima = User::where('level', $request->tujuan)->first();
+        $check = Disposisi::where('uid_surat', $inbox->uuid)->where('pengirim_uuid', Auth::user()->uuid)->get();
+        if (count($check) > 0) return response()->json(['status' => 'failed', 'message' => 'Duplikasi tindak lanjut.']);
+
+        $dispo = new Disposisi();
+        $dispo->uid_disposisi   = Str::uuid7();
+        $dispo->uid_surat       = $inbox->uuid;
+        $dispo->pengirim_uuid   = Auth::user()->uuid;
+        $dispo->penerima_uuid   = $penerima->uuid;
+        $dispo->is_completed    = false;
+        $save = $dispo->save();
+
+        if ($save) {
+            $inbox->posisi_level = $request->tujuan;
+            $inbox->posisi_surat = $penerima->uuid;
+            $inbox->save();
+
             return response()->json(['status' => 'success', 'message' => 'Surat berhasil diteruskan.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Surat gagal diteruskan.']);
         }
+        
+        // if ($inbox->save()) {
+        //     return response()->json(['status' => 'success', 'message' => 'Surat berhasil diteruskan.']);
+        // } else {
+        //     return response()->json(['status' => 'failed', 'message' => 'Surat gagal diteruskan.']);
+        // }
     }
 
     public function reply(Request $request)
@@ -595,35 +627,41 @@ class InboxController extends Controller
             'notes'     => 'required|string|max:255',
         ]);
 
-        $id = json_decode(Crypt::decryptString($request->uid));
+        $id = (Crypt::decryptString($request->uid));
         if (!$id) {
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
 
         $user  = Auth::user();
-        $inbox = ArsipSurat::where('NO', $id)->first();
-        if (($user->hasRole(['setda']) && $inbox->Posisi == 'Sekretaris Daerah') || ($user->hasRole(['setda']) && !empty($inbox->DisposisiBupati)) || ($user->level == 'administrator' && $inbox->Posisi == 'Sekretaris Daerah') || ($user->level == 'administrator' && !empty($inbox->DisposisiBupati))) {
-            $inbox->statussurat = 'selesai';
-            $inbox->DisposisiSekda = $request->notes;
-            $inbox->tglsekda1      = date('Y-m-d H:i:s');
-        }
-        if ($user->hasRole(['bupati']) && $inbox->Posisi == 'Bupati') {
-            if (empty($inbox->pengirimsekda)) {
-                $inbox->statussurat = 'selesai';
-            }
-            $inbox->DisposisiBupati = $request->notes;
-            $inbox->tglbupati1      = date('Y-m-d H:i:s');
-        }
-        if ($user->hasRole(['wakil_bupati']) && $inbox->Posisi == 'Wakil Bupati') {
-            $inbox->statussurat = 'selesai';
-            $inbox->DisposisiWakil = $request->notes;
-            $inbox->tglwakil     = date('Y-m-d H:i:s');
-        }
+        $dispo = Disposisi::where('uid_surat', $id)->where('penerima_uuid', $user->uuid)->where('is_completed', false)->whereNull('on_delete')->first();
+        if (!$dispo) return response()->json(['status' => 'failed', 'message' => 'ID disposisi tidak diketahui.']);
 
-        if ($inbox->save()) {
+        $check = Disposisi::where('uid_surat', $id)->where('pengirim_uuid', $user->uuid)->where('is_completed', false)->exists();
+        if ($check) return response()->json(['status' => 'failed', 'message' => 'Anda belum bisa memberikan disposisi karena pihak yang Anda teruskan belum memberikan tanggapan.']);
+
+        $pimpinan = Pimpinan::where('level', $user->level)->where('is_default', true)->first();
+        if (!$pimpinan) return response()->json(['status' => 'failed', 'message' => 'Anda belum membuat/memilih data pimpinan Anda.']);
+        
+        $dispo->catatan_disposisi   = $request->notes;
+        $dispo->id_pimpinan         = $pimpinan->id;
+        $dispo->is_completed        = true;
+
+        if ($dispo->save()) {
+            $this->check_surat_selesai($id);
             return response()->json(['status' => 'success', 'message' => 'Surat berhasil ditanggapi.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Surat gagal ditanggapi.']);
+        }
+    }
+
+    public function check_surat_selesai($uid)
+    {
+        $inbox = Inbox::where('uuid', $uid)->first();
+        $dispo = Disposisi::where('uid_surat', $uid)->where('is_completed', false)->exists();
+
+        if (!$dispo) {
+            $inbox->status_surat = 'selesai';
+            $inbox->save();
         }
     }
 
@@ -634,7 +672,8 @@ class InboxController extends Controller
         $id  = Crypt::decryptString($uid);
         if (!$id) return abort(404);
 
-        $surat = Inbox::where('uuid', $id)->first();
+        $surat = Inbox::with(['disposisi.penerima.leveluser', 'mydisposisi', 'getdisposisi', 'klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'posisi:id,uuid,nama_lengkap,level', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap'])
+                ->where('uuid', $id)->first();
         if (!$surat) return abort(404);
 
         if (empty($request->type)) return abort(404);
@@ -728,24 +767,29 @@ class InboxController extends Controller
 
     public function build_pdf($inbox, $add = null)
     {
-        if ($inbox->Posisi == 'Bupati') {
+        // return dd($inbox);
+        if ($inbox->posisi->level == 8) { 
+            // bupati
             $template = 'main.inbox.templates.bupati_full';
             // $template = 'main.inbox.templates.wabup_full';
             // $template = 'main.inbox.templates.setda_full';
             // $template = 'main.inbox.templates.umum_full';
             // $template = 'main.inbox.template';
-        } elseif ($inbox->Posisi == 'Wakil Bupati') {
+        } elseif ($inbox->posisi->level == 7) {
+            // wabup
             $template = 'main.inbox.templates.wabup_full';
-        } elseif ($inbox->Posisi == 'Sekretaris Daerah') {
+        } elseif ($inbox->posisi->level == 3) {
+            // setda
             $template = 'main.inbox.templates.setda_full';
         } else {
             $template = 'main.inbox.templates.umum_full';
         }
         // $pdf = Pdf::setPaper('letter', 'portrait');
         // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
-        $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
+        $sign = Pimpinan::where('level', $inbox->posisi_level)->where('is_default', true)->first();
+        $terusan = DaftarTerusan::all();
 
-        $pdf = Pdf::loadView($template . $add, ['data' => $inbox, 'sign' => $sign]);
+        $pdf = Pdf::loadView($template . $add, ['data' => $inbox, 'sign' => $sign, 'terusan' => $terusan]);
         return $pdf;
     }
 
@@ -755,5 +799,18 @@ class InboxController extends Controller
 
         $pdf = Pdf::loadView('main.inbox.templates.kartu' . $add, ['data' => $inbox, 'sign' => $sign]);
         return $pdf;
+    }
+
+    public function view_file($uid)
+    {
+        $file = Crypt::decryptString($uid);
+        if (!$file) return abort(404);
+
+        $folder = public_path('datas/uploads/suratmasuk');
+        if (file_exists($folder . '/' . $file)) {
+            return response()->file($folder . '/' . $file);
+        } else {
+            return abort(404);
+        }
     }
 }

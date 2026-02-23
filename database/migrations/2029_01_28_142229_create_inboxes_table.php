@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        DB::statement("CREATE TYPE status_surat_enum AS ENUM ('diproses', 'selesai')");
+        
         Schema::create('inboxes', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
@@ -42,7 +45,7 @@ return new class extends Migration
             $table->foreign('posisi_surat')->references('uuid')->on('users');
 
             // $table->foreignId('posisi_level')->nullable()->constrained('level_users')->nullOnDelete()->cascadeOnUpdate();
-            $table->integer('jml_lampiran')->default(0);
+            $table->text('jml_lampiran')->nullable();
             $table->enum('tindakan', ['balas', 'non balas']);
             $table->dateTime('tgl_balas')->nullable();
             $table->text('softcopy')->nullable();
@@ -55,6 +58,8 @@ return new class extends Migration
 
             $table->uuid('created_by');
             $table->foreign('created_by')->references('uuid')->on('users');
+
+            $table->foreignId('posisi_level')->nullable()->constrained('level_users')->nullOnDelete()->cascadeOnUpdate();
             
             $table->dateTime('on_delete')->nullable();
             $table->timestamps();
@@ -67,5 +72,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('inboxes');
+
+        DB::statement('DROP TYPE IF EXISTS status_surat_enum');
     }
 };

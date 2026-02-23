@@ -121,7 +121,7 @@
                 </td>
             </tr>
             <tr>
-                <td style="height: 44mm; width: 80mm;" class="v-top tb-wrap">
+                {{-- <td style="height: 44mm; width: 80mm;" class="v-top tb-wrap">
                     <div style="height: 9mm; margin-left: 3mm;">
                         <label>Diteruskan Kepada Sdr.:</label>
                     </div>
@@ -147,6 +147,32 @@
                         <label style="display: inline-block; vertical-align: bottom; max-width: 75mm; width: 75mm;">
                             dan seterusnya .............................
                         </label>
+                    </div>
+                </td> --}}
+                <td style="height: auto; width: 80mm;" class="v-top tb-wrap">
+                    <div style="height: 9mm; margin-left: 3mm;">
+                        <label>Diteruskan Kepada Sdr.:</label>
+                    </div>
+                    <div class="row">
+                        @foreach ($terusan as $f => $fw)
+                            {{-- @if ($f == 0 || ($f % 2 == 0)) --}}
+                            {{-- <div style="height: 8mm; margin-left: 3mm; font-size: 10pt;"> --}}
+                            <span class="col" style="height: 8mm; margin-left: 3mm; font-size: 11pt;">
+                                <input type="checkbox" style="display: inline-block; vertical-align: top;">
+                                <label style="display: inline-block; vertical-align: top; width: 30mm; margin-top: 1mm;">
+                                    {{ $fw->nama }}
+                                </label>
+                            </span>
+                            @if ($f == 1 || ($f % 2 != 0))
+                                <br>
+                            @endif
+                        @endforeach
+                        <span class="col" style="height: 8mm; margin-left: 3mm; font-size: 11pt;">
+                            <input type="checkbox" style="display: inline-block; vertical-align: top;">
+                            <label style="display: inline-block; vertical-align: top; width: 30mm; margin-top: 1mm;">
+                                ...........................
+                            </label>
+                        </span>
                     </div>
                 </td>
                 <td style="width: 91mm;" class="v-top tb-wrap">
@@ -174,7 +200,7 @@
                 <td style="height: 80mm; border-right: none;" class="v-top tb-wrap">
                     <label style="display: inline-block; width: 20mm; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">Catatan</label>
                     <label>: </label>
-                    <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! $data->DisposisiSekda ? '&quot;'. $data->DisposisiSekda .'&quot;' : '' !!}</label>
+                    <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! $data->disposisi[0]->penerima->level == 3 ? '&quot;'. $data->disposisi[0]->catatan_disposisi .'&quot;' : '' !!}</label>
                 </td>
                 <td style="height: 80mm; border-left: none;" class="v-top tb-wrap">
                     <div style="height: 30mm;">&nbsp;</div>

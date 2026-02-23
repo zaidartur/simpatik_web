@@ -15,4 +15,10 @@ class Disposisi extends Model
     {
         return $this->belongsTo(User::class, 'penerima_uuid', 'uuid');
     }
+
+    public function daftar_terusan()
+    {
+        return $this->hasMany(Inbox::class, 'uuid', 'uid_surat')
+                ->leftJoin('users as u', 'u.uuid', '=', 'disposisis.penerima_uuid');
+    }
 }

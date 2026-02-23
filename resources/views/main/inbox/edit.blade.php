@@ -332,7 +332,7 @@
                                         <div class="row mb-3">
                                             <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control lbl-diteruskan" id="diteruskan_kpd" value="{{ $inbox->level->nama }}" required readonly>
+                                                <input type="text" class="form-control lbl-diteruskan" id="diteruskan_kpd" value="{{ $inbox->disposisi[0]->penerima?->leveluser?->nama ?? '' }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -419,7 +419,16 @@
                             <div class="col-md-6">
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <button type="button" class="btn btn-info">Lihat File Scan</button>
+                                        @if (in_array(strtolower(pathinfo($inbox->softcopy, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']))
+                                            <h5 class="card-title mb-5">File Gambar Tersimpan</h5>
+                                            <img src="{{ route('inbox.view', $inbox->cryptfile) }}" width="100%" height="auto" alt="image-scan" onclick="view_file(`{{ $inbox->cryptfile }}`)" class="round img-thumbnail bs-tooltip" title="Klik untuk melihat secara penuh">
+
+                                        @elseif (strtolower(pathinfo($inbox->softcopy, PATHINFO_EXTENSION)) == 'pdf')
+                                            <h5 class="card-title mb-5">File Dokumen Tersimpan</h5>
+                                            <div class="row justify-content-center" style="vertical-align: middle;">
+                                                <button type="button" class="btn btn-info col-md-6 mb-5" onclick="view_file(`{{ $inbox->cryptfile }}`)">Lihat File Dokumen</button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -528,6 +537,10 @@
             forwardFields.forEach(field => {
                 field.disabled = !isChecked;
             });
+        }
+
+        function view_file(file) {
+            window.open(`/surat-masuk/lihat-file/${file}`, '_blank')
         }
     </script>
 @endsection

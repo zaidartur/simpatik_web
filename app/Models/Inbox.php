@@ -40,6 +40,16 @@ class Inbox extends Model
     }
 
     /**
+     * Get the getdisposisi associated with the Inbox
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function getdisposisi(): HasOne
+    {
+        return $this->hasOne(Disposisi::class, 'uid_surat', 'uuid')->where('disposisis.penerima_uuid', Auth::user()->uuid);
+    }
+
+    /**
      * Get the klasifikasi associated with the Inbox
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

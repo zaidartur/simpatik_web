@@ -21,8 +21,14 @@ class PdfSanitizer
             throw new \RuntimeException('Input PDF does not exist.');
         }
 
+
+        // running WinOS or Linux
+        $gs = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'
+        ? 'C:\\Program Files\\gs\\gs10.06.0\\bin\\gswin64c.exe'
+        : 'gs';
+
         $process = new Process([
-            'gs',
+            $gs,
             '-q',                      // quiet
             '-dNOPAUSE',
             '-dBATCH',
