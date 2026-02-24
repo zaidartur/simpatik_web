@@ -85,8 +85,12 @@ class InboxController extends Controller
         }
 
         $query->whereNull('on_delete');
-        $query->whereIn('level_surat', $level->akses);
-        $query->orWhereIn('posisi_level', $level->akses);
+        $query->where(function ($static) use ($level) {
+            $static->whereIn('level_surat', $level->akses)
+                    ->orWhereIn('posisi_level', $level->akses);
+        });
+        // $query->whereIn('level_surat', $level->akses);
+        // $query->orWhereIn('posisi_level', $level->akses);
         $totalData = $query->count();
 
         // search query
@@ -101,7 +105,7 @@ class InboxController extends Controller
         }
 
         $totalFiltered = $query->count();
-        $query->orderBy('id', 'desc');
+        $query->orderBy('created_at', 'desc');
         $query->skip($start)->take($length);
         
         $inbox = $query->get();
@@ -123,7 +127,7 @@ class InboxController extends Controller
                 'perihal'   => $ibx->perihal,
                 'kode'      => $ibx->klasifikasi->klas3 ?? '',
                 'tgl_buat'  => $ibx->tgl_surat,
-                'posisi'    => $ibx->posisi->leveluser->role ?? '',
+                'posisi'    => $ibx->posisi->leveluser->nama ?? '',
                 'class'     => $ibx->posisi->leveluser->warna ?? '',
                 'uid'       => Crypt::encryptString($ibx->id),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">'.
@@ -324,6 +328,7 @@ class InboxController extends Controller
             'tgl_balas'     => 'nullable|date',
             'lampiran'      => 'nullable|string|max:10',
             'is_scan'       => 'nullable|mimes:pdf,jpeg,jpg,png|max:10240',
+            'keterangan'    => 'nullable|string|max:500'
         ]);
 
         // nomor agenda tahunan
@@ -337,6 +342,7 @@ class InboxController extends Controller
         $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
 
         $uuid = Str::uuid7();
+        $klas = Klasifikasi::where('klas3', $request->klasifikasi_kode)->first();
         if (!empty($request->file('is_scan'))) {
             Log::info('file exists');
             $file = $this->upload_file($request->file('is_scan'), $uuid);
@@ -354,7 +360,7 @@ class InboxController extends Controller
         $inbox->perihal         = $request->perihal;
         $inbox->isi_surat       = $request->isi;
         $inbox->year            = date('Y');
-        $inbox->id_klasifikasi  = $request->klasifikasi_kode;
+        $inbox->id_klasifikasi  = $klas->id ?? null;
         $inbox->no_agenda       = $kode_urut;
         $inbox->no_surat        = $request->no_surat;
         $inbox->tempat_berkas   = $request->tempat_berkas;
@@ -365,7 +371,10 @@ class InboxController extends Controller
         $inbox->tgl_balas       = $request->tindakan == 'non balas' ? null : Carbon::parse($request->tgl_balas)->format('Y-m-d');
         $inbox->status_surat    = isset($request->is_diteruskan) ? 'diproses' : 'selesai';
         $inbox->softcopy        = $file;
-        // $inbox->updated_at
+        
+        if (Auth::user()->leveluser->tindak_lanjut == false) {
+            $inbox->keterangan  = $request->keterangan ?? null;
+        }
         
         // Operator
         $inbox->is_primary_agenda = $pr;

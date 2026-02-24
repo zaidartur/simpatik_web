@@ -42,7 +42,7 @@
             </nav>
         </div>
 
-        <form method="POST" action="{{ route('inbox.store') }}" class="needs-validation" enctype="multipart/form-data" novalidate>
+        <form method="POST" action="{{ route('inbox.store') }}" class="is-inbox" enctype="multipart/form-data" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
                 <input type="hidden" name="uid" value="">
@@ -146,7 +146,6 @@
                                             <label for="klasifikasi_kode" class="col-sm-3 col-form-label">Kode Klasifikasi</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="klasifikasi_kode" name="klasifikasi_kode" value="" required>
-                                                {{-- <input id="autoComplete" class="form-control"> --}}
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -157,7 +156,7 @@
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="urut" name="urut" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -166,7 +165,7 @@
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="no_surat" name="no_surat" value="" maxlength="15" required>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -175,7 +174,7 @@
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="lampiran" name="lampiran" value="-" maxlength="10" required>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -192,7 +191,7 @@
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="aktif" name="aktif" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -201,7 +200,7 @@
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="inaktif" name="inaktif" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -210,7 +209,7 @@
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="thn_aktif" name="thn_aktif" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -219,7 +218,7 @@
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="thn_inaktif" name="thn_inaktif" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -228,7 +227,7 @@
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="jra" name="jra" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -237,7 +236,7 @@
                                             <div class="col-sm-10">
                                                 <input type="text" class="form-control" id="nilai_guna" name="nilai_guna" value="" required readonly>
                                                 <div class="invalid-feedback">
-                                                    Field ini wajib di isi.
+                                                    Kode klasifikasi kosong.
                                                 </div>
                                             </div>
                                         </div>
@@ -285,6 +284,14 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @if (Auth::user()->leveluser->tindak_lanjut == false)
+                                        <div class="row mb-3">
+                                            <label for="keterangan" class="col-sm-3 col-form-label">Catatan/<br>Disposisi</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="keterangan" id="keterangan" cols="30" rows="5" maxlength="300" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -333,7 +340,7 @@
                                             <label for="is_diteruskan" class="col-sm-2 col-form-label">&nbsp;</label>
                                             <div class="col-sm-10">
                                                 <div class="form-check form-check-info form-check-inline">
-                                                    <input class="form-check-input" type="checkbox" id="is_diteruskan" name="is_diteruskan" value="{{ Auth::user()->leveluser->tindak_lanjut ? 'yes' : 'no' }}" onchange="_forward()" {{ Auth::user()->leveluser->tindak_lanjut ? 'checked' : '' }}>
+                                                    <input class="form-check-input" type="checkbox" id="is_diteruskan" name="is_diteruskan" value="{{ Auth::user()->leveluser->tindak_lanjut == true ? 'yes' : 'no' }}" onchange="_forward()" {{ Auth::user()->leveluser->tindak_lanjut == true ? 'checked' : '' }}>
                                                     <label class="form-check-label bs-tooltip" for="is_diteruskan" title="Hapus centang apabila surat tidak akan diteruskan"><span class="badge badge-info mb-2 me-4">Surat Diteruskan?</span></label>
                                                 </div>
                                             </div>
@@ -351,7 +358,7 @@
                                             <label for="diteruskan_kpd" class="col-sm-2 col-form-label">Diteruskan Kepada</label>
                                             <div class="col-sm-10">
                                                 {{-- <input type="text" class="form-control" id="diteruskan_kpd" name="diteruskan_kpd" value=""> --}}
-                                                <select class="form-select lbl-diteruskan" id="diteruskan_kpd" name="diteruskan_kpd" {{ Auth::user()->leveluser->tindak_lanjut ? 'required' : '' }}>
+                                                <select class="form-select lbl-diteruskan" id="diteruskan_kpd" name="diteruskan_kpd" {{ Auth::user()->leveluser->tindak_lanjut == true ? 'required' : '' }}>
                                                     {{-- <option value="Sekretaris Daerah" selected>Sekretaris Daerah</option>
                                                     <option value="Wakil Bupati">Wakil Bupati</option> --}}
                                                     @if (count($level) > 0)
@@ -482,6 +489,38 @@
     <script src="{{ asset('templates/plugins/src/autocomplete/autoComplete.min.js') }}"></script>
     
     <script>
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('is-inbox');
+            var invalid = $('.is-inbox .invalid-feedback');
+
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    let hasError = false;
+                    $(this).find('[required]').each(function() {
+                        console.log($(this).val())
+                        if ($(this).val().trim() === '') {
+                            hasError = true;
+                            // console.log($(this).attr('name') + ' is required.');
+                            $(this).removeClass('is-valid');
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                            $(this).addClass('is-valid');
+                        }
+                    });
+
+                    if (hasError) {
+                        event.preventDefault();
+                        Toast.fire({
+                            icon: 'error',
+                            title: 'Mohon untuk mengisi field'
+                        })
+                    }
+                }, false);
+            });
+        }, false);
+
         $(document).ready(function () {
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,

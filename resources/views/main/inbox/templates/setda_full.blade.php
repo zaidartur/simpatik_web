@@ -72,29 +72,29 @@
                     <div style="height: auto; margin-left: 3mm;">
                         <label style="display: inline-block; width: 20mm; vertical-align: top; margin-top: 0.75mm;">Surat dari</label>
                         <label style="display: inline-block; vertical-align: top; width: 3mm; margin-top: 0.75mm;">:</label>
-                        <label style="display: inline-block; vertical-align: top; width: 50mm; margin-top: 0.75mm;">{{ $data->drkpd }}</label>
+                        <label style="display: inline-block; vertical-align: top; width: 50mm; margin-top: 0.75mm;">{{ $data->dari }}</label>
                     </div>
                     <div style="height: auto; margin-left: 3mm;">
                         <label style="display: inline-block; width: 20mm; vertical-align: top;">No. Surat</label>
                         <label style="display: inline-block; vertical-align: top; width: 3mm;">:</label>
-                        <label style="display: inline-block; vertical-align: top; width: 50mm;">{{ $data->NOSURAT }}</label>
+                        <label style="display: inline-block; vertical-align: top; width: 50mm;">{{ $data->no_surat }}</label>
                     </div>
                     <div style="height: auto; margin-left: 3mm;">
                         <label style="display: inline-block; width: 20mm; vertical-align: bottom;">Tgl. Surat</label>
                         <label style="display: inline-block; vertical-align: bottom; width: 3mm;">:</label>
-                        <label style="display: inline-block; vertical-align: bottom; width: 50mm;">{{ date_format(date_create($data->TGLSURAT), 'd-m-Y') }}</label>
+                        <label style="display: inline-block; vertical-align: bottom; width: 50mm;">{{ date_format(date_create($data->tgl_surat), 'd-m-Y') }}</label>
                     </div>
                 </td>
                 <td style="width: 91mm;" class="v-top tb-wrap">
                     <div style="height: 7.5mm; margin-left: 3mm;">
                         <label style="display: inline-block; width: 25mm; vertical-align: bottom;">Diterima Tgl.</label>
                         <label>:</label>
-                        <label>{{ date_format(date_create($data->TGLTERIMA), 'd-m-Y') }}</label>
+                        <label>{{ date_format(date_create($data->tgl_diterima), 'd-m-Y') }}</label>
                     </div>
                     <div style="height: 7.5mm; margin-left: 3mm;">
                         <label style="display: inline-block; width: 25mm; vertical-align: bottom;">No. Agenda</label>
                         <label>:</label>
-                        <label>{{ $data->NOAGENDA }}</label>
+                        <label>{{ $data->no_agenda }}</label>
                     </div>
                     <div style="height: 7.5mm; margin-left: 3mm;">
                         <label style="display: inline-block; width: 25mm; vertical-align: bottom;">Sifat</label>
@@ -102,13 +102,13 @@
                         <label></label>
                     </div>
                     <div style="height: 7.5mm; margin-left: 3mm;">
-                        <input type="checkbox" name="sangat" id="sangat" style="display: inline-block; vertical-align: bottom;" {{ $data->SIFAT_SURAT == 'Penting' ? 'checked' : '' }}> 
+                        <input type="checkbox" name="sangat" id="sangat" style="display: inline-block; vertical-align: bottom;" {{ $data->sifat_surat == 4 ? 'checked' : '' }}> 
                         <label style="display: inline-block; vertical-align: bottom;">Sangat Segera </label>
 
-                        <input type="checkbox" name="segera" id="segera" style="display: inline-block; vertical-align: bottom;" {{ $data->SIFAT_SURAT == 'Segera' ? 'checked' : '' }}>
+                        <input type="checkbox" name="segera" id="segera" style="display: inline-block; vertical-align: bottom;" {{ $data->sifat_surat == 2 ? 'checked' : '' }}>
                         <label style="display: inline-block; vertical-align: bottom;">Segera </label>
 
-                        <input type="checkbox" name="rahasia" id="rahasia" style="display: inline-block; vertical-align: bottom;" {{ $data->SIFAT_SURAT == 'Rahasia' ? 'checked' : '' }}>
+                        <input type="checkbox" name="rahasia" id="rahasia" style="display: inline-block; vertical-align: bottom;" {{ $data->sifat_surat == 5 ? 'checked' : '' }}>
                         <label style="display: inline-block; vertical-align: bottom;">Rahasia </label>
                     </div>
                 </td>

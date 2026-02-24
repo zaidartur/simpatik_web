@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('perihal');
             $table->text('isi_surat');
             $table->date('tgl_surat');
+            $table->date('tgl_naik');
+            $table->date('tgl_diteruskan');
             $table->integer('year');
             
             $table->foreignId('id_media')->nullable()->constrained('media_surats')->cascadeOnUpdate()->nullOnDelete();

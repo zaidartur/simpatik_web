@@ -17,7 +17,7 @@
     <link href="{{ asset('templates/assets/css/dark/components/modal.css') }}" rel="stylesheet" type="text/css" />
 
     <link href="{{ asset('templates/assets/css/light/components/accordions.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset('templates/assets/css/dark/components/accordions.css') }} rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/assets/css/dark/components/accordions.css') }}" rel="stylesheet" type="text/css" />
 
     <style>
         .autoComplete_wrapper {
@@ -116,16 +116,15 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mb-3">
+                                        {{-- <div class="row mb-3">
                                             <label for="nama" class="col-sm-3 col-form-label">&nbsp;</label>
                                             <div class="col-sm-9">
-                                                {{-- <input type="text" class="form-control" id="nama" name="nama" value="" required> --}}
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="ditinggal" name="ditinggal" checked>
                                                     <label class="form-check-label" for="ditinggal">Berkas Di Tinggal?</label>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
@@ -228,10 +227,9 @@
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value="" required> --}}
                                                 <select class="form-select" id="sifat_surat" name="sifat_surat" required>
-                                                    <option value="Biasa">Biasa</option>
-                                                    <option value="Segera">Segera</option>
-                                                    <option value="Penting">Penting</option>
-                                                    <option value="Rahasia">Rahasia</option>
+                                                    @foreach ($sifat as $sf)
+                                                        <option value="{{ $sf->id }}">{{ $sf->nama_sifat }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -257,9 +255,14 @@
                                             </div>
                                         </div>
                                         <div class="row mb-3">
+                                            <label for="keterangan" class="col-sm-3 col-form-label">Catatan</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="keterangan" id="keterangan" cols="30" rows="5" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                        {{-- <div class="row mb-3">
                                             <label for="ttd" class="col-sm-3 col-form-label">Ditandatangani Oleh</label>
                                             <div class="col-sm-9">
-                                                {{-- <input type="text" class="form-control" id="ttd" name="ttd" value="" maxlength="100" required> --}}
                                                 <select class="form-select" id="ttd" name="ttd" required>
                                                     <option value="Sekretaris Daerah">Sekretaris Daerah</option>
                                                     <option value="Bupati">Bupati</option>
@@ -268,11 +271,12 @@
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
 
+                            @can('spd')
                             <div class="col-md-12">
                                 <div id="iconsAccordion" class="accordion-icons accordion">
                                     <div class="card">
@@ -446,6 +450,7 @@
                                     </div>
                                 </div> --}}
                             </div>
+                            @endcan
                         </div>
                     </div>
                 </div>
@@ -463,8 +468,9 @@
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="tempat_berkas" name="tempat_berkas" value="" required> --}}
                                                 <select class="form-select" id="tempat_berkas" name="tempat_berkas" required>
+                                                    <option value="">Pilih Tempat Berkas</option>
                                                     @foreach ($berkas as $br)
-                                                        <option value="{{ $br->Nama }}" {{ $br->Nama == 'Map' ? 'selected' : '' }}>{{ $br->Nama }}</option>
+                                                        <option value="{{ $br->id }}">{{ $br->nama }}</option>
                                                     @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
@@ -476,12 +482,10 @@
                                             <label for="perkembangan" class="col-sm-3 col-form-label">Tk Perkembangan</label>
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="perkembangan" name="perkembangan" value="" required> --}}
-                                                <select class="form-select" id="perkembangan" name="perkembangan" required>
-                                                    <option value="Asli">Asli</option>
-                                                    <option value="Foto Copy">Foto Copy</option>
-                                                    <option value="Tembusan">Tembusan</option>
-                                                    <option value="Salinan">Salinan</option>
-                                                    <option value="Faksimile">Faksimile</option>
+                                                <select name="perkembangan" id="perkembangan" class="form-control" required>
+                                                    @foreach ($perkembangan as $pk)
+                                                        <option value="{{ $pk->id }}">{{ $pk->nama }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -637,6 +641,7 @@
 
 </div>
 
+@can('spd')
 <div class="modal fade" id="sppdModal" tabindex="-1" role="dialog" aria-labelledby="sppdLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -656,6 +661,7 @@
         </div>
     </div>
 </div>
+@endcan
 
 <div class="modal fade" id="sppdNew" tabindex="-1" role="dialog" aria-labelledby="sppdLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
@@ -787,6 +793,38 @@
                         Bersihkan
                     </button>`
 
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var invalid = $('.needs-validation .invalid-feedback');
+
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    let hasError = false;
+                    $(this).find('[required]').each(function() {
+                        console.log($(this).val())
+                        if ($(this).val().trim() === '') {
+                            hasError = true;
+                            // console.log($(this).attr('name') + ' is required.');
+                            $(this).removeClass('is-valid');
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                            $(this).addClass('is-valid');
+                        }
+                    });
+
+                    if (hasError) {
+                        event.preventDefault();
+                        Toast.fire({
+                            icon: 'error',
+                            title: 'Mohon untuk mengisi field'
+                        })
+                    }
+                }, false);
+            });
+        }, false);
+
         $(document).ready(function () {
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
@@ -879,7 +917,7 @@
                 data: {
                     src: [
                         @foreach ($instansi as $ins)
-                            "{{ $ins->INSTANSI }}",
+                            "{{ $ins->nama_unit }}",
                         @endforeach
                     ],
                     cache: true,
@@ -928,7 +966,7 @@
                 data: {
                     src: [
                         @foreach ($instansi as $ins)
-                            "{{ $ins->KODE }} - {{ $ins->INSTANSI }}",
+                            "{{ $ins->kode }} - {{ $ins->nama_unit }}",
                         @endforeach
                     ],
                     cache: true,

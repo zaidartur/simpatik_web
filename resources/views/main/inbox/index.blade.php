@@ -126,10 +126,12 @@
                                 <span class="btn-text-inner">Buat Data</span>
                             </button>
                             @endcan
+                            @can ('filter tanggapan')
                             <button class="btn btn-secondary is-status mb-2 me-4 float-end" value="unfinish" onclick="_disposisi()">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                 <span class="btn-text-inner">Belum Ditanggapi</span>
                             </button>
+                            @endcan
                         </div>
                     </div>
                 </div>
@@ -278,8 +280,8 @@
                     // { data: 'isi_surat', orderable: false },
                     { data: 'perihal', orderable: false },
                     { data: 'posisi', orderable: false, render: function(data, type, row) {
-                        const clr = data === 'Sekretaris Daerah' ? 'info' : (data === 'Wakil Bupati' ? 'secondary' : (data === 'Bupati' ? 'primary' : ''))
-                        return `<b class="text-${clr}">${data}</b>`;
+                        // const clr = data === 'Sekretaris Daerah' ? 'info' : (data === 'Wakil Bupati' ? 'secondary' : (data === 'Bupati' ? 'primary' : ''))
+                        return `<b style="color: ${row.class};">${row.posisi}</b>`;
                     }},
                     { data: 'option', orderable: false, searchable: false},
                 ],
@@ -559,18 +561,6 @@
         }
         @endrole
 
-        @role(['setda', 'wabup', 'bupati', 'administrator'])
-        // Initialize the stepper
-        // var stepperWizardIcon = document.querySelector('.stepper-icons');
-        // var stepperIcon = new Stepper(stepperWizardIcon, {
-        //     animation: true
-        // })
-        // var lastLoc = 0;
-
-        $('#detailSurat').on('shown.bs.modal', function (event) {
-            // stepperIcon.goTo(lastLoc);
-        });
-
         function viewSurat(uid) {
             const data = JSON.parse(atob(uid));
             console.log(data)
@@ -701,7 +691,6 @@
             // lastLoc = 3;
             $('#detailSurat').modal('show');
         }
-        @endrole
 
         function view_file(file) {
             window.open(`/surat-masuk/lihat-file/${file}`, '_blank')

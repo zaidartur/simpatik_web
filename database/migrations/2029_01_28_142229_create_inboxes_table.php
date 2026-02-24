@@ -50,6 +50,7 @@ return new class extends Migration
             $table->dateTime('tgl_balas')->nullable();
             $table->text('softcopy')->nullable();
             $table->text('file_download')->nullable();
+            $table->text('keterangan')->nullable();
 
             $table->foreignId('level_surat')->nullable()->constrained('level_users')->nullOnDelete()->cascadeOnUpdate();
 

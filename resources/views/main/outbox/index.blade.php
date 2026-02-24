@@ -6,9 +6,15 @@
 @section('css')
     <!-- BEGIN PAGE LEVEL STYLES -->
     <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/src/table/datatable/datatables.css') }}">
+
+    <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/light/table/datatable/dt-global_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/dark/table/datatable/dt-global_style.css') }}">
     
-    <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/light/table/datatable/dt-global_style.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/light/table/datatable/dt-global_style.css') }}">
+    <link href="{{ asset('templates/plugins/css/light/loaders/custom-loader.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/plugins/css/dark/loaders/custom-loader.css') }}" rel="stylesheet" type="text/css" />
+
+    <link href="{{ asset('templates/assets/css/light/components/modal.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/assets/css/dark/components/modal.css') }}" rel="stylesheet" type="text/css" />
     <!-- END PAGE LEVEL STYLES -->
 
     <style>
@@ -104,7 +110,30 @@
         </div>
 
     </div>
-    
+</div>
+
+<div class="modal fade" id="detailSurat" tabindex="-1" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailLabel">Detail Surat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="detail" class="col-12"></div>
+                {{-- <div id="wizard_Icons" class="col-lg-12 layout-spacing">
+                    <div class="statbox widget box box-shadow">
+                        <div class="widget-content widget-content-area" id="detail"></div>
+                    </div>
+                </div> --}}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-dark" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -112,6 +141,7 @@
 @section('js')
     <!-- BEGIN PAGE LEVEL SCRIPTS -->
     <script src="{{ asset('templates/plugins/src/table/datatable/datatables.js') }}"></script>
+    <script src="{{ asset('templates/plugins/src/stepper/bsStepper.min.js') }}"></script>
     <script>
         $(document).ready(function() {
             let tb_inbox = $('#zero-config').DataTable({
@@ -150,7 +180,7 @@
                     { data: 'tgl_buat', orderable: false },
                     { data: 'klasifikasi', orderable: false },
                     { data: 'berkas', orderable: false },
-                    { data: 'tujuan', orderable: false },
+                    { data: 'kepada', orderable: false },
                     { data: 'perihal', orderable: false },
                     { data: 'option', orderable: false, searchable: false},
                 ],
@@ -226,6 +256,116 @@
 
         function printPdf(id) {
             window.open(`/surat-keluar/print-pdf/${id}?type=kartu`, '_blank')
+        }
+
+        function _detail(uid) {
+            const data = JSON.parse(atob(uid));
+            console.log(data)
+            let header = `
+                <div class="bs-stepper stepper-icons">
+                    <div class="bs-stepper-header" role="tablist">
+                        <div class="step" data-target="#withIconsStep-one">
+                            <button type="button" class="step-trigger" role="tab" >
+                                <span class="bs-stepper-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span>
+                                <span class="bs-stepper-label">Step One</span>
+                            </button>
+                        </div>
+                        <div class="line"></div>
+                        <div class="step" data-target="#withIconsStep-two">
+                            <button type="button" class="step-trigger" role="tab"  >
+                                <span class="bs-stepper-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
+                                <span class="bs-stepper-label">Step Two</span>
+                            </button>
+                        </div>
+                        <div class="line"></div>
+                        <div class="step active" data-target="#withIconsStep-three">
+                            <button type="button" class="step-trigger" role="tab"  >
+                                <span class="bs-stepper-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></span>
+                                <span class="bs-stepper-label">
+                                    <span class="bs-stepper-title">Step Three</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bs-stepper-content">
+                        <div id="withIconsStep-one" class="content" role="tabpanel"></div>
+                        <div id="withIconsStep-two" class="content" role="tabpanel"></div>
+                        <div id="withIconsStep-three" class="content" role="tabpanel"></div>
+                    </div>
+                </div>
+            `
+            let detail = `
+                <div class="col-12 mt-4">
+                    <table class="table table-bordered table-hover" style="table-layout: fixed; border-collapse: collapse; width: 100%;">
+                        <tr>
+                            <td colspan="4">
+                                <h3 class="text-center">DETAIL SURAT KELUAR</h3>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td width="20%"><label><b>No. Urut / Tahun</b></label></td>
+                            <td class="text-wrap" style="width: 30%; white-space: normal !important;"><label>${data.no_agenda} / ${data.year}</label></td>
+                            <td width="20%"><label><b>Kode</b></label></td>
+                            <td style="white-space: normal; overflow-wrap: break-word; word-wrap: break-word; width: 30%;"><label>${data.id_klasifikasi}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Berkas</b></label></td>
+                            <td><label>${data.nama_berkas}</label></td>
+                            <td><label><b>Lampiran</b></label></td>
+                            <td><label>${data.lampiran ?? '-'}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Perihal</b></label></td>
+                            <td colspan="3"><label>${data.perihal}</label></td>
+                        </tr>
+                        <tr>
+                            <td style="height: 100px; vertical-align: top; text-align: left;"><label><b>Isi</b></label></td>
+                            <td colspan="3" style="height: 100px; vertical-align: top; text-align: left;"><label>${data.isi_surat}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Dari</b></label></td>
+                            <td colspan="3"><label>${data.kepada}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Alamat</b></label></td>
+                            <td colspan="3"><label>${data.wilayah}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Tgl. Surat</b></label></td>
+                            <td><label>${data.tgl_surat}</label></td>
+                            <td><label><b>No. Surat</b></label></td>
+                            <td><label>${data.no_surat}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Tgl. Terima</b></label></td>
+                            <td><label>${data.tgl_diterima}</label></td>
+                            <td><label><b>Diteruskan?</b></label></td>
+                            <td><label>${null}</label></td>
+                        </tr>
+                        <tr>
+                            <td><label><b>Sifat</b></label></td>
+                            <td><label>${data.sifat.nama_sifat}</label></td>
+                            <td><label><b>Tindakan</b></label></td>
+                            <td><label>${data.tindakan ?? '-'}</label></td>
+                        </tr>
+                        `    
+                        
+            detail += `<tr>
+                            <td><label><b>File Arsip</b></label></td>
+                            <td colspan="3"><label>${data.softcopy ? '<button class="btn btn-info bs-tooltip" title="Lihat dokumen" onclick="view_file(`'+data.cryptfile+'`)">Lihat</button>' : '-'}</label></td>
+                        </tr>
+                    </table>
+                </div>
+            `
+            $('#detail').html(detail);
+            $('#detailSurat').modal('show');
+        }
+
+        function view_file(file) {
+            window.open(`/surat-keluar/lihat-file/${file}`, '_blank')
         }
 
         @endrole
