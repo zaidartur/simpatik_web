@@ -308,8 +308,8 @@
                         <tr>
                             <td width="20%"><label><b>No. Urut / Tahun</b></label></td>
                             <td class="text-wrap" style="width: 30%; white-space: normal !important;"><label>${data.no_agenda} / ${data.year}</label></td>
-                            <td width="20%"><label><b>Kode</b></label></td>
-                            <td style="white-space: normal; overflow-wrap: break-word; word-wrap: break-word; width: 30%;"><label>${data.id_klasifikasi}</label></td>
+                            <td width="20%"><label><b>Kode Klasifikasi</b></label></td>
+                            <td style="white-space: normal; overflow-wrap: break-word; word-wrap: break-word; width: 30%;"><label>${data.klasifikasi.klas3}</label></td>
                         </tr>
                         <tr>
                             <td><label><b>Berkas</b></label></td>
@@ -335,21 +335,21 @@
                         </tr>
                         <tr>
                             <td><label><b>Tgl. Surat</b></label></td>
-                            <td><label>${data.tgl_surat}</label></td>
+                            <td><label>${new Date(data.tgl_surat).toLocaleDateString('en-GB')}</label></td>
                             <td><label><b>No. Surat</b></label></td>
                             <td><label>${data.no_surat}</label></td>
                         </tr>
                         <tr>
-                            <td><label><b>Tgl. Terima</b></label></td>
-                            <td><label>${data.tgl_diterima}</label></td>
-                            <td><label><b>Diteruskan?</b></label></td>
-                            <td><label>${null}</label></td>
+                            <td><label><b>Tgl. Dibuat</b></label></td>
+                            <td><label>${new Date(data.created_at).toLocaleDateString('en-GB')}</label></td>
+                            <td><label><b>No. SPD</b></label></td>
+                            <td><label>${data.spd?.no_spd ?? '-'}</label></td>
                         </tr>
                         <tr>
-                            <td><label><b>Sifat</b></label></td>
+                            <td><label><b>Sifat Surat</b></label></td>
                             <td><label>${data.sifat.nama_sifat}</label></td>
-                            <td><label><b>Tindakan</b></label></td>
-                            <td><label>${data.tindakan ?? '-'}</label></td>
+                            <td><label><b>Unit Pengolah</b></label></td>
+                            <td><label>${data.pengolah ? (data.pengolah.nama_unit) : data.unit}</label></td>
                         </tr>
                         `    
                         

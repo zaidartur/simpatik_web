@@ -44,7 +44,7 @@
             </nav>
         </div>
 
-        <form action="{{ route('outbox.store') }}" method="POST" class="needs-validation" novalidate>
+        <form action="{{ route('outbox.store') }}" method="POST" enctype="multipart/form-data" class="is-outbox" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
 
@@ -59,7 +59,7 @@
                                         <div class="row mb-3">
                                             <label for="darikepada" class="col-sm-3 col-form-label">Kepada</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" name="darikepada" value="" maxlength="255" required autofocus>
+                                                <input type="text" class="form-control" id="darikepada" name="darikepada" value="" maxlength="255" required autocomplete="off" autofocus>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -154,7 +154,7 @@
                                             <div class="col-sm-6">
                                                 {{-- select nama unit pengolah beserta kodenya --}}
                                                 {{-- <input type="hidden" name="kode_up" id="kode_up" value=""> --}}
-                                                <input type="text" class="form-control" id="nama_up" name="nama_up" value="" required>
+                                                <input type="text" class="form-control" id="nama_up" name="nama_up" value="" autocomplete="off" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -600,8 +600,11 @@
                                         
                                         <div class="row mb-3">
                                             <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Naskah Surat Keluar (maksimum 5Mb, format PDF/Gambar)</label>
-                                                <div class="multiple-file-upload">
+                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Naskah Surat Keluar (maksimum 10Mb, format PDF/Gambar)</label>
+                                                <div class="alert alert-light-danger fade show border-0 mb-4 is-alert" role="alert">
+                                                    <strong>Perhatian!</strong> <span id="content_alert">Ukuran file melebihi batas dan file tidak akan tersimpan.</span></button>
+                                                </div>
+                                                {{-- <div class="multiple-file-upload">
                                                     <input type="file" 
                                                         class="filepond file-upload-scan"
                                                         name="scan" 
@@ -609,7 +612,8 @@
                                                         data-allow-reorder="true"
                                                         data-max-file-size="5MB"
                                                     >
-                                                </div>
+                                                </div> --}}
+                                                <input class="form-control file-upload-input" type="file" id="is_scan" name="is_scan" accept=".pdf,.PDF,.png,.jpg,.jpeg,.PNG,.JPG">
                                             </div>
                                         </div>
                                     </div>
@@ -794,8 +798,8 @@
                     </button>`
 
         window.addEventListener('load', function() {
-            var forms = document.getElementsByClassName('needs-validation');
-            var invalid = $('.needs-validation .invalid-feedback');
+            var forms = document.getElementsByClassName('is-outbox');
+            var invalid = $('.is-outbox .invalid-feedback');
 
             // Loop over them and prevent submission
             var validation = Array.prototype.filter.call(forms, function(form) {
@@ -855,7 +859,7 @@
                 data: {
                     src: [
                         @foreach ($jra as $jr)
-                            "{{ $jr->KLAS3 }} - {{ $jr->MASALAH3 }}",
+                            "{{ $jr->klas3 }} - {{ $jr->masalah3 }}",
                         @endforeach
                     ],
                     cache: true,
@@ -1064,6 +1068,25 @@
                 $('#button_clear').remove()
                 $('.is-sppd').append(btg)
             }
+
+            $('.is-alert').hide()
+            var uploadField = document.getElementById("is_scan");
+            uploadField.onchange = function() {
+                const list = ['pdf', 'png', 'jpg', 'jpeg']
+                const myfile = this.files[0]
+                const lastDotIndex = myfile.name.split('.').pop()
+                if(myfile.size > 10485760) { // 10MB limit
+                    $('#content_alert').html('Ukuran file melebihi batas dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else if (!list.includes(lastDotIndex.toLowerCase())) { // check extention
+                    $('#content_alert').html('Jenis file tidak sesuai ketentuan dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else {
+                    $('.is-alert').hide()
+                }
+            };
         });
     </script>
 
@@ -1190,7 +1213,7 @@
 
         async function get_nomor_urut() {
             try {
-                const response = await fetch("{{ route('inbox.urut') }}", {
+                const response = await fetch("{{ route('outbox.urut') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1228,12 +1251,12 @@
                     console.error('Error:', data.message);
                     return;
                 }
-                document.getElementById('aktif').value = data.jra.RAKTIF;
-                document.getElementById('inaktif').value = data.jra.RINAKTIF;
+                document.getElementById('aktif').value = data.jra.r_aktif;
+                document.getElementById('inaktif').value = data.jra.r_inaktif;
                 document.getElementById('thn_aktif').value = data.jra.thn_aktif;
                 document.getElementById('thn_inaktif').value = data.jra.thn_inaktif;
-                document.getElementById('jra').value = data.jra.KETJRA;
-                document.getElementById('nilai_guna').value = data.jra.NILAIGUNA;
+                document.getElementById('jra').value = data.jra.ket_jra;
+                document.getElementById('nilai_guna').value = data.jra.nilai_guna;
             })
             .catch((error) => {
                 console.error('Error:', error);

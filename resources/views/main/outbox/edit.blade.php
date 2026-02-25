@@ -16,6 +16,9 @@
     <link href="{{ asset('templates/plugins/css/dark/filepond/custom-filepond.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('templates/assets/css/dark/components/modal.css') }}" rel="stylesheet" type="text/css" />
 
+    <link href="{{ asset('templates/assets/css/light/components/accordions.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('templates/assets/css/dark/components/accordions.css') }}" rel="stylesheet" type="text/css" />
+
     <style>
         .autoComplete_wrapper {
             width: 100%;
@@ -41,10 +44,10 @@
             </nav>
         </div>
 
-        <form action="{{ route('outbox.update') }}" method="POST" class="needs-validation" novalidate>
+        <form action="{{ route('outbox.update') }}" method="POST" enctype="multipart/form-data" class="is-outbox" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
-                <input type="hidden" name="uid" value="{{ $outbox->uid }}" required>
+                <input type="hidden" name="uid" value="{{ $outbox->uuid }}" required>
 
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
@@ -57,7 +60,7 @@
                                         <div class="row mb-3">
                                             <label for="darikepada" class="col-sm-3 col-form-label">Kepada</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="darikepada" name="darikepada" value="{{ $outbox->drkpd }}" maxlength="255" required autofocus>
+                                                <input type="text" class="form-control" id="darikepada" name="darikepada" value="{{ $outbox->kepada }}" maxlength="255" required autofocus>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -66,7 +69,7 @@
                                         <div class="row mb-3">
                                             <label for="wilayah" class="col-sm-3 col-form-label">Wilayah</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="wilayah" name="wilayah" value="{{ $outbox->NAMAKOTA }}" maxlength="150" required>
+                                                <input type="text" class="form-control" id="wilayah" name="wilayah" value="{{ $outbox->wilayah }}" maxlength="150" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -75,7 +78,7 @@
                                         <div class="row mb-3">
                                             <label for="perihal" class="col-sm-3 col-form-label">Perihal Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="perihal" name="perihal" value="{{ $outbox->PERIHAL }}" maxlength="100" required>
+                                                <input type="text" class="form-control" id="perihal" name="perihal" value="{{ $outbox->perihal }}" maxlength="100" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -99,7 +102,7 @@
                                         <div class="row mb-3">
                                             <label for="berkas" class="col-sm-3 col-form-label">Nama Berkas</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="berkas" name="berkas" value="{{ $outbox->NAMABERKAS }}" required>
+                                                <input type="text" class="form-control" id="berkas" name="berkas" value="{{ $outbox->nama_berkas }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -108,22 +111,21 @@
                                         <div class="row mb-3">
                                             <label for="tgl_surat" class="col-sm-3 col-form-label">Tanggal Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="date" class="form-control" id="tgl_surat" name="tgl_surat" value="{{ $carbon::parse($outbox->TGLSURAT)->format('Y-m-d') }}" required>
+                                                <input type="date" class="form-control" id="tgl_surat" name="tgl_surat" value="{{ $carbon::parse($outbox->tgl_surat)->format('Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mb-3">
+                                        {{-- <div class="row mb-3">
                                             <label for="nama" class="col-sm-3 col-form-label">&nbsp;</label>
                                             <div class="col-sm-9">
-                                                {{-- <input type="text" class="form-control" id="nama" name="nama" value="" required> --}}
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="checkbox" value="Berkas Di Tinggal" id="ditinggal" name="ditinggal" {{ !empty($outbox->Berkas) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="ditinggal">Berkas Di Tinggal?</label>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
@@ -135,14 +137,14 @@
                                         <div class="row mb-3">
                                             <label for="naik" class="col-sm-2 col-form-label">Naik</label>
                                             <div class="col-sm-4">
-                                                <input type="date" class="form-control" id="tgl_naik" name="tgl_naik" value="{{ $carbon::parse($outbox->TGLTERIMA)->format('Y-m-d') }}" required>
+                                                <input type="date" class="form-control" id="tgl_naik" name="tgl_naik" value="{{ $carbon::parse($outbox->tgl_naik)->format('Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                             <label for="tgl_diteruskan" class="col-sm-2 col-form-label">Diteruskan</label>
                                             <div class="col-sm-4">
-                                                <input type="date" class="form-control" id="tgl_diteruskan" name="tgl_diteruskan" value="{{ $carbon::parse($outbox->TGLTERUS)->format('Y-m-d') }}" required>
+                                                <input type="date" class="form-control" id="tgl_diteruskan" name="tgl_diteruskan" value="{{ $carbon::parse($outbox->tgl_diteruskan)->format('Y-m-d') }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -153,13 +155,13 @@
                                             <div class="col-sm-6">
                                                 {{-- select nama unit pengolah beserta kodenya --}}
                                                 {{-- <input type="hidden" name="kode_up" id="kode_up" value=""> --}}
-                                                <input type="text" class="form-control" id="nama_up" name="nama_up" value="{{ $outbox->NAMAUP }}" required>
+                                                <input type="text" class="form-control" id="nama_up" name="nama_up" value="{{ !empty($outbox->pengolah) ? $outbox->pengolah->nama_unit : $outbox->unit }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                             <div class="col-sm-4">
-                                                <input type="text" class="form-control form-control-sm" name="kode_up" id="kode_up" placeholder="Kode Unit" value="{{ $outbox->KODEUP }}" readonly>
+                                                <input type="text" class="form-control form-control-sm" name="kode_up" id="kode_up" placeholder="Kode Unit" value="{{ !empty($outbox->pengolah) ? $outbox->pengolah->kode : '' }}" readonly>
                                             </div>
                                         </div>
                                         {{-- <div class="row mb-3">
@@ -206,7 +208,7 @@
                                         <div class="row mb-3">
                                             <label for="klasifikasi_kode" class="col-sm-3 col-form-label">Kode Klasifikasi</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="klasifikasi_kode" name="klasifikasi_kode" value="{{ $outbox->KLAS3 }}" required>
+                                                <input type="text" class="form-control" id="klasifikasi_kode" name="klasifikasi_kode" value="{{ $outbox->klasifikasi->klas3 }}" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -215,7 +217,7 @@
                                         <div class="row mb-3">
                                             <label for="urut" class="col-sm-3 col-form-label">Nomor Urut</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="urut" name="urut" value="{{ $outbox->NOURUT }}" required readonly>
+                                                <input type="text" class="form-control" id="urut" name="urut" value="{{ $outbox->no_agenda }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -224,7 +226,7 @@
                                         <div class="row mb-3">
                                             <label for="no_surat" class="col-sm-3 col-form-label">Nomor Surat</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" id="no_surat" name="no_surat" value="{{ $outbox->NOSURAT }}" maxlength="20" required>
+                                                <input type="text" class="form-control" id="no_surat" name="no_surat" value="{{ $outbox->no_surat }}" maxlength="20" required>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -235,10 +237,9 @@
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="sifat_surat" name="sifat_surat" value="" required> --}}
                                                 <select class="form-select" id="sifat_surat" name="sifat_surat" required>
-                                                    <option value="Biasa" {{ $outbox->SIFAT_SURAT == 'Biasa' ? 'selected' : '' }}>Biasa</option>
-                                                    <option value="Segera" {{ $outbox->SIFAT_SURAT == 'Segera' ? 'selected' : '' }}>Segera</option>
-                                                    <option value="Penting" {{ $outbox->SIFAT_SURAT == 'Penting' ? 'selected' : '' }}>Penting</option>
-                                                    <option value="Rahasia" {{ $outbox->SIFAT_SURAT == 'Rahasia' ? 'selected' : '' }}>Rahasia</option>
+                                                    @foreach ($sifat as $sf)
+                                                        <option value="{{ $sf->id }}" {{ $sf->id == $outbox->sifat_surat ? 'selected' : '' }}>{{ $sf->nama_sifat }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
@@ -257,16 +258,21 @@
                                             <label for="isi" class="col-sm-3 col-form-label">Isi</label>
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="isi" name="isi" value="" maxlength="255" required> --}}
-                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required>{{ $outbox->ISI }}</textarea>
+                                                <textarea name="isi" id="isi" class="form-control" cols="30" rows="5" required>{{ $outbox->isi_surat }}</textarea>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
+                                            <label for="keterangan" class="col-sm-3 col-form-label">Catatan</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="keterangan" id="keterangan" cols="30" rows="5" class="form-control">{{ $outbox->keterangan }}</textarea>
+                                            </div>
+                                        </div>
+                                        {{-- <div class="row mb-3">
                                             <label for="ttd" class="col-sm-3 col-form-label">Ditandatangani Oleh</label>
                                             <div class="col-sm-9">
-                                                {{-- <input type="text" class="form-control" id="ttd" name="ttd" value="" maxlength="100" required> --}}
                                                 <select class="form-select" id="ttd" name="ttd" required>
                                                     <option value="Sekretaris Daerah" {{ $outbox->ditandatanganioleh == 'Sekretaris Daerah' ? 'selected' : '' }}>Sekretaris Daerah</option>
                                                     <option value="Bupati" {{ $outbox->ditandatanganioleh == 'Bupati' ? 'selected' : '' }}>Bupati</option>
@@ -275,94 +281,110 @@
                                                     Field ini wajib di isi.
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
 
+                            @can('spd')
                             <div class="col-md-12">
-                                <div class="card mb-3 bg-light">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-5">SPPD</h5>
+                                <div id="iconsAccordion" class="accordion-icons accordion">
+                                    <div class="card">
+                                        <div class="card-header bs-tooltip" id="tab_sppd" title="Klik untuk mengisi data SPPD">
+                                            <section class="mb-0 mt-0">
+                                                <div role="menu" class="collapsed" data-bs-toggle="collapse" data-bs-target="#iconAccordionOne" aria-expanded="false" aria-controls="iconAccordionOne">
+                                                    <div class="accordion-icon">
+                                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                                    </div>
+                                                    SPPD
+                                                    <div class="icons">
+                                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                        </div>
 
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <div class="row mb-3">
-                                                    <label for="sppd" class="col-sm-2 col-form-label">No. SPPD</label>
-                                                    {{-- <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="sppd" name="sppd" value="" onfocus="generate_sppd(this)">
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
+                                        <div id="iconAccordionOne" class="collapse" aria-labelledby="tab_sppd" data-bs-parent="#iconsAccordion">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="row mb-3">
+                                                            <label for="sppd" class="col-sm-2 col-form-label">No. SPD</label>
+                                                            <div class="col-sm-10">
+                                                                <div class="input-group is-sppd">
+                                                                    <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="{{ !empty($outbox->spd) ? $outbox->spd->no_spd : '' }}">
+                                                                    {{-- <button class="btn btn-info" type="button" id="button_generate" onclick="generate_sppd()">
+                                                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                                                        Generate Nomor
+                                                                    </button>
+                                                                    <button class="btn btn-warning" type="button" id="button_clear" onclick="_clear()">
+                                                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                                                        Bersihkan
+                                                                    </button> --}}
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div> --}}
-                                                    <div class="col-sm-10">
-                                                        <div class="input-group is-sppd">
-                                                            <input type="text" class="form-control bs-tooltip" id="sppd" name="sppd" value="{{ $sppd ? $sppd->nosppd : '' }}">
-                                                            <button class="btn btn-info" type="button" id="button_generate" onclick="generate_sppd()">
-                                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                                                                Generate Nomor
-                                                            </button>
-                                                            <button class="btn btn-warning" type="button" id="button_clear" onclick="_clear()">
-                                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                                                                Bersihkan
-                                                            </button>
+                                                        <div class="row mb-3">
+                                                            <label for="nama" class="col-sm-2 col-form-label">Nama</label>
+                                                            <div class="col-sm-10">
+                                                                <input type="text" class="form-control" id="nama" name="nama" value="{{ !empty($outbox->spd) ? $outbox->spd->nama : '' }}">
+                                                                <div class="invalid-feedback">
+                                                                    Field ini wajib di isi.
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="nama" class="col-sm-2 col-form-label">Nama</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="nama" name="nama" value="{{ $sppd ? $sppd->nama : '' }}">
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="jabatan" class="col-sm-2 col-form-label">Jabatan</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="jabatan" name="jabatan" value="{{ $sppd ? $sppd->jabatan : '' }}">
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
+                                                        <div class="row mb-3">
+                                                            <label for="jabatan" class="col-sm-2 col-form-label">Jabatan</label>
+                                                            <div class="col-sm-10">
+                                                                <input type="text" class="form-control" id="jabatan" name="jabatan" value="{{ !empty($outbox->spd) ? $outbox->spd->jabatan : '' }}">
+                                                                <div class="invalid-feedback">
+                                                                    Field ini wajib di isi.
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
 
-                                            <div class="col-6">
-                                                <div class="row mb-3">
-                                                    <label for="tujuan" class="col-sm-2 col-form-label">Tujuan</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="tujuan" name="tujuan" value="{{ $sppd ? $sppd->tujuan : '' }}">
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
+                                                    <div class="col-6">
+                                                        <div class="row mb-3">
+                                                            <label for="tujuan" class="col-sm-2 col-form-label">Tujuan</label>
+                                                            <div class="col-sm-10">
+                                                                <input type="text" class="form-control" id="tujuan" name="tujuan" value="{{ !empty($outbox->spd) ? $outbox->spd->tujuan : '' }}">
+                                                                <div class="invalid-feedback">
+                                                                    Field ini wajib di isi.
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="kendaraan" class="col-sm-2 col-form-label">Kendaraan Dinas</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="kendaraan" name="kendaraan" value="{{ $sppd ? $sppd->kendaraan : '' }}">
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
+                                                        <div class="row mb-3">
+                                                            <label for="kendaraan" class="col-sm-2 col-form-label">Kendaraan Dinas</label>
+                                                            <div class="col-sm-10">
+                                                                {{-- <input type="text" class="form-control" id="kendaraan" name="kendaraan" value=""> --}}
+                                                                <select class="form-select" id="kendaraan" name="kendaraan" required>
+                                                                    <option value="Dinas">Dinas</option>
+                                                                    <option value="Pribadi">Pribadi</option>
+                                                                    <option value="Kendaraan Umum">Kendaraan Umum</option>
+                                                                </select>
+                                                                <div class="invalid-feedback">
+                                                                    Field ini wajib di isi.
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <label for="berangkat" class="col-sm-2 col-form-label">Tanggal Berangkat</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="date" class="form-control" id="berangkat" name="berangkat" value="{{ $sppd ? $carbon::parse($sppd->tglberangkat)->format('Y-m-d') : '' }}">
-                                                        <div class="invalid-feedback">
-                                                            Field ini wajib di isi.
+                                                        <div class="row mb-3">
+                                                            <label for="berangkat" class="col-sm-2 col-form-label">Tanggal Berangkat</label>
+                                                            <div class="col-sm-10">
+                                                                <input type="date" class="form-control" id="berangkat" name="berangkat" value="{{ !empty($outbox->spd) ? $outbox->spd->tgl_berangkat : '' }}">
+                                                                <div class="invalid-feedback">
+                                                                    Field ini wajib di isi.
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
+                            @endcan
                         </div>
                     </div>
                 </div>
@@ -380,8 +402,9 @@
                                             <div class="col-sm-9">
                                                 {{-- <input type="text" class="form-control" id="tempat_berkas" name="tempat_berkas" value="" required> --}}
                                                 <select class="form-select" id="tempat_berkas" name="tempat_berkas" required>
+                                                    <option value="">Pilih Tempat Berkas</option>
                                                     @foreach ($berkas as $br)
-                                                        <option value="{{ $br->Nama }}" {{ $br->Nama == $outbox->TMPTBERKAS ? 'selected' : '' }}>{{ $br->Nama }}</option>
+                                                        <option value="{{ $br->id }}" {{ $br->id == $outbox->tempat_berkas ? 'selected' : '' }}>{{ $br->nama }}</option>
                                                     @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">
@@ -416,7 +439,7 @@
                                         <div class="row mb-3">
                                             <label for="aktif" class="col-sm-2 col-form-label">Retensi Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="number" class="form-control" id="aktif" name="aktif" value="{{ $outbox->AKTIF }}" required readonly>
+                                                <input type="number" class="form-control" id="aktif" name="aktif" value="{{ $outbox->r_aktif }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -425,7 +448,7 @@
                                         <div class="row mb-3">
                                             <label for="inaktif" class="col-sm-2 col-form-label">Retensi Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="number" class="form-control" id="inaktif" name="inaktif" value="{{ $outbox->INAKTIF }}" required readonly>
+                                                <input type="number" class="form-control" id="inaktif" name="inaktif" value="{{ $outbox->r_inaktif }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -434,7 +457,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_aktif" class="col-sm-2 col-form-label">Tahun Aktif</label>
                                             <div class="col-sm-10">
-                                                <input type="number" class="form-control" id="thn_aktif" name="thn_aktif" value="{{ $outbox->THAKTIF }}" required readonly>
+                                                <input type="number" class="form-control" id="thn_aktif" name="thn_aktif" value="{{ $outbox->thn_aktif }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -443,7 +466,7 @@
                                         <div class="row mb-3">
                                             <label for="thn_inaktif" class="col-sm-2 col-form-label">Tahun Inaktif</label>
                                             <div class="col-sm-10">
-                                                <input type="number" class="form-control" id="thn_inaktif" name="thn_inaktif" value="{{ $outbox->THINAKTIF }}" required readonly>
+                                                <input type="number" class="form-control" id="thn_inaktif" name="thn_inaktif" value="{{ $outbox->thn_inaktif }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -452,7 +475,7 @@
                                         <div class="row mb-3">
                                             <label for="jra" class="col-sm-2 col-form-label">JRA</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="jra" name="jra" value="{{ $outbox->KETJRA }}" required readonly>
+                                                <input type="text" class="form-control" id="jra" name="jra" value="{{ $outbox->ket_jra }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -461,7 +484,7 @@
                                         <div class="row mb-3">
                                             <label for="nilai_guna" class="col-sm-2 col-form-label">Nilai Guna</label>
                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" id="nilai_guna" name="nilai_guna" value="{{ $outbox->NILAIGUNA }}" required readonly>
+                                                <input type="text" class="form-control" id="nilai_guna" name="nilai_guna" value="{{ $outbox->nilai_guna }}" required readonly>
                                                 <div class="invalid-feedback">
                                                     Field ini wajib di isi.
                                                 </div>
@@ -477,44 +500,43 @@
                 <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                     <div class="widget-content widget-content-area br-8">
                         <div class="row">
+                            @if (!empty($outbox->softcopy))
                             <div class="col-md-6">
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title mb-5">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                            Gambar
-                                        </h5>
-                                        
-                                        <div class="row mb-3">
-                                            <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload Gambar (maksimum 5 file @3Mb)</label>
-                                                <div class="multiple-file-upload">
-                                                    <input type="file" 
-                                                        class="filepond file-upload-multiple"
-                                                        name="gambar[]" 
-                                                        multiple 
-                                                        data-allow-reorder="true"
-                                                        data-max-file-size="3MB"
-                                                        data-max-files="5"
-                                                    >
-                                                </div>
+                                        @if (in_array(strtolower(pathinfo($outbox->softcopy, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']))
+                                            <h5 class="card-title mb-5">File Gambar Tersimpan</h5>
+                                            <img src="{{ route('outbox.view', $outbox->cryptfile) }}" width="100%" height="auto" alt="image-scan" onclick="view_file(`{{ $outbox->cryptfile }}`)" class="round img-thumbnail bs-tooltip" title="Klik untuk melihat secara penuh">
+
+                                        @elseif (strtolower(pathinfo($outbox->softcopy, PATHINFO_EXTENSION)) == 'pdf')
+                                            <h5 class="card-title mb-5">File Dokumen Tersimpan</h5>
+                                            <div class="row justify-content-center" style="vertical-align: middle;">
+                                                <button type="button" class="btn btn-info col-md-6 mb-5" onclick="view_file(`{{ $outbox->cryptfile }}`)">Lihat File Dokumen</button>
                                             </div>
-                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            @endif
+                            <div class="{{ !empty($inbox->softcopy) ? 'col-md-6' : 'col-md-8' }}">
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title mb-5">
+                                        <h5 class="card-title mb-5 {{ !empty($inbox->softcopy) ? 'text-warning' : '' }}">
                                             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                                            File Lampiran
+                                            @if (!empty($inbox->softcopy))
+                                            <b>Ubah</b> Scan Surat Keluar
+                                            @else
+                                            Scan Surat Keluar
+                                            @endif
                                         </h5>
                                         
                                         <div class="row mb-3">
                                             <div class="col-sm-12">
-                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Lampiran (maksimum 5Mb, format PDF)</label>
-                                                <div class="multiple-file-upload">
+                                                <label for="berkas" class="col-form-label text-center col-12">Upload File Lampiran (maksimum 10Mb, format PDF)</label>
+                                                <div class="alert alert-light-danger fade show border-0 mb-4 is-alert" role="alert">
+                                                    <strong>Perhatian!</strong> <span id="content_alert">Ukuran file melebihi batas dan file tidak akan tersimpan.</span></button>
+                                                </div>
+                                                {{-- <div class="multiple-file-upload">
                                                     <input type="file" 
                                                         class="filepond file-upload-lampiran"
                                                         name="lampiran" 
@@ -522,7 +544,8 @@
                                                         data-allow-reorder="true"
                                                         data-max-file-size="5MB"
                                                     >
-                                                </div>
+                                                </div> --}}
+                                                <input class="form-control file-upload-input" type="file" id="is_scan" name="is_scan" accept=".pdf,.PDF,.png,.jpg,.jpeg,.PNG,.JPG">
                                             </div>
                                         </div>
                                     </div>
@@ -699,6 +722,39 @@
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                         Bersihkan
                     </button>`
+
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('is-outbox');
+            var invalid = $('.is-outbox .invalid-feedback');
+
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    let hasError = false;
+                    $(this).find('[required]').each(function() {
+                        console.log($(this).val())
+                        if ($(this).val().trim() === '') {
+                            hasError = true;
+                            // console.log($(this).attr('name') + ' is required.');
+                            $(this).removeClass('is-valid');
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                            $(this).addClass('is-valid');
+                        }
+                    });
+
+                    if (hasError) {
+                        event.preventDefault();
+                        Toast.fire({
+                            icon: 'error',
+                            title: 'Mohon untuk mengisi field'
+                        })
+                    }
+                }, false);
+            });
+        }, false);
+
         $(document).ready(function () {
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
@@ -938,6 +994,25 @@
                 $('#button_clear').remove()
                 $('.is-sppd').append(btg)
             }
+
+            $('.is-alert').hide()
+            var uploadField = document.getElementById("is_scan");
+            uploadField.onchange = function() {
+                const list = ['pdf', 'png', 'jpg', 'jpeg']
+                const myfile = this.files[0]
+                const lastDotIndex = myfile.name.split('.').pop()
+                if(myfile.size > 10485760) { // 10MB limit
+                    $('#content_alert').html('Ukuran file melebihi batas dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else if (!list.includes(lastDotIndex.toLowerCase())) { // check extention
+                    $('#content_alert').html('Jenis file tidak sesuai ketentuan dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else {
+                    $('.is-alert').hide()
+                }
+            };
         });
     </script>
 

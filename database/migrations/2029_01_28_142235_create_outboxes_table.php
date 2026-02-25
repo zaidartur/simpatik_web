@@ -22,15 +22,16 @@ return new class extends Migration
             $table->string('perihal');
             $table->text('isi_surat');
             $table->date('tgl_surat');
-            $table->date('tgl_naik');
-            $table->date('tgl_diteruskan');
+            $table->date('tgl_naik')->nullable();
+            $table->date('tgl_diteruskan')->nullable();
             $table->integer('year');
             
             $table->foreignId('id_media')->nullable()->constrained('media_surats')->cascadeOnUpdate()->nullOnDelete();
             
             $table->foreignId('id_klasifikasi')->nullable()->constrained('klasifikasis')->cascadeOnUpdate()->nullOnDelete();
 
-            $table->foreignId('id_unit')->nullable()->constrained('instansis')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('id_unit')->nullable()->constrained('data_units')->cascadeOnUpdate()->nullOnDelete();
+            $table->string('unit')->nullable();
 
             $table->foreignId('sifat_surat')->nullable()->constrained('sifat_surats')->cascadeOnUpdate()->nullOnDelete();
 
@@ -40,9 +41,11 @@ return new class extends Migration
 
             $table->foreignId('id_spd')->nullable()->constrained('spds')->cascadeOnUpdate()->nullOnDelete();
 
-            $table->enum('tindakan', ['balas', 'non balas']);
+            // $table->enum('tindakan', ['balas', 'non balas']);
+            $table->string('lampiran', '100')->nullable();
             $table->text('softcopy')->nullable();
             $table->text('file_download')->nullable();
+            $table->text('keterangan')->nullable();
 
             $table->foreignId('level_surat')->nullable()->constrained('level_users')->cascadeOnUpdate()->nullOnDelete();
 

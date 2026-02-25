@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Instansi;
+use App\Models\LevelUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,12 +23,10 @@ class UserController extends Controller
     public function index()
     {
         $data = [
-            'lists'     => User::all(),
-            'instansi'  => DB::table('instansi')->get(),
-            'badge'     => [
-                'administrator' => 'badge-primary',
-                'operator'      => 'badge-secondary',
-            ],
+            'lists'     => User::with('leveluser')->get(),
+            // 'instansi'  => DB::table('instansi')->get(),
+            'instansi'  => Instansi::all(),
+            'level'     => LevelUser::all(),
         ];
         
         return view('main.users', $data);
@@ -43,7 +42,6 @@ class UserController extends Controller
         $request->validate([
             'nama'      => 'required|string|max:100',
             'email'     => 'nullable|email',
-            'instansi'  => 'required|string',
             'level'     => 'required|string',
             'username'  => 'required|string|unique:users|max:50',
             'password'  => 'required|string|max:50',
@@ -80,7 +78,6 @@ class UserController extends Controller
             'uid'       => 'required|numeric',
             'nama'      => 'required|string|max:100',
             'email'     => 'nullable|email',
-            'instansi'  => 'required|string',
             'level'     => 'required|string',
         ]);
         $user = User::find($request->uid);

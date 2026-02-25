@@ -16,6 +16,7 @@ use App\Models\SifatSurat;
 use App\Models\Sppd;
 use App\Models\TempatBerkas;
 use App\Models\UnitKerja;
+use App\Services\PdfSanitizer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
@@ -25,6 +26,8 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use setasign\Fpdi\Fpdi;
 
 class OutboxController extends Controller
@@ -59,7 +62,7 @@ class OutboxController extends Controller
         $length = $request->length;
         $level  = LevelUser::where('id', Auth::user()->level)->first();
         $akses  = $level->akses;
-        $query = Outbox::with(['klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap', 'spd']);
+        $query = Outbox::with(['klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap', 'spd', 'pengolah']);
         
         if ($request->has('klasifikasi') && $request->klasifikasi != '') {
             $query->where('sifat_surat', $request->klasifikasi);
@@ -116,6 +119,7 @@ class OutboxController extends Controller
         // manipulate fields data
         $data = [];
         foreach ($outbox as $r => $ibx) {
+            $ibx->cryptfile = !empty($ibx->softcopy) ? Crypt::encryptString($ibx->softcopy) : null;
             $data[] = [
                 // 'NO' => $ibx->NO,
                 'nomor'     => $ibx->no_surat,
@@ -183,15 +187,29 @@ class OutboxController extends Controller
     {
         $no    = (Crypt::decryptString($id));
         if (!$no) return abort(404);
-        $outbox = ArsipSurat::where('NO', $no)->first();
-        $sppd = empty($outbox->nosppd) ? [] : Sppd::where('nosppd', $outbox->nosppd)->first();
-        $outbox->uid = $id;
+        $outbox = Outbox::with(['klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap', 'spd', 'pengolah'])
+                    ->where('uuid', $no)->first();
+        
+        $jra = Klasifikasi::where('id', $outbox->id_klasifikasi)->first();
+
+        if ($jra) {
+            $outbox->r_aktif = $jra->r_aktif;
+            $outbox->r_inaktif = $jra->r_inaktif;
+            $outbox->thn_aktif = date('Y') + intval($jra->r_aktif);
+            $outbox->thn_inaktif = date('Y') + intval($jra->r_aktif) + intval($jra->r_inaktif);
+            $outbox->ket_jra = $jra->ket_jra;
+            $outbox->nilai_guna = $jra->nilai_guna;
+        }
+
+        // $outbox->uid = $id;
         $data  = [
-            'jra'       => Jra::all(),
+            'jra'       => Klasifikasi::all(),
             'berkas'    => TempatBerkas::all(),
-            'instansi'  => Instansi::all(),
+            'instansi'  => DataUnit::all(),
+            'perkembangan' => Perkembangan::all(),
+            'sifat'     => SifatSurat::all(),
+            'level'     => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
             'outbox'    => $outbox,
-            'sppd'      => $sppd,
         ];
 
         return view('main.outbox.edit', $data);
@@ -206,6 +224,22 @@ class OutboxController extends Controller
         ];
 
         return view('main.outbox.show', $data);
+    }
+
+    public function nomor_urut(Request $request)
+    {
+        $request->validate([
+            'type'  => 'required|string|max:10',
+        ]);
+
+        if (Auth::user()->leveluser->is_primary) {
+            $last = Outbox::where('is_primary_agenda', true)->orderBy('id', 'desc')->first();
+        } else {
+            $last = Outbox::where('level_surat', Auth::user()->level)->orderBy('id', 'desc')->first();
+        }
+        $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
+
+        return response()->json(['status' => 'success', 'urut' => $kode_urut]);
     }
 
     public function store(Request $request)
@@ -267,8 +301,8 @@ class OutboxController extends Controller
 
         $outbox = new Outbox();
         $outbox->nama_berkas     = $request->berkas;
-        $outbox->tgl_naik        = Carbon::parse($request->tgl_naik)->format('Y-m-d');
         $outbox->tgl_surat       = Carbon::parse($request->tgl_surat)->format('Y-m-d');
+        $outbox->tgl_naik        = Carbon::parse($request->tgl_naik)->format('Y-m-d');
         $outbox->tgl_diteruskan  = Carbon::parse($request->tgl_diteruskan)->format('Y-m-d');
         $outbox->kepada          = $request->darikepada;
         $outbox->wilayah         = $request->wilayah;
@@ -280,9 +314,11 @@ class OutboxController extends Controller
         $outbox->tempat_berkas   = $request->tempat_berkas;
         $outbox->id_perkembangan = $request->perkembangan;
         $outbox->id_unit         = $unit->id ?? null;
-        $outbox->unit            = empty($unit) ? $request->nama_up : $unit->id;
+        $outbox->unit            = empty($unit) ? $request->nama_up : null;
         $outbox->sifat_surat     = $request->sifat_surat;
         $outbox->keterangan      = $request->keterangan;
+        $outbox->year            = date('Y');
+        $outbox->softcopy        = $file;
         
         // Operator
         $outbox->is_primary_agenda = $pr;
@@ -439,6 +475,83 @@ class OutboxController extends Controller
             return response()->json(['status' => 'success', 'message' => 'Surat keluar berhasil dihapus.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Surat keluar gagal dihapus.']);
+        }
+    }
+
+    public function upload_file($file, $id)
+    {
+        $image = ['jpg', 'jpeg', 'png'];
+        $extension = $file->extension();
+        
+        if (in_array(strtolower($extension), $image)) {
+            Log::info('file is image');
+            return $this->sanitize_image($file, $id);
+        } else if (strtolower($extension) == 'pdf') {
+            Log::info('file pdf');
+            return $this->sanitize_pdf($file, $id);
+        } else {
+            return null;
+        }
+    }
+
+    public function sanitize_image($file, $id)
+    {
+        $manager = new ImageManager(new Driver());
+        // $manager = ImageManager::gd(autoOrientation: false);
+        $image = $manager->read($file)
+                ->orient()
+                ->toJpeg(quality: 90);
+
+        // 3. Save to temporary path
+        $tempPath = storage_path('app/tmp/sanitized_' .$id. '.jpg');
+        File::ensureDirectoryExists(dirname($tempPath));
+        file_put_contents($tempPath, $image->toString());
+
+        // 4. Move to public folder
+        $fileName = $id . '_sanitized_' .date('YmdHis'). '.jpg';
+        $folder = public_path('datas/uploads/suratkeluar');
+        if (!File::exists($folder)) {
+            File::makeDirectory($folder, 0755, true);
+        }
+
+        $path = $folder . '/' . $fileName;
+        $move = File::move($tempPath, $path);
+
+        if (!$move) {
+            return null;
+        }
+        return $fileName;
+    }
+
+    public function sanitize_pdf($file, $id)
+    {
+        $sanitizer = new PdfSanitizer();
+        // Store original temporarily
+        $tempInput = storage_path('app/tmp/original_' .date('YmdHis'). '.pdf');
+        $tempOutput = storage_path('app/tmp/sanitized_' .date('YmdHis'). '.pdf');
+        $file->move(dirname($tempInput), basename($tempInput));
+
+        // Sanitize
+        $sanitizer->sanitize($tempInput, $tempOutput);
+
+        // Store sanitized PDF (never store original)
+        $folder = public_path('datas/uploads/suratkeluar');
+        if (! File::exists($folder)) {
+            File::makeDirectory($folder, 0755, true);
+        }
+        
+        $fileName = $id . '_sanitized_' .date('YmdHis'). '.pdf';
+        $path = $folder . '/' . $fileName;
+        $move = File::move($tempOutput, $path);
+
+        // Cleanup
+        @unlink($tempInput);
+        @unlink($tempOutput);
+
+        if ($move) {
+            return $fileName;
+        } else {
+            return null;
         }
     }
 
@@ -634,7 +747,10 @@ class OutboxController extends Controller
         $id  = Crypt::decryptString($uid);
         if (!$id) return abort(404);
 
-        $surat = ArsipSurat::where('NO', $id)->first();
+        // $surat = ArsipSurat::where('NO', $id)->first();
+        $surat = Outbox::with(['klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap', 'spd', 'pengolah'])
+                ->where('uuid', $id)->first();
+        
         if (!$surat) return abort(404);
 
         if (empty($request->type)) return abort(404);
@@ -646,14 +762,35 @@ class OutboxController extends Controller
             return abort(404);
         }
 
-        return $pdf->stream($surat->NOAGENDA . '_' . $surat->TAHUN . '_' . ($request->type == 'kartu' ? 'kartu_surat_masuk' : $request->type) .'.pdf');
+        return $pdf->stream($surat->no_agenda . '_' . $surat->year . '_' . ($request->type == 'kartu' ? 'kartu_surat_masuk' : $request->type) .'.pdf');
     }
 
-    public function build_kartu($inbox, $add = null)
+    public function build_kartu($outbox, $add = null)
     {
-        $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
+        // $sign = Pimpinan::where('level', $outbox->Posisi)->where('is_default', true)->first();
+        $sign = Pimpinan::where('level', $outbox->posisi_level)->where('is_default', true)->first();
+        if ($outbox->no_agenda < 9) {
+            $outbox->no_agenda = '000' . $outbox->no_agenda;
+        } elseif ($outbox->no_agenda > 9 && $outbox->no_agenda < 99) {
+            $outbox->no_agenda = '00' . $outbox->no_agenda;
+        } elseif ($outbox->no_agenda > 99 && $outbox->no_agenda < 999) {
+            $outbox->no_agenda = '0' . $outbox->no_agenda;
+        }
 
-        $pdf = Pdf::loadView('main.outbox.template_duplikat' . $add, ['data' => $inbox, 'sign' => $sign]);
+        $pdf = Pdf::loadView('main.outbox.template_duplikat' . $add, ['data' => $outbox, 'sign' => $sign]);
         return $pdf;
+    }
+
+    public function view_file($uid)
+    {
+        $file = Crypt::decryptString($uid);
+        if (!$file) return abort(404);
+
+        $folder = public_path('datas/uploads/suratkeluar');
+        if (file_exists($folder . '/' . $file)) {
+            return response()->file($folder . '/' . $file);
+        } else {
+            return abort(404);
+        }
     }
 }

@@ -67,7 +67,7 @@
                             @foreach ($instansi as $i => $ins)
                                 <tr>
                                     <td>{{ $i+1 }}</td>
-                                    <td><b>{{ $ins->nama }}</b></td>
+                                    <td><b>{{ $ins->nama_unit }}</b></td>
                                     <td>{{ $ins->kode }}</td>
                                     <td>{{ $ins->akronim }}</td>
                                     <td>
@@ -155,8 +155,8 @@
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group mb-4">
-                                                            <label for="telepon">No. Telepon</label>
-                                                            <input type="number" class="form-control" id="telepon" name="telepon" placeholder="Nomor Telepon">
+                                                            <label for="telepon">Website</label>
+                                                            <input type="url" class="form-control" id="telepon" name="telepon" placeholder="https://">
                                                         </div>
                                                     </div>
                                                     <div class="col-6">

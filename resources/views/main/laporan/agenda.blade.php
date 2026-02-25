@@ -156,7 +156,7 @@
                                     Ket. JRA/ <br>
                                     Isi Informasi
                                 </th>
-                                <th style="width: 15%; text-align: center;">Dari Unit Kerja</th>
+                                <th style="width: 15%; text-align: center;">Dari / Kepada</th>
                                 
                                 @role(['administrator'])
                                 <th style="width: 12%; text-align: center;">Disposisi Sekda</th>

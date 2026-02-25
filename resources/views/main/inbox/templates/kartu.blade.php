@@ -124,35 +124,35 @@
                     <div class="margin">
                         Indeks : <br>
                     </div>
-                    <div class="content">{{ $data->KODEOPR }} <br>{{ \Carbon\Carbon::parse($data->TGLTERUS)->format('d/m/Y') }}</div>
+                    <div class="content">{{ $data->creator->nama_lengkap }} <br>{{ \Carbon\Carbon::parse($data->tgl_diteruskan)->format('d/m/Y') }}</div>
                 </td>
                 <td style="width: 35%;">
                     <div class="margin">
                         Kode : <br>
                     </div>
-                    <div class="content">{{ $data->KLAS3 }}</div>
+                    <div class="content">{{ $data->klasifikasi->klas3 }}</div>
                 </td>
                 <td style="width: 25%;">
                     <div class="margin">
                         Nomor Urut : <br>
                     </div>
-                    <div class="content" style="font-size: 20pt;">{{ $data->NOAGENDA }}</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="3" style="">
-                    <div class="margin">
-                        Isi Ringkas : {!! !empty($data->nosppd) ? '<span style="margin-left: 50mm;">No. SPD : <span style="font-weight: normal;">'.$data->nosppd.'</span></span>' : '' !!}
-                    </div>
-                    <div class="content">{{ $data->ISI }}</div>
+                    <div class="content" style="font-size: 20pt;">{{ $data->no_agenda }}</div>
                 </td>
             </tr>
             <tr>
                 <td colspan="3" style="height: 17.5mm;">
                     <div class="margin">
+                        Isi Ringkas :
+                    </div>
+                    <div class="content">{{ $data->isi_surat }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="">
+                    <div class="margin">
                         Dari : <br>
                     </div>
-                    <div class="content">{{ $data->drkpd }}</div>
+                    <div class="content">{{ $data->dari }}</div>
                 </td>
             </tr>
             <tr>
@@ -160,13 +160,13 @@
                     <div class="margin">
                         Tgl Surat : <br>
                     </div>
-                    <div class="content">{{ \Carbon\Carbon::parse($data->TGLSURAT)->format('d/m/Y') }}</div>
+                    <div class="content">{{ \Carbon\Carbon::parse($data->tgl_surat)->format('d/m/Y') }}</div>
                 </td>
                 <td style="height: 15mm; border-bottom: none;">
                     <div class="margin">
                         Nomor Surat : <br>
                     </div>
-                    <div class="content">{{ $data->NOSURAT }}</div>
+                    <div class="content">{{ $data->no_surat }}</div>
                 </td>
                 <td style="height: 15mm;">
                     <div class="margin">
@@ -180,13 +180,13 @@
                     <div class="margin">
                         Pengolah : <br>
                     </div>
-                    <div class="content">{{ $data->NAMAUP }}</div>
+                    <div class="content">{{ $data->level->role }}</div>
                 </td>
                 <td style="height: 15mm;">
                     <div class="margin">
                         Tgl Diteruskan : <br>
                     </div>
-                    <div class="content">{{ \Carbon\Carbon::parse($data->TGLTERUS)->format('d/m/Y') }}</div>
+                    <div class="content">{{ \Carbon\Carbon::parse($data->tgl_diteruskan)->format('d/m/Y') }}</div>
                 </td>
                 <td rowspan="2">
                     <div class="margin">
@@ -199,7 +199,7 @@
                     <div class="margin">
                         Catatan : <br>
                     </div>
-                    <div class="content">{{ $data->CATATAN }}</div>
+                    <div class="content">{{ $data->keterangan }}</div>
                 </td>
             </tr>
 

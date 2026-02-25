@@ -312,7 +312,7 @@
     <!-- END PAGE LEVEL SCRIPTS -->
 
     <script>
-        @role(['administrator', 'umum'])
+        @role(['administrator', 'admin'])
         function _delete(uid) {
             Swal.fire({
                 title: 'Apakah Anda yakin?',

@@ -171,10 +171,10 @@ class InboxController extends Controller
                                     </button>' : '') .
 
                                     // Cetak Surat
-                                    ((!Auth::user()->hasRole(['administrator']) && $ibx->status_surat == 'selesai') ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Disposisi" onclick="printPdf(`'. Crypt::encryptString($ibx->uuid) .'`)">
+                                    ((!Auth::user()->hasRole(['administrator', 'admin']) && $ibx->status_surat == 'selesai') ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Disposisi" onclick="printPdf(`'. Crypt::encryptString($ibx->uuid) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                     </button>' : '') .
-                                    ((Auth::user()->hasRole(['administrator']) && $ibx->status_surat == 'selesai') ? '<div class="btn-group" role="group">
+                                    ((Auth::user()->hasRole(['administrator', 'admin']) && $ibx->status_surat == 'selesai') ? '<div class="btn-group" role="group">
                                         <button id="btndefault" type="button" class="btn btn-outline-info bs-tooltip dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Cetak">
                                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                         </button>
@@ -683,6 +683,7 @@ class InboxController extends Controller
 
         $surat = Inbox::with(['disposisi.penerima.leveluser', 'mydisposisi', 'getdisposisi', 'klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'posisi:id,uuid,nama_lengkap,level', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap'])
                 ->where('uuid', $id)->first();
+        
         if (!$surat) return abort(404);
 
         if (empty($request->type)) return abort(404);
@@ -705,7 +706,7 @@ class InboxController extends Controller
         if ($request->type == 'disposisi') {
             $pdf = $this->build_pdf($surat, null);
         } elseif ($request->type == 'kartu') {
-            if (!Auth::user()->hasRole(['administrator', 'umum'])) return abort(404);
+            if (!Auth::user()->hasRole(['administrator', 'admin'])) return abort(404);
             // $pdf = $this->build_kartu($surat, '_textonly');
             $pdf = $this->build_kartu($surat, null);
         } else {
@@ -804,7 +805,14 @@ class InboxController extends Controller
 
     public function build_kartu($inbox, $add = null)
     {
-        $sign = Pimpinan::where('level', $inbox->Posisi)->where('is_default', true)->first();
+        $sign = Pimpinan::where('level', $inbox->posisi_level)->where('is_default', true)->first();
+        if ($inbox->no_agenda < 9) {
+            $inbox->no_agenda = '000' . $inbox->no_agenda;
+        } elseif ($inbox->no_agenda > 9 && $inbox->no_agenda < 99) {
+            $inbox->no_agenda = '00' . $inbox->no_agenda;
+        } elseif ($inbox->no_agenda > 99 && $inbox->no_agenda < 999) {
+            $inbox->no_agenda = '0' . $inbox->no_agenda;
+        }
 
         $pdf = Pdf::loadView('main.inbox.templates.kartu' . $add, ['data' => $inbox, 'sign' => $sign]);
         return $pdf;

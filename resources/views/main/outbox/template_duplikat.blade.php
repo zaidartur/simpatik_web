@@ -111,27 +111,27 @@
                     <div class="margin">
                         Indeks : <br>
                     </div>
-                    <div class="content">{{ $data->KODEOPR }} <br>{{ \Carbon\Carbon::parse($data->TGLTERUS)->format('d/m/Y') }}</div>
+                    <div class="content">{{ $data->creator->nama_lengkap }} <br>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</div>
                 </td>
                 <td style="width: 35%;">
                     <div class="margin">
                         Kode : <br>
                     </div>
-                    <div class="content">{{ $data->KLAS3 }}</div>
+                    <div class="content">{{ $data->klasifikasi->klas3 }}</div>
                 </td>
                 <td style="width: 25%;">
                     <div class="margin">
                         Nomor Urut : <br>
                     </div>
-                    <div class="content" style="font-size: 20pt;">{{ $data->NOAGENDA }}.{{ $data->KODEUP }}</div>
+                    <div class="content" style="font-size: 20pt;">{{ $data->no_agenda }}.{{ $data->pengolah->kode }}</div>
                 </td>
             </tr>
             <tr>
                 <td colspan="3" style="height: 21.5mm; width: 163mm;">
                     <div class="margin">
-                        Isi Ringkas : {!! !empty($data->nosppd) ? '<span style="margin-left: 50mm;">No. SPD : <span style="font-weight: normal;">'.$data->nosppd.'</span></span>' : '' !!}
+                        Isi Ringkas : {!! !empty($data->id_spd) ? '<span style="margin-left: 50mm;">No. SPD : <span style="font-weight: normal;">'.$data->spd->no_spd.'</span></span>' : '' !!}
                     </div>
-                    <div class="content">{{ $data->ISI }}</div>
+                    <div class="content">{{ $data->isi_surat }}</div>
                 </td>
             </tr>
             <tr>
@@ -139,7 +139,7 @@
                     <div class="margin">
                         Kepada : <br>
                     </div>
-                    <div class="content">{{ $data->drkpd }}</div>
+                    <div class="content">{{ $data->kepada }}</div>
                 </td>
             </tr>
             <tr>
@@ -147,13 +147,13 @@
                     <div class="margin">
                         Pengolah : <br>
                     </div>
-                    <div class="content">{{ $data->NAMAUP }}</div>
+                    <div class="content">{{ empty($data->id_unit) ? $data->unit : $data->pengolah->nama_unit }}</div>
                 </td>
                 <td style="height: 20.5mm; width: 41mm;">
                     <div class="margin">
                         Tgl Surat : <br>
                     </div>
-                    <div class="content">{{ \Carbon\Carbon::parse($data->TGLSURAT)->format('d/m/Y') }}</div>
+                    <div class="content">{{ \Carbon\Carbon::parse($data->tgl_surat)->format('d/m/Y') }}</div>
                 </td>
                 <td style="height: 20.5mm; width: 51.5mm;">
                     <div class="margin">
@@ -167,7 +167,7 @@
                     <div class="margin">
                         Catatan : <br>
                     </div>
-                    <div class="content">{{ $data->CATATAN }}</div>
+                    <div class="content">{{ $data->keterangan }}</div>
                 </td>
             </tr>
         </table>

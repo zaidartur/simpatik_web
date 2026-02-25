@@ -69,8 +69,8 @@
                                     <td>{{ $item->nama_lengkap }}</td>
                                     <td>{{ $item->username }}</td>
                                     <td>{{ $item->email }}</td>
-                                    <td><span class="badge {{ $badge[$item->level] }} mb-2 me-4">{{ $item->level }}</span></td>
-                                    <td>{{ $item->jurusan }}</td>
+                                    <td>{{ $item->leveluser->role ?? '' }}</td>
+                                    <td>{{ $item->leveluser->nama }}</td>
                                     <td>{!! $item->blokir == 'N' ? '<span class="badge badge-success mb-2 me-4">Aktif</span>' : '<span class="badge badge-danger mb-2 me-4">Nonaktif</span>' !!}</td>
                                     <td>
                                         <div class="btn-group-vertical" role="group" aria-label="Second group">
@@ -143,21 +143,20 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="row mb-5">
+                                                {{-- <div class="row mb-5">
                                                     <label for="instansi" class="col-sm-3 col-form-label">Instansi*</label>
                                                     <div class="col-sm-9">
-                                                        {{-- <input type="text" class="form-control" id="instansi" name="instansi" value="" maxlength="255" required> --}}
                                                         <select name="instansi" id="instansi" class="form-control" required>
                                                             <option value="">Pilih Instansi</option>
                                                             @foreach ($instansi as $ins)
-                                                                <option value="{{ $ins->kode }}">{{ $ins->instansi }}</option>
+                                                                <option value="{{ $ins->kode }}">{{ $ins->nama }}</option>
                                                             @endforeach
                                                         </select>
                                                         <div class="invalid-feedback">
                                                             Field ini wajib di isi.
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> --}}
 
                                                 <h5 class="card-title mb-3">Data Akun</h5>
                                                 <div class="row mb-3">
@@ -166,8 +165,9 @@
                                                         {{-- <input type="text" class="form-control" id="level" name="level" value="" maxlength="255" required> --}}
                                                         <select name="level" id="level" class="form-control" required>
                                                             <option value="">Pilih Level</option>
-                                                            <option value="Administrator">Administrator</option>
-                                                            <option value="operator">Operator</option>
+                                                            @foreach ($level as $lvl)
+                                                                <option value="{{ $lvl->id }}">{{ $lvl->nama }}</option>    
+                                                            @endforeach
                                                         </select>
                                                         <div class="invalid-feedback">
                                                             Field ini wajib di isi.
@@ -489,7 +489,7 @@
             if (uid && datas) {
                 Swal.fire({
                     title: 'Hapus Data',
-                    html: `Anda yakin ingin menghapus data user <b>${name}</b>?`,
+                    html: `Anda yakin ingin menghapus data user <b>${name}</b>?<br>Data user yang terhapus kemungkinan akan mempengaruhi data surat`,
                     icon: 'question',
                     showCancelButton: true,
                     cancelButtonText: 'Batalkan',

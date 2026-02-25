@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
+use App\Models\Inbox;
+use App\Models\Outbox;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -39,7 +41,8 @@ class LaporanController extends Controller
     public function agenda()
     {
         $data = [
-            'years' => ArsipSurat::select('TAHUN')->distinct()->orderBy('TAHUN', 'desc')->get(),
+            // 'years' => ArsipSurat::select('TAHUN')->distinct()->orderBy('TAHUN', 'desc')->get(),
+            'years' => Inbox::select('year')->distinct()->orderBy('year', 'desc')->get(),
         ];
         return view('main.laporan.agenda', $data);
     }
@@ -206,15 +209,18 @@ class LaporanController extends Controller
     {
         $request = Request();
         $user = $request->user();
-        if ($user->hasAnyRole(['administrator', 'umum', 'setda', 'wabup', 'bupati'])) {
+        if ($user->hasAnyRole(['administrator', 'admin', 'setda', 'wabup', 'bupati'])) {
             $start = $request->start;
             $length = $request->length;
 
-            // $query = ArsipSurat::where('TAHUN', (!empty($request->year) ? $request->year : date('Y')));
-            $query = ArsipSurat::select('*');
+            // $query = ArsipSurat::select('*');
 
-            if (isset($request->jenis) && in_array($request->jenis, ['Masuk', 'Keluar'])) {
-                $query->where('JENISSURAT', $request->jenis);
+            if (isset($request->jenis) && ($request->jenis == 'Masuk')) {
+                $query = Inbox::select('*');
+            } elseif (isset($request->jenis) && $request->jenis == 'Keluar') {
+                $query = Outbox::select('*');
+            } else {
+                //
             }
             // if (isset($request->bulan) && !empty($request->bulan) && (intval($request->bulan) > 0 && intval($request->bulan) < 13)) {
             //     $query->where('BULAN', intval($request->bulan));
@@ -222,10 +228,10 @@ class LaporanController extends Controller
             if (isset($request->start_date) && !empty($request->start_date) && isset($request->end_date) && !empty($request->end_date)) {
                 $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
                 $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-                $query->whereBetween('TGLENTRY', [Carbon::parse($startDate)->format('Y-m-d'), Carbon::parse($endDate)->format('Y-m-d')]);
+                $query->whereBetween('created_at', [Carbon::parse($startDate)->format('Y-m-d'), Carbon::parse($endDate)->format('Y-m-d')]);
             }
 
-            $query->orderBy('noagenda2', 'ASC');
+            $query->orderBy('created_at', 'ASC');
 
             $totalData = $query->count();
 
@@ -233,11 +239,11 @@ class LaporanController extends Controller
             if ($request->has('search') && $request->search['value'] != '') {
                 $search = $request->search['value'];
                 $query->where(function ($q) use ($search) {
-                    $q->where('NOSURAT', 'like', "%$search%")
-                        ->orWhere('drkpd', 'like', "%$search%")
-                        ->orWhere('PERIHAL', 'like', "%$search%")
-                        ->orWhere('ISI', 'like', "%$search%")
-                        ->orWhere('KLAS3', 'like', "%$search%");
+                    $q->where('no_surat', 'like', "%$search%")
+                        ->orWhere('no_agenda', 'like', "%$search%")
+                        ->orWhere('perihal', 'like', "%$search%")
+                        ->orWhere('isi', 'like', "%$search%")
+                        ->orWhere('wilayah', 'like', "%$search%");
                 });
             }
             $totalFiltered = $query->count();
@@ -246,23 +252,23 @@ class LaporanController extends Controller
             $data = [];
             foreach ($list as $l => $row) {
                 $data[$l] = [
-                    'no_agenda' => $row->NOAGENDA,
-                    'kepada'    => $row->JENISSURAT == 'Masuk' ? $row->Posisi : $row->drkpd,
-                    'tgl_buat'  => Carbon::parse($row->TGLENTRY)->isoFormat('DD-MM-YYYY'),
-                    'tanggal'   => Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'),
+                    'no_agenda' => $row->no_agenda,
+                    'kepada'    => $row->dari ?? $row->kepada,
+                    'tgl_buat'  => Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY'),
+                    'tanggal'   => Carbon::parse($row->tgl_surat)->isoFormat('DD-MM-YYYY'),
                     'nomor'     => $row->NOSURAT,
-                    'row3'      => Carbon::parse($row->TGLENTRY)->isoFormat('DD-MM-YYYY'). '<br>' .Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'). '<br>' .$row->NOSURAT,
-                    'kode'      => $row->KLAS3,
-                    'jra'       => $row->KETJRA,
-                    'isi_surat' => $row->ISI,
-                    'row4'      => $row->KLAS3. '<br><b>' .$row->KETJRA. '</b><br>' .$row->ISI,
+                    'row3'      => Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY'). '<br>' .Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'). '<br>' .$row->NOSURAT,
+                    'kode'      => $row->klasifikasi->klas3 ?? '',
+                    'jra'       => $row->klasifikasi->ket_jra ?? '',
+                    'isi_surat' => $row->isi_surat,
+                    'row4'      => $row->klasifikasi?->klas3. '<br><b>' .$row->klasifikasi?->ket_jra. '</b><br>' .$row->isi_surat,
                     // 'dari'      => $row->drkpd,
-                    'berkas'    => $row->NAMABERKAS,
-                    'wilayah'   => $row->WILAYAH,
-                    'dari'      => $row->JENISSURAT == 'Keluar' ? $row->NAMAUP : $row->drkpd,
-                    'perihal'   => $row->PERIHAL,
-                    'class'     => ($row->Posisi == 'Sekretaris Daerah' ? 'badge-info' : ($row->Posisi == 'Wakil Bupati' ? 'badge-secondary' : ($row->Posisi == 'Bupati' ? 'badge-primary' : 'badge-dark'))),
-                    'uid'       => Crypt::encryptString($row->NO),
+                    'berkas'    => $row->nama_berkas,
+                    'wilayah'   => $row->wilayah,
+                    'dari'      => $row->creator->leveluser->nama,
+                    'perihal'   => $row->perihal,
+                    'class'     => $row->posisi_level,
+                    'uid'       => Crypt::encryptString($row->uuid),
                 ];
 
                 if ($user->hasAnyRole(['administrator', 'umum', 'setda'])) {

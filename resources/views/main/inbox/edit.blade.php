@@ -30,7 +30,7 @@
             </nav>
         </div>
 
-        <form method="POST" action="{{ route('inbox.update') }}" class="needs-validation" enctype="multipart/form-data" novalidate>
+        <form method="POST" action="{{ route('inbox.update') }}" class="is-inbox" enctype="multipart/form-data" novalidate>
             <div class="row layout-top-spacing">
                 @csrf
 
@@ -448,7 +448,10 @@
                                         <div class="row mb-3">
                                             <div class="col-sm-12">
                                                 <label for="berkas" class="col-form-label text-center col-12">Upload File Hasil Scan Surat Masuk (maksimum 10Mb, format PDF/Gambar)</label>
-                                                <div class="multiple-file-upload">
+                                                <div class="alert alert-light-danger fade show border-0 mb-4 is-alert" role="alert">
+                                                    <strong>Perhatian!</strong> <span id="content_alert">Ukuran file melebihi batas dan file tidak akan tersimpan.</span></button>
+                                                </div>
+                                                {{-- <div class="multiple-file-upload">
                                                     <input type="file" 
                                                         class="filepond file-upload-scan"
                                                         name="is_scan" 
@@ -456,7 +459,8 @@
                                                         data-allow-reorder="true"
                                                         data-max-file-size="10MB"
                                                     >
-                                                </div>
+                                                </div> --}}
+                                                <input class="form-control file-upload-input" type="file" id="is_scan" name="is_scan" accept=".pdf,.PDF,.png,.jpg,.jpeg,.PNG,.JPG">
                                             </div>
                                         </div>
                                     </div>
@@ -503,6 +507,38 @@
     <script src="{{ asset('templates/plugins/src/autocomplete/autoComplete.min.js') }}"></script>
     
     <script>
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('is-inbox');
+            var invalid = $('.is-inbox .invalid-feedback');
+
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    let hasError = false;
+                    $(this).find('[required]').each(function() {
+                        console.log($(this).val())
+                        if ($(this).val().trim() === '') {
+                            hasError = true;
+                            // console.log($(this).attr('name') + ' is required.');
+                            $(this).removeClass('is-valid');
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                            $(this).addClass('is-valid');
+                        }
+                    });
+
+                    if (hasError) {
+                        event.preventDefault();
+                        Toast.fire({
+                            icon: 'error',
+                            title: 'Mohon untuk mengisi field'
+                        })
+                    }
+                }, false);
+            });
+        }, false);
+        
         $(document).ready(function () {
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
@@ -526,6 +562,25 @@
                 acceptedFileTypes: ['application/pdf'],
                 fileValidateTypeLabelExpectedTypesMap: { 'application/pdf': '.pdf' },
             });
+
+            $('.is-alert').hide()
+            var uploadField = document.getElementById("is_scan");
+            uploadField.onchange = function() {
+                const list = ['pdf', 'png', 'jpg', 'jpeg']
+                const myfile = this.files[0]
+                const lastDotIndex = myfile.name.split('.').pop()
+                if(myfile.size > 10485760) { // 10MB limit
+                    $('#content_alert').html('Ukuran file melebihi batas dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else if (!list.includes(lastDotIndex.toLowerCase())) { // check extention
+                    $('#content_alert').html('Jenis file tidak sesuai ketentuan dan file tidak akan tersimpan.')
+                    this.value = "";
+                    $('.is-alert').show()
+                } else {
+                    $('.is-alert').hide()
+                }
+            };
         });
 
         function _forward() {

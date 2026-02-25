@@ -95,4 +95,14 @@ class Outbox extends Model
     {
         return $this->hasOne(Spd::class, 'id', 'id_spd');
     }
+
+    /**
+     * Get the pengolah associated with the Outbox
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function pengolah(): HasOne
+    {
+        return $this->hasOne(DataUnit::class, 'id', 'id_unit');
+    }
 }

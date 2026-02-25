@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DataUnit;
 use App\Models\Instansi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -16,7 +17,7 @@ class InstansiController extends Controller
     public function index()
     {
         $data = [
-            'instansi'  => Instansi::all(),
+            'instansi'  => DataUnit::all(),
         ];
         return view('main.instansi', $data);
     }
@@ -32,13 +33,13 @@ class InstansiController extends Controller
             'email'     => 'nullable|email|max:100',
         ]);
 
-        $instansi = new Instansi();
-        $instansi->INSTANSI = $request->nama;
-        $instansi->Akronim  = $request->akronim;
-        $instansi->KODE     = $request->kode;
-        $instansi->ALAMAT   = $request->alamat;
-        $instansi->TELEPON  = $request->telepon;
-        $instansi->EMAIL    = $request->email;
+        $instansi = new DataUnit();
+        $instansi->nama_unit = $request->nama;
+        $instansi->akronim  = $request->akronim;
+        $instansi->kode     = $request->kode;
+        $instansi->alamat   = $request->alamat;
+        $instansi->website  = $request->telepon;
+        $instansi->email    = $request->email;
         
         if ($instansi->save()) {
             return redirect()->back()->with('success', 'Data instansi berhasil disimpan.');
@@ -59,13 +60,13 @@ class InstansiController extends Controller
             'email'     => 'nullable|email|max:100',
         ]);
 
-        $instansi = Instansi::find($request->uid);
-        $instansi->INSTANSI = $request->nama;
-        $instansi->Akronim  = $request->akronim;
-        $instansi->KODE     = $request->kode;
-        $instansi->ALAMAT   = $request->alamat;
-        $instansi->TELEPON  = $request->telepon;
-        $instansi->EMAIL    = $request->email;
+        $instansi = DataUnit::find($request->uid);
+        $instansi->nama_unit = $request->nama;
+        $instansi->akronim  = $request->akronim;
+        $instansi->kode     = $request->kode;
+        $instansi->alamat   = $request->alamat;
+        $instansi->website  = $request->telepon;
+        $instansi->email    = $request->email;
         
         if ($instansi->save()) {
             return redirect()->back()->with('success', 'Data instansi berhasil diupdate.');
@@ -84,7 +85,7 @@ class InstansiController extends Controller
         if (!$id) {
             return response()->json(['status' => 'failed', 'message' => 'Data instansi tidak ditemukan.']);
         }
-        $instansi = Instansi::find($id);
+        $instansi = DataUnit::find($id);
         
         if ($instansi->delete()) {
             return response()->json(['status' => 'success', 'message' => 'Data instansi berhasil dihapus.']);
