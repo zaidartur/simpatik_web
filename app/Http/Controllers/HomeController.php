@@ -31,7 +31,7 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:aplikasi', ['only' => ['list_pejabat', 'save_pimpinan', 'update_pimpinan', 'set_default', 'delete_pimpinan']]);
+        $this->middleware('permission:pimpinan', ['only' => ['list_pejabat', 'save_pimpinan', 'update_pimpinan', 'set_default', 'delete_pimpinan']]);
     }
 
     /**
@@ -107,9 +107,23 @@ class HomeController extends Controller
 
     public function list_pejabat()
     {
+        $user = Auth::user();
+        $lead = Pimpinan::select('*');
+        $query = LevelUser::select('*');
+        if ($user->hasAnyRole(['admin'])) {
+            $lead->whereIn('level', $user->leveluser->akses);
+            $query->whereIn('id', $user->leveluser->akses);
+        } elseif (!$user->hasAnyRole(['administrator', 'admin'])) {
+            $lead->where('level', $user->level);
+            $query->where('id', $user->level);
+        }
+
+        $pimpinan = $lead->get();
+        $level = $query->get();
         $data = [
-            'lists'     => Pimpinan::orderBy('level')->get(),
-            'instansi'  => Instansi::orderBy('kode')->get(),
+            'lists'     => $pimpinan,
+            // 'instansi'  => Instansi::orderBy('kode')->get(),
+            'instansi'  => $level,
         ];
 
         return view('main.pimpinan', $data);
@@ -122,7 +136,7 @@ class HomeController extends Controller
             'nama'      => 'required|string|max:100',
             'nip'       => 'nullable|string|max:255',
             'pangkat'   => 'nullable|string|max:100',
-            'role'      => 'required|string|max:50',
+            'role'      => 'required|integer',
             'is_default'=> 'required|string|in:yes,no',
         ]);
 

@@ -900,13 +900,14 @@
                             get_nomor_urut();
                             set_jra(selection);
 
+                            let = kode_up = $('#kode_up').val()
                             document.getElementById('no_surat').value = 'Generating...';
                             document.getElementById('no_surat').readOnly = true;
                             setTimeout(() => {
                                 const nomor = document.getElementById('urut').value;
                                 autoCompleteJS.input.value = splitSelection[0];
                                 document.getElementById('berkas').value = splitSelection[1]
-                                document.getElementById('no_surat').value = splitSelection[0] + '/' + nomor + '/' + new Date().getFullYear();
+                                document.getElementById('no_surat').value = splitSelection[0] + '/' + nomor + '.' +kode_up+ '/' + new Date().getFullYear();
                                 document.getElementById('no_surat').readOnly = false;
                             }, 2000);
                             // focusCursor();

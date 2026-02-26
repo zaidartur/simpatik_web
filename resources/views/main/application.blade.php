@@ -18,6 +18,20 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('templates/plugins/css/dark/tagify/custom-tagify.css') }}">
     <!-- END PAGE LEVEL STYLES -->
 
+    <style>
+        table.fixed { 
+            width: 100%;
+            table-layout: fixed; 
+            border-collapse: collapse; 
+        }
+        table.fixed td { 
+            overflow: hidden;
+            word-wrap: break-word; 
+            word-break: break-word;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+    </style>
 @endsection
 
 
@@ -52,44 +66,48 @@
                         <div class="spinner"></div>
                     </div>
 
-                    <table id="zero-config" class="table dt-table-hover table-striped table-bordered" style="width:100%" width="100%">
-                        <thead>
-                            <tr>
-                                <th style="width: 10%">#</th>
-                                <th style="width: 10%">Nama Role</th>
-                                <th style="width: 70%">Permission</th>
-                                <th style="width: 10%">Opsi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($roles as $r => $role)
+                    <div class="">
+                        <table id="zero-configs" class="table dt-table-hover table-striped table-bordered fixed">
+                            <thead>
                                 <tr>
-                                    <td>{{ $r+1 }}</td>
-                                    <td><b>{{ ucwords($role->name) }}</b></td>
-                                    <td>
-                                        @foreach ($role->permissions as $item)
-                                            <span class="badge badge-primary mb-2 me-4">{{ $item->name }}</span><br>
-                                        @endforeach
-                                    </td>
-                                    <td>
-                                        <div class="btn-group-vertical" role="group" aria-label="Second group">
-                                            {{-- <button type="button" class="btn btn-outline-info bs-tooltip" onclick="_detail('{{ base64_encode(json_encode($role)) }}')" title="Detail User">
-                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                            </button> --}}
-                                            <a href="javascript:void(0)" onclick="_edit('{{ base64_encode(json_encode($role)) }}')" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Role">
-                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                            </a>
-                                            {{-- @if($role->id != Auth::user()->id) --}}
-                                            <button type="button" class="btn btn-danger bs-tooltip" onclick="_delete('{{ $role->name }}', '{{ Crypt::encryptString($role->id) }}')" title="Hapus Role">
-                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                            </button>
-                                            {{-- @endif --}}
-                                        </div>
-                                    </td>
+                                    <th style="width: 10%">#</th>
+                                    <th style="width: 10%">Nama Role</th>
+                                    <th style="width: 70%">Permission</th>
+                                    <th style="width: 10%">Opsi</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($roles as $r => $role)
+                                    <tr>
+                                        <td style="width: 10%">{{ $r+1 }}</td>
+                                        <td style="width: 10%"><b>{{ ucwords($role->name) }}</b></td>
+                                        <td style="width: 70%">
+                                            @foreach ($role->permissions as $item)
+                                                {{-- <span class="badge badge-primary mb-2 me-4">{{ $item->name }}</span> --}}
+                                                <button class="btn btn-primary btn-sm">{{ $item->name }}</button>
+                                                {{-- {{ $item->name }} --}}
+                                            @endforeach
+                                        </td>
+                                        <td style="width: 10%">
+                                            <div class="btn-group-vertical" role="group" aria-label="Second group">
+                                                {{-- <button type="button" class="btn btn-outline-info bs-tooltip" onclick="_detail('{{ base64_encode(json_encode($role)) }}')" title="Detail User">
+                                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                </button> --}}
+                                                <a href="javascript:void(0)" onclick="_edit('{{ base64_encode(json_encode($role)) }}')" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Role">
+                                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                                </a>
+                                                {{-- @if($role->id != Auth::user()->id) --}}
+                                                <button type="button" class="btn btn-danger bs-tooltip" onclick="_delete('{{ $role->name }}', '{{ Crypt::encryptString($role->id) }}')" title="Hapus Role">
+                                                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                </button>
+                                                {{-- @endif --}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

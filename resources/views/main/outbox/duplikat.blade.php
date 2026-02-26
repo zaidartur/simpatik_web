@@ -230,13 +230,13 @@
                                                 <div class="tab-content" id="nav-tabContent">`
 
                                 res.data.forEach((dt, d) => {
-                                    content += `<a class="list-group-item list-group-item-action ${d === 0 ? 'active' : ''} d-flex justify-content-between align-items-center" data-value="${dt.NO}" id="list_${dt.NO}_list" data-bs-toggle="list" href="#list_${dt.NO}" role="tab" aria-controls="list_${dt.NO}">
-                                                    ${dt.NOAGENDA} (${dt.TGLENTRY})
+                                    content += `<a class="list-group-item list-group-item-action ${d === 0 ? 'active' : ''} d-flex justify-content-between align-items-center" data-value="${dt.id}" id="list_${dt.id}_list" data-bs-toggle="list" href="#list_${dt.id}" role="tab" aria-controls="list_${dt.id}">
+                                                    ${dt.no_agenda} (${new Date(dt.created_at).toLocaleDateString('en-GB')})
                                                     ${d === 0 ? '<span class="badge bg-warning rounded-pill"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>' : ''}
                                                 </a>`
 
                                     desc += `
-                                                    <div class="tab-pane fade ${d === 0 ? 'show active' : ''}" id="list_${dt.NO}" role="tabpanel" aria-labelledby="list_${dt.NO}_list">
+                                                    <div class="tab-pane fade ${d === 0 ? 'show active' : ''}" id="list_${dt.id}" role="tabpanel" aria-labelledby="list_${dt.id}_list">
                                                         <div class="">
                                                             ${template_content(dt)}
                                                         </div>
@@ -408,32 +408,32 @@
 
         function template_content(datas) {
             let txt = ''
-            txt += `<h5 class="mb-3">Nomor Urut: <b>${datas.NOAGENDA}</b></h5>`
+            txt += `<h5 class="mb-3">Nomor Urut: <b>${datas.no_agenda}</b></h5>`
             txt += `<div class="">`
             txt += `<table class="table table-bordered" style="width: 100%">
                         <tr>
-                            <td>KEPADA : <b>${datas.drkpd ?? '' }</b></td>
+                            <td>KEPADA : <b>${datas.kepada ?? '' }</b></td>
                         </tr>
                         <tr>
-                            <td><div class="title">INDEX : <b>${datas.noagenda2}</b></div></td>
+                            <td><div class="title">INDEX : <b>${datas.no_agenda}</b></div></td>
                         </tr>
                         <tr>
-                            <td>TGL. SURAT : <b>${datas.TGLSURAT ?? ''}</b></td>
+                            <td>TGL. SURAT : <b>${datas.tgl_surat ?? ''}</b></td>
                         </tr>
                         <tr>
-                            <td>KODE : <b>${datas.KLAS3 ?? ''}</b></td>
+                            <td>KODE : <b>${datas.klasifikasi?.klas3 ?? ''}</b></td>
                         </tr>
                         <tr>
-                            <td colspan="4" style="height: 70px;">ISI : <b>${datas.ISI ?? ''}</b></td>
+                            <td colspan="4" style="height: 70px;">ISI : <b>${datas.isi_surat ?? ''}</b></td>
                         </tr>
                         <tr>
-                            <td colspan="3">ALAMAT : <b>${datas.NAMAKOTA ?? ''}</b></td>
+                            <td colspan="3">ALAMAT : <b>${datas.wilayah ?? ''}</b></td>
                         </tr>
                         <tr>
-                            <td>UNIT PENGOLAH : <b>${datas.NAMAUP ?? '' }</b></td>
+                            <td>UNIT PENGOLAH : <b>${datas.pengolah?.nama_unit }</b></td>
                         </tr>
                         <tr>
-                            <td>TGL. PEMBUATAN : <b>${datas.TGLTERIMA ?? ''}</b></td>
+                            <td>TGL. PEMBUATAN : <b>${datas.tgl_diterima ?? ''}</b></td>
                         </tr>
                     </table>`
             txt += '</div>'

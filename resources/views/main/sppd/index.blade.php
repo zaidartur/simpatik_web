@@ -93,7 +93,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th style="width: 10%">No. SPPD</th>
+                                <th style="width: 10%">No. SPD</th>
                                 <th style="width: 10%">Nama</th>
                                 <th style="width: 10%">Jabatan</th>
                                 <th style="width: 10%">Tujuan</th>
@@ -346,13 +346,13 @@
                 $('.new-sppd').attr("action", "{{ route('sppd.update') }}")
 
                 $('#uid').val(data.id)
-                $('#nosppd').val(data.nosppd)
+                $('#nosppd').val(data.no_spd)
                 $('#nama').val(data.nama)
                 $('#jabatan').val(data.jabatan)
                 $('#tujuan').val(data.tujuan)
                 $('#kendaraan').val(data.kendaraan)
-                $('#tgl_surat').val(data.tglsurat)
-                $('#tgl_berangkat').val(data.tglberangkat)
+                $('#tgl_surat').val(data.tgl_surat)
+                $('#tgl_berangkat').val(data.tgl_berangkat)
 
                 $('#sppdNew').modal('show')
             } else {
@@ -373,10 +373,10 @@
                         Anda yakin ingin menghapus data SPPD? <br>
                         <div class="col-12 justify-content-between bg-light-danger" style="border-radius: 15px; padding: 15px; text-align: left; font-size: 14px;">
                             <table style="width: 100%">
-                                <tr><td style="width: 40%;">Nomor Surat </td><td style="width: 5%;"> : </td><td style="width: 55%;">${data.nosppd}</td>
+                                <tr><td style="width: 40%;">Nomor Surat </td><td style="width: 5%;"> : </td><td style="width: 55%;">${data.no_spd}</td>
                                 <tr><td>Nama </td><td> : </td><td>${data.nama}</td>
-                                <tr><td>Tanggal Surat </td><td> : </td><td>${data.tglsurat}</td>
-                                <tr><td>Tanggal Berangkat </td><td> : </td><td>${data.tglberangkat}</td>
+                                <tr><td>Tanggal Surat </td><td> : </td><td>${data.tgl_surat}</td>
+                                <tr><td>Tanggal Berangkat </td><td> : </td><td>${data.tgl_berangkat}</td>
                             </table>
                         </div>
                     `,

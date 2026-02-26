@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('tindak_lanjut')->default(0);
             $table->json('daftar_terusan')->nullable();
             $table->boolean('can_disposisi')->default(false);
+            $table->foreignId('role')->nullable()->constrained('roles')->nullOnDelete()->cascadeOnUpdate();
             $table->timestamps();
         });
     }

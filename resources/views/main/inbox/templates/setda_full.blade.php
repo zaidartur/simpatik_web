@@ -117,7 +117,7 @@
                 <td style="height: 34mm;" colspan="2" class="tb-wrap">
                     <label style="display: inline-block; width: 20mm; vertical-align: bottom; margin-left: 3mm;">Hal</label>
                     <label>: </label>
-                    <label style="display: inline-block; width: auto; vertical-align: bottom; margin-left: 3mm;">{{ $data->ISI }}</label>
+                    <label style="display: inline-block; width: auto; vertical-align: bottom; margin-left: 3mm;">{{ $data->isi_surat }}</label>
                 </td>
             </tr>
             <tr>
@@ -200,7 +200,7 @@
                 <td style="height: 80mm; border-right: none;" class="v-top tb-wrap">
                     <label style="display: inline-block; width: 20mm; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">Catatan</label>
                     <label>: </label>
-                    <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! $data->disposisi[0]->penerima->level == 3 ? '&quot;'. $data->disposisi[0]->catatan_disposisi .'&quot;' : '' !!}</label>
+                    <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! $data->disposisi[0]->penerima->level == 3 ? $data->disposisi[0]->catatan_disposisi : '' !!}</label>
                 </td>
                 <td style="height: 80mm; border-left: none;" class="v-top tb-wrap">
                     <div style="height: 30mm;">&nbsp;</div>

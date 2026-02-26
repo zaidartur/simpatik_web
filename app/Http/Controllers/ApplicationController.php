@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -33,6 +34,7 @@ class ApplicationController extends Controller
         $permission = $decode ? array_map(function ($item) {
             return $item->name;
         }, $decode) : [];
+        Log::info("permissions", $permission);
         $role->syncPermissions($permission);
         return redirect()->back()->with('success', 'Permissions berhasil diperbarui!');
         // return response()->json($permission);

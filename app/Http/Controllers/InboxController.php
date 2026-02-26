@@ -277,7 +277,7 @@ class InboxController extends Controller
         } else {
             $last = Inbox::where('level_surat', Auth::user()->level)->orderBy('id', 'desc')->first();
         }
-        $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
+        $kode_urut = (!empty($last->year ) ? ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1) : 1);
 
         return response()->json(['status' => 'success', 'urut' => $kode_urut]);
     }
@@ -321,8 +321,8 @@ class InboxController extends Controller
             'nilai_guna'    => 'required|string|max:100',
             'tempat_berkas' => 'required|string|max:100',
             'perkembangan'  => 'required|string|max:100',
-            'tgl_diteruskan'=> 'nullable|date',
-            'diteruskan_kpd'=> 'nullable|string|max:100',
+            // 'tgl_diteruskan'=> 'nullable|date',
+            // 'diteruskan_kpd'=> 'nullable|string|max:100',
             'sifat_surat'   => 'nullable|string|max:100',
             'tindakan'      => 'nullable|string|max:255',
             'tgl_balas'     => 'nullable|date',
@@ -339,7 +339,8 @@ class InboxController extends Controller
             $last = Inbox::where('level_surat', Auth::user()->level)->orderBy('id', 'desc')->first();
             $pr   = false;
         }
-        $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
+        // $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
+        $kode_urut = (!empty($last->year ) ? ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1) : 1);
 
         $uuid = Str::uuid7();
         $klas = Klasifikasi::where('klas3', $request->klasifikasi_kode)->first();

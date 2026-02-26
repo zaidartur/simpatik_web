@@ -206,17 +206,17 @@
                 <td style="height: 80mm; border-right: none;" class="v-top tb-wrap">
                     <label style="display: inline-block; width: 20mm; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">Catatan</label>
                     <label>: </label>
-                    <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! (!is_array($data->disposisi) || empty($data->disposisi)) ? '&quot;'. nl2br($data->keterangan) .'&quot;' : '' !!}</label>
+                    <label style="display: inline-block; width: auto; vertical-align: middle; margin-left: 3mm; margin-top: 5mm;">{!! (!is_array($data->disposisi) || empty($data->disposisi)) ? nl2br($data->keterangan) : '' !!}</label>
                 </td>
                 <td style="height: 80mm; border-left: none;" class="v-top tb-wrap">
                     <div style="height: 30mm;">&nbsp;</div>
                     <div style="height: 8mm; margin-left: 5mm;">
-                        <label style="display: inline-block; vertical-align: bottom;">{!! $sign ? nl2br($sign->jabatan) . ',' : 'Kepala Bagian Umum,' !!}</label>
+                        <label style="display: inline-block; vertical-align: bottom;">{!! $sign ? nl2br($sign->jabatan) . ',' : '' !!}</label>
                     </div>
                     <div style="height: 22mm; margin-left: 5mm;">&nbsp;</div>
                     <div style="height: 10mm; margin-left: 5mm;">
                         <label style="display: inline-block; vertical-align: bottom;">
-                            {!! $sign ? $sign->nama : 'Miko Aditia Kristanto, S.I.P., M.M' !!}
+                            {!! $sign ? $sign->nama : '' !!}
                             {!! $sign ? ($sign->pangkat_golongan ? ('<br>' . $sign->pangkat_golongan) : '') : '' !!}
                             {!! $sign ? ($sign->nip ? ('<br>NIP ' . $sign->nip) : '') : '' !!}
                         </label>

@@ -207,7 +207,7 @@
     <!-- END PAGE LEVEL SCRIPTS -->
 
     <script>
-        @role(['administrator', 'umum'])
+        @can('hapus surat keluar')
         function _delete(uid) {
             Swal.fire({
                 title: 'Apakah Anda yakin?',
@@ -253,11 +253,15 @@
                 }
             });
         }
+        @endcan
 
+        @can('cetak surat keluar')
         function printPdf(id) {
             window.open(`/surat-keluar/print-pdf/${id}?type=kartu`, '_blank')
         }
+        @endcan
 
+        @can('lihat surat keluar')
         function _detail(uid) {
             const data = JSON.parse(atob(uid));
             console.log(data)
@@ -367,7 +371,6 @@
         function view_file(file) {
             window.open(`/surat-keluar/lihat-file/${file}`, '_blank')
         }
-
-        @endrole
+        @endcan
     </script>
 @endsection

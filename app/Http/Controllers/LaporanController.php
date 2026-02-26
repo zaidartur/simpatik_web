@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 
@@ -68,39 +69,49 @@ class LaporanController extends Controller
         ];
 
         $year = request()->has('tahun') ? request()->get('tahun') : date('Y');
-        $lists = ArsipSurat::selectRaw('BULAN, 
-            SUM(CASE WHEN JENISSURAT = "Masuk" THEN 1 ELSE 0 END) AS surat_masuk,
-            SUM(CASE WHEN JENISSURAT = "Keluar" THEN 1 ELSE 0 END) AS surat_keluar,
-            COUNT(*) AS total')
-            ->where('TAHUN', $year)
-            ->groupBy('BULAN')
-            ->orderBy('BULAN', 'ASC');
-        $query = $lists->get();
+
+        $inbox = Inbox::select(DB::raw('count(id) as count'), DB::raw("EXTRACT(MONTH FROM created_at) as month"))
+                ->where('year', $year)
+                ->groupBy('month')
+                ->orderBy('month', 'asc')->get();
+        $outbox = Outbox::select(DB::raw('count(id) as count'), DB::raw("EXTRACT(MONTH FROM created_at) as month"))
+                ->where('year', $year)
+                ->groupBy('month')
+                ->orderBy('month', 'asc')->get();
+        
 
         $data = [];
-        $masuk = 0; $keluar = 0; $total = 0;
-        if (count($query) > 0) {
-            foreach ($query as $row) {
-                $data[] = [
-                    'bulan'         => $month[intval($row->BULAN)],
-                    'surat_masuk'   => number_format(intval($row->surat_masuk), 0, ',', '.'),
-                    'surat_keluar'  => number_format(intval($row->surat_keluar), 0, ',', '.'),
-                    'total'         => number_format(intval($row->total), 0, ',', '.'),
-                ];
-                $masuk += intval($row->surat_masuk);
-                $keluar += intval($row->surat_keluar);
-                $total += intval($row->total);
-            }
-        }
+        $masuk = 0;
+        $keluar = 0;
+        $jml = 0;
 
+        for ($i=0; $i < 12; $i++) { 
+            $surat_masuk  = 0;
+            $surat_keluar = 0;
+            if (($i + 1) == intval($inbox[$i]->month)) {
+                $surat_masuk = intval($inbox[$i]->count);
+            }
+            if (($i + 1) == intval($outbox[$i]->month)) {
+                $surat_keluar = intval($outbox[$i]->count);
+            }
+            $total = $surat_masuk + $surat_keluar;
+            $data[$i] = [
+                'bulan'         => ($i + 1),
+                'surat_masuk'   => number_format($surat_masuk, 0, ',', '.'),
+                'surat_keluar'  => number_format($surat_keluar, 0, ',', '.'),
+                'total'         => number_format($total, 0, ',', '.'),
+            ];
+
+            $masuk += $surat_masuk;
+            $keluar += $surat_keluar;
+            $jml += $total;
+        }
         $data[] = [
                 'bulan'         => '<strong class="text-success">Tahun '. $year .'</strong>',
                 'surat_masuk'   => '<strong class="text-success">' . number_format($masuk, 0, ',', '.') . '</strong>',
                 'surat_keluar'  => '<strong class="text-success">' . number_format($keluar, 0, ',', '.') . '</strong>',
-                'total'         => '<strong class="text-success">' . number_format($total, 0, ',', '.') . '</strong>',
+                'total'         => '<strong class="text-success">' . number_format($jml, 0, ',', '.') . '</strong>',
         ];
-
-
 
         return response()->json([
             'draw' => intval($request->draw) ?? 0,

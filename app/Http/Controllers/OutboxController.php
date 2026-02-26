@@ -139,9 +139,9 @@ class OutboxController extends Controller
                                     '<button type="button" class="btn btn-outline-info bs-tooltip" title="Detail" onclick="_detail(`'. base64_encode(json_encode($ibx)) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                                     </button>' .
-                                    ((Auth::user()->can('edit surat keluar')) ? '<a href="'. route('outbox.edit', Crypt::encryptString($ibx->uuid)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Data">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </a>' : '') .
+                                    // ((Auth::user()->can('edit surat keluar')) ? '<a href="'. route('outbox.edit', Crypt::encryptString($ibx->uuid)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Data">
+                                    //     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                    // </a>' : '') .
                                     ((Auth::user()->can('cetak surat keluar')) ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Kartu" onclick="printPdf(`'. Crypt::encryptString($ibx->uuid) .'`)">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                     </button>' : '') .
@@ -374,11 +374,7 @@ class OutboxController extends Controller
             'nama_up'       => 'nullable|string|max:100',
             'kode_up'       => 'nullable|string|max:10',
             'sifat_surat'   => 'nullable|string|max:100',
-            'ttd'           => 'nullable|string|max:100',
-            // 'tindakan'      => 'nullable|string|max:255',
-            // 'tgl_balas'     => 'nullable|date',
-            'gambar'        => 'nullable|array|max:5',
-            'gambar.*'      => 'nullable|mimes:jpeg,jpg,png|max:3096',
+            
             'lampiran'      => 'nullable|mimes:pdf|max:5126',
 
             'sppd'          => 'nullable|string|max:50',
@@ -558,17 +554,17 @@ class OutboxController extends Controller
     public function check_surat(Request $request)
     {
         $request->validate([
-            'nosurat'   => 'required|string|max:100',
+            'nosurat'   => 'required|numeric',
         ]);
 
-        $res = ArsipSurat::where('JENISSURAT', 'Keluar')
-                // ->where('NOSURAT', 'like', '%'.$request->nosurat.'%')
-                ->where('NOAGENDA', $request->nosurat)
-                ->where(function($q) {
-                    $q->whereNull('nosppd')
-                      ->orWhere('nosppd', '');
-                })
-                ->orderBy('TGLENTRY', 'desc')->get();
+        $res = Outbox::with(['klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap', 'spd', 'pengolah'])
+                ->where('no_agenda', intval($request->nosurat))
+                // ->where(function($q) {
+                //     $q->whereNull('id_spd')
+                //       ->orWhere('id_spd', '');
+                // })
+                ->whereNull('id_spd')
+                ->orderBy('created_at', 'desc')->get();
 
         if (!$res || count($res) < 1) return response()->json(['status' => 'failed', 'message' => 'Nomor surat tidak ditemukan.', 'data' => []]);
 
@@ -606,18 +602,28 @@ class OutboxController extends Controller
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
 
-        $add = '_textonly';
-        $surat = ArsipSurat::where('NO', intval($id))->first();
+        // $add = '_textonly';
+        $add = '';
+        // $surat = ArsipSurat::where('NO', intval($id))->first();
+        $surat = Outbox::where('id', $id)->first();
         if (!$surat) {
             return response()->json(['status' => 'failed', 'message' => 'Surat tidak ditemukan.']);
         }
 
-        $last = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('NO', 'desc')->first();
-        $kode_urut = ($last->TAHUN == date('Y') ? intval($last->NOURUT) + 1 : 1);
+        // $last = ArsipSurat::where('JENISSURAT', 'Keluar')->orderBy('NO', 'desc')->first();
+        $query = Outbox::with(['klasifikasi:id,klas3,masalah3,series,r_aktif,r_inaktif,ket_jra,nilai_guna', 'media', 'sifat', 'berkas', 'perkembangan', 'level:id,role,nama', 'creator:id,uuid,nama_lengkap', 'spd', 'pengolah']);
+        if (Auth::user()->leveluser->is_primary == true) {
+            $query->where('is_primary_agenda', true)->where('year', date('Y'))->orderBy('no_agenda', 'desc');
+        } else {
+            $query->where('is_primary_agenda', false)->where('year', date('Y'))->where('level_surat', Auth::user()->level)->orderBy('no_agenda', 'desc');
+        }
+        $last = $query->first();
+        
+        $kode_urut = (!empty($last->year) ? ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1) : 1);
 
         $data  = [
-            'id_surat'   => $surat->NO,
-            'nomor_surat' => $surat->NOSURAT,
+            'id_surat'   => $surat->id,
+            'nomor_surat' => $surat->no_agenda,
             'nomor_awal' => $kode_urut,
             'jumlah'     => intval($request->jumlah),
             'tahun'      => date('Y'),
@@ -629,36 +635,45 @@ class OutboxController extends Controller
         $nosurat = [];
         $folder = public_path('datas/uploads/duplikat');
 
-        for ($i = 0; $i < intval($request->jumlah)-1; $i++) {
+        for ($i = 0; $i < intval($request->jumlah); $i++) {
             $newSurat = $surat->replicate();
-            $newSurat->NOURUT = $start;
-            $newSurat->NOAGENDA = $start;
-            $newSurat->noagenda2 = $start;
-            $newSurat->poenx = 'K' . $start . date('d') . '/' . date('m') . '/' . date('Y') . ' ' . date('H:i:s');
-            $newSurat->TGLENTRY = date('Y-m-d');
-            $newSurat->JAM = date('H:i:s');
+            // $newSurat->no_agenda = $start;
 
-            $pass1 = explode('/', $surat->NOSURAT);
-            $pass2 = count($pass1) > 1 ? explode('.', $pass1[1]) : [];
-            $newNumber = '';
-            foreach ($pass1 as $key => $value) {
-                if ($key == 0) {
-                    $newNumber .= $value;
-                } elseif ($key == 1) {
-                    foreach ($pass2 as $k => $item) {
-                        if ($k == 0) {
-                            $newNumber .= '/'. $start;
-                        } else {
-                            $newNumber .= '.' . $item;
-                        }
-                    }
-                } else {
-                    $newNumber .= '/' . $value;
-                }
+            if ($i == 0) {
+                $start = $newSurat->no_agenda;
+            }
+            if ($start < 9) {
+                $newSurat->no_agenda = '000' . $start;
+            } elseif ($start > 9 && $start < 99) {
+                $newSurat->no_agenda = '00' . $start;
+            } elseif ($start > 99 && $start < 999) {
+                $newSurat->no_agenda = '0' . $start;
             }
 
-            $newSurat->NOSURAT = $newNumber;
-            $nosurat[] = $newNumber;
+            if ($i > 0) {
+                $pass1 = explode('/', $surat->no_surat);
+                $pass2 = count($pass1) > 1 ? explode('.', $pass1[1]) : [];
+                $newNumber = '';
+                foreach ($pass1 as $key => $value) {
+                    if ($key == 0) {
+                        $newNumber .= $value;
+                    } elseif ($key == 1) {
+                        foreach ($pass2 as $k => $item) {
+                            if ($k == 0) {
+                                $newNumber .= '/'. $start;
+                            } else {
+                                $newNumber .= '.' . $item ?? '';
+                            }
+                        }
+                    } else {
+                        $newNumber .= '/' . $value;
+                    }
+                }
+
+                $newSurat->no_surat = $newNumber;
+                $nosurat[] = $newNumber;
+                $newSurat->save();
+            }
             // $save = $newSurat->save();
             $save = true;
             if ($save) {
@@ -679,7 +694,7 @@ class OutboxController extends Controller
         }
         // Log::info('Duplikat Surat Keluar: ', $list);
 
-        $mergeName = 'surat_keluar_' . $kode_urut . '-' . $start . '_' . date('Ymd_His') . '.pdf';
+        $mergeName = 'duplikat_surat_keluar_' . $kode_urut . '-' . $start . '_' . date('Ymd_His') . '.pdf';
         $merge = $this->merge_pdf($raw_pdf, $mergeName);
         $data += [
             'nomor_akhir' => $start,

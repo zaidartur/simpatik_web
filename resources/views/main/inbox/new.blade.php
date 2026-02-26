@@ -336,6 +336,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @if (Auth::user()->leveluser->tindak_lanjut == true)
                                         <div class="row mb-1">
                                             <label for="is_diteruskan" class="col-sm-2 col-form-label">&nbsp;</label>
                                             <div class="col-sm-10">
@@ -362,6 +363,7 @@
                                                     {{-- <option value="Sekretaris Daerah" selected>Sekretaris Daerah</option>
                                                     <option value="Wakil Bupati">Wakil Bupati</option> --}}
                                                     @if (count($level) > 0)
+                                                    <option value="">Pilih Daftar Terusan</option>
                                                     @foreach ($level as $lvl)
                                                         <option value="{{ $lvl->id }}">{{ $lvl->nama }}</option>
                                                     @endforeach
@@ -383,6 +385,7 @@
                                                 </div>
                                             </div>
                                         </div> --}}
+                                        @endif
                                     </div>
                                 </div>
                             </div>

@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sppd extends Model
 {
-    protected $table = 'nosppd';
+    protected $table = 'spds';
 }

@@ -38,12 +38,12 @@ class SppdController extends Controller
         if ($request->has('search') && $request->search['value'] != '') {
             $search = $request->search['value'];
             $query->where(function ($q) use ($search) {
-                $q->where('nosppd', 'like', "%$search%")
+                $q->where('no_spd', 'like', "%$search%")
                     ->orWhere('nama', 'like', "%$search%")
                     ->orWhere('jabatan', 'like', "%$search%")
                     ->orWhere('tujuan', 'like', "%$search%")
-                    ->orWhere('tglsurat', 'like', "%$search%")
-                    ->orWhere('tglberangkat', 'like', "%$search%");
+                    ->orWhere('tgl_surat', 'like', "%$search%")
+                    ->orWhere('tgl_berangkat', 'like', "%$search%");
             });
         }
 
@@ -57,14 +57,14 @@ class SppdController extends Controller
         $data = [];
         foreach ($sppd as $r => $sp) {
             $data[] = [
-                'nomor'     => $sp->nosppd,
+                'nomor'     => $sp->no_spd,
                 'nama'      => $sp->nama,
                 'jabatan'   => $sp->jabatan ?? '',
                 'tujuan'    => $sp->tujuan ?? '',
                 'kendaraan'  => $sp->kendaraan ?? '',
-                'tgl_surat' => Carbon::parse($sp->tglsurat)->isoFormat('DD-MMM-YYYY'),
-                'tgl_berangkat' => Carbon::parse($sp->tglberangkat)->isoFormat('DD-MMM-YYYY'),
-                'created_at'    => $sp->created_at,
+                'tgl_surat' => Carbon::parse($sp->tgl_surat)->isoFormat('DD-MMM-YYYY'),
+                'tgl_berangkat' => Carbon::parse($sp->tgl_berangkat)->isoFormat('DD-MMM-YYYY'),
+                'created_at'    => $sp->created_at ?? null,
                 'uid'       => Crypt::encryptString($sp->id),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">
                                     <a href="javascript:void(0)" onclick="_edit(`'. base64_encode(json_encode($sp)) .'`)" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit SPPD">
@@ -111,13 +111,13 @@ class SppdController extends Controller
         ]);
 
         $sppd = new Sppd();
-        $sppd->nosppd       = $request->nosppd;
+        $sppd->no_spd       = $request->nosppd;
         $sppd->nama         = strtoupper($request->nama);
         $sppd->jabatan      = strtoupper($request->jabatan);
         $sppd->tujuan       = strtoupper($request->tujuan);
         $sppd->kendaraan    = strtoupper($request->kendaraan);
-        $sppd->tglsurat    = $request->tgl_surat;
-        $sppd->tglberangkat = $request->tgl_berangkat;
+        $sppd->tgl_surat    = $request->tgl_surat;
+        $sppd->tgl_berangkat = $request->tgl_berangkat;
         $sppd->created_at   = Carbon::now();
 
         if ($sppd->save()) {
@@ -140,13 +140,13 @@ class SppdController extends Controller
         ]);
 
         $sppd = new Sppd();
-        $sppd->nosppd       = $request->nosppd;
+        $sppd->no_spd       = $request->nosppd;
         $sppd->nama         = strtoupper($request->nama);
         $sppd->jabatan      = strtoupper($request->jabatan);
         $sppd->tujuan       = strtoupper($request->tujuan);
         $sppd->kendaraan    = strtoupper($request->kendaraan);
-        $sppd->tglsurat    = $request->tgl_surat;
-        $sppd->tglberangkat = $request->tgl_berangkat;
+        $sppd->tgl_surat    = $request->tgl_surat;
+        $sppd->tgl_berangkat = $request->tgl_berangkat;
         $sppd->created_at   = Carbon::now();
 
         if ($sppd->save()) {
@@ -177,13 +177,13 @@ class SppdController extends Controller
         ]);
 
         $sppd = Sppd::find($request->uid);
-        $sppd->nosppd       = $request->nosppd;
+        $sppd->no_spd       = $request->nosppd;
         $sppd->nama         = strtoupper($request->nama);
         $sppd->jabatan      = strtoupper($request->jabatan);
         $sppd->tujuan       = strtoupper($request->tujuan);
         $sppd->kendaraan    = strtoupper($request->kendaraan);
-        $sppd->tglsurat    = $request->tgl_surat;
-        $sppd->tglberangkat = $request->tgl_berangkat;
+        $sppd->tgl_surat    = $request->tgl_surat;
+        $sppd->tgl_berangkat = $request->tgl_berangkat;
         // $sppd->created_at   = Carbon::now();
 
         if ($sppd->save()) {

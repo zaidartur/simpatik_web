@@ -171,7 +171,7 @@
                 @endcanany
 
                 {{-- @role(['administrator', 'admin']) --}}
-                @canany(['instansi', 'aplikasi', 'lihat user', 'reset nomor'])
+                @canany(['instansi', 'aplikasi', 'pimpinan', 'lihat user', 'reset nomor'])
                 <li class="menu menu-heading">
                     <div class="heading">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -217,6 +217,7 @@
                     </a>
                 </li>
                 @endcanany
+                @canany(['pimpinan'])
                 <li class="menu {{ request()->routeIs(['pimpinan']) ? 'active' : '' }}">
                     <a href="{{ route('pimpinan') }}" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
@@ -225,6 +226,7 @@
                         </div>
                     </a>
                 </li>
+                @endcanany
                 @canany(['aplikasi'])
                 <li class="menu {{ request()->routeIs(['apps']) ? 'active' : '' }}">
                     <a href="{{ route('apps') }}" aria-expanded="false" class="dropdown-toggle">
