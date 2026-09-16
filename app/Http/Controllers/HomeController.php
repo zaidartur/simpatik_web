@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PimpinanStoreRequest;
+use App\Http\Requests\PimpinanUpdateRequest;
 use App\Models\ArsipSurat;
 use App\Models\Inbox;
 use App\Models\Instansi;
@@ -163,19 +165,11 @@ class HomeController extends Controller
         return view('main.pimpinan', $data);
     }
 
-    public function save_pimpinan(Request $request)
+    public function save_pimpinan(PimpinanStoreRequest $request)
     {
-        $request->validate([
-            'jabatan'   => 'required|string|max:100',
-            'nama'      => 'required|string|max:100',
-            'nip'       => 'nullable|string|max:255',
-            'pangkat'   => 'nullable|string|max:100',
-            'role'      => 'required|integer',
-            'is_default'=> 'required|string|in:yes,no',
-        ]);
-
+        $targetLevel = $request->role;
         if ($request->is_default == 'yes') {
-            Pimpinan::where('level', $request->level)->update(['is_default' => 0]);
+            Pimpinan::where('level', $targetLevel)->update(['is_default' => 0]);
         }
 
         $pimpinan = new Pimpinan();
@@ -194,23 +188,18 @@ class HomeController extends Controller
         }
     }
 
-    public function update_pimpinan(Request $request)
+    public function update_pimpinan(PimpinanUpdateRequest $request)
     {
-        $request->validate([
-            'uid'       => 'required|numeric',
-            'jabatan'   => 'required|string|max:100',
-            'nama'      => 'required|string|max:100',
-            'nip'       => 'nullable|string|max:255',
-            'pangkat'   => 'nullable|string|max:100',
-            'role'      => 'required|string|max:50',
-            'is_default'=> 'required|string|in:yes,no',
-        ]);
-
-        if ($request->is_default == 'yes') {
-            Pimpinan::where('level', $request->level)->update(['is_default' => 0]);
+        $pimpinan = Pimpinan::where('id', $request->uid)->first();
+        if (!$pimpinan) {
+            return response()->json(['status' => 'failed', 'message' => 'Data pimpinan tidak ditemukan.']);
         }
 
-        $pimpinan = Pimpinan::where('id', $request->uid)->first();
+        $targetLevel = $request->role;
+        if ($request->is_default == 'yes') {
+            Pimpinan::where('level', $targetLevel)->update(['is_default' => 0]);
+        }
+
         $pimpinan->nama = $request->nama;
         $pimpinan->jabatan = $request->jabatan;
         $pimpinan->nip = $request->nip;

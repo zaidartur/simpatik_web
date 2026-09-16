@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SppdStoreRequest;
+use App\Http\Requests\SppdUpdateRequest;
 use App\Models\Sppd;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -98,18 +100,8 @@ class SppdController extends Controller
         return response()->json(['status' => 'success', 'data' => $lists]);
     }
 
-    public function save(Request $request)
+    public function save(SppdStoreRequest $request)
     {
-        $request->validate([
-            'nosppd'    => 'required|string|max:100',
-            'nama'      => 'required|string|max:255',
-            'jabatan'   => 'required|string|max:255',
-            'tujuan'    => 'required|string|max:255',
-            'kendaraan' => 'required|string|max:255',
-            'tgl_surat' => 'required|date',
-            'tgl_berangkat' => 'required|date',
-        ]);
-
         $sppd = new Sppd();
         $sppd->no_spd       = $request->nosppd;
         $sppd->nama         = strtoupper($request->nama);
@@ -127,18 +119,8 @@ class SppdController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(SppdStoreRequest $request)
     {
-        $request->validate([
-            'nosppd'    => 'required|string|max:100',
-            'nama'      => 'required|string|max:255',
-            'jabatan'   => 'required|string|max:255',
-            'tujuan'    => 'required|string|max:255',
-            'kendaraan' => 'required|string|max:255',
-            'tgl_surat' => 'required|date',
-            'tgl_berangkat' => 'required|date',
-        ]);
-
         $sppd = new Sppd();
         $sppd->no_spd       = $request->nosppd;
         $sppd->nama         = strtoupper($request->nama);
@@ -163,20 +145,13 @@ class SppdController extends Controller
         return abort(404);
     }
 
-    public function update(Request $request)
+    public function update(SppdUpdateRequest $request)
     {
-        $request->validate([
-            'uid'       => 'required',
-            'nosppd'    => 'required|string|max:100',
-            'nama'      => 'required|string|max:255',
-            'jabatan'   => 'required|string|max:255',
-            'tujuan'    => 'required|string|max:255',
-            'kendaraan' => 'required|string|max:255',
-            'tgl_surat' => 'required|date',
-            'tgl_berangkat' => 'required|date',
-        ]);
-
         $sppd = Sppd::find($request->uid);
+        if (!$sppd) {
+            return redirect()->route('sppd')->with('error', 'Data SPPD tidak ditemukan.');
+        }
+
         $sppd->no_spd       = $request->nosppd;
         $sppd->nama         = strtoupper($request->nama);
         $sppd->jabatan      = strtoupper($request->jabatan);
@@ -184,7 +159,6 @@ class SppdController extends Controller
         $sppd->kendaraan    = strtoupper($request->kendaraan);
         $sppd->tgl_surat    = $request->tgl_surat;
         $sppd->tgl_berangkat = $request->tgl_berangkat;
-        // $sppd->created_at   = Carbon::now();
 
         if ($sppd->save()) {
             return redirect()->route('sppd')->with('success', 'SPPD berhasil diperbarui.');

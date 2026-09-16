@@ -24,9 +24,19 @@ class LaporanController extends Controller
 
     public function statistik()
     {
+        $yearsInbox = Inbox::whereNull('on_delete')->select('year')->distinct();
+        $yearsOutbox = Outbox::whereNull('on_delete')->select('year')->distinct();
+        $years = $yearsInbox->union($yearsOutbox)->orderBy('year', 'DESC')->pluck('year');
+
+        $yearsCollection = $years->map(function ($y) {
+            return (object)['tahun' => $y];
+        });
+
+        $lastYear = $yearsCollection->first() ?? (object)['tahun' => date('Y')];
+
         $data = [
-            'tahun' => ArsipSurat::select('TAHUN as tahun')->distinct()->orderBy('TAHUN', 'DESC')->get(),
-            'last'  => ArsipSurat::select('TAHUN as tahun')->distinct()->orderBy('TAHUN', 'DESC')->first(),
+            'tahun' => $yearsCollection,
+            'last'  => $lastYear,
         ];
         return view('main.laporan.statistik', $data);
     }
@@ -39,7 +49,6 @@ class LaporanController extends Controller
     public function agenda()
     {
         $data = [
-            // 'years' => ArsipSurat::select('TAHUN')->distinct()->orderBy('TAHUN', 'desc')->get(),
             'years' => Inbox::select('year')->distinct()->orderBy('year', 'desc')->get(),
         ];
         return view('main.laporan.agenda', $data);
@@ -48,8 +57,6 @@ class LaporanController extends Controller
     public function statistik_ssr()
     {
         $request = Request();
-        $start = $request->start;
-        $length = $request->length;
         $month = [
             1 => 'Januari',
             2 => 'Februari',
@@ -67,33 +74,32 @@ class LaporanController extends Controller
 
         $year = request()->has('tahun') ? request()->get('tahun') : date('Y');
 
-        $inbox = Inbox::select(DB::raw('count(id) as count'), DB::raw("EXTRACT(MONTH FROM created_at) as month"))
+        $inboxCounts = Inbox::whereNull('on_delete')
                 ->where('year', $year)
+                ->select(DB::raw('count(id) as count'), DB::raw("EXTRACT(MONTH FROM created_at)::integer as month"))
                 ->groupBy('month')
-                ->orderBy('month', 'asc')->get();
-        $outbox = Outbox::select(DB::raw('count(id) as count'), DB::raw("EXTRACT(MONTH FROM created_at) as month"))
+                ->pluck('count', 'month')
+                ->toArray();
+
+        $outboxCounts = Outbox::whereNull('on_delete')
                 ->where('year', $year)
+                ->select(DB::raw('count(id) as count'), DB::raw("EXTRACT(MONTH FROM created_at)::integer as month"))
                 ->groupBy('month')
-                ->orderBy('month', 'asc')->get();
-        
+                ->pluck('count', 'month')
+                ->toArray();
 
         $data = [];
         $masuk = 0;
         $keluar = 0;
         $jml = 0;
 
-        for ($i=0; $i < 12; $i++) { 
-            $surat_masuk  = 0;
-            $surat_keluar = 0;
-            if (($i + 1) == intval($inbox[$i]->month)) {
-                $surat_masuk = intval($inbox[$i]->count);
-            }
-            if (($i + 1) == intval($outbox[$i]->month)) {
-                $surat_keluar = intval($outbox[$i]->count);
-            }
-            $total = $surat_masuk + $surat_keluar;
-            $data[$i] = [
-                'bulan'         => ($i + 1),
+        for ($i = 1; $i <= 12; $i++) { 
+            $surat_masuk  = intval($inboxCounts[$i] ?? 0);
+            $surat_keluar = intval($outboxCounts[$i] ?? 0);
+            $total        = $surat_masuk + $surat_keluar;
+
+            $data[] = [
+                'bulan'         => $month[$i] ?? $i,
                 'surat_masuk'   => number_format($surat_masuk, 0, ',', '.'),
                 'surat_keluar'  => number_format($surat_keluar, 0, ',', '.'),
                 'total'         => number_format($total, 0, ',', '.'),
@@ -103,11 +109,12 @@ class LaporanController extends Controller
             $keluar += $surat_keluar;
             $jml += $total;
         }
+
         $data[] = [
-                'bulan'         => '<strong class="text-success">Tahun '. $year .'</strong>',
-                'surat_masuk'   => '<strong class="text-success">' . number_format($masuk, 0, ',', '.') . '</strong>',
-                'surat_keluar'  => '<strong class="text-success">' . number_format($keluar, 0, ',', '.') . '</strong>',
-                'total'         => '<strong class="text-success">' . number_format($jml, 0, ',', '.') . '</strong>',
+            'bulan'         => '<strong class="text-success">Tahun '. $year .'</strong>',
+            'surat_masuk'   => '<strong class="text-success">' . number_format($masuk, 0, ',', '.') . '</strong>',
+            'surat_keluar'  => '<strong class="text-success">' . number_format($keluar, 0, ',', '.') . '</strong>',
+            'total'         => '<strong class="text-success">' . number_format($jml, 0, ',', '.') . '</strong>',
         ];
 
         return response()->json([

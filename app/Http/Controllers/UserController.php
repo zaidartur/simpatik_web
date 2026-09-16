@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserStoreRequest;
+use App\Http\Requests\UserUpdateRequest;
 use App\Models\Instansi;
 use App\Models\LevelUser;
 use App\Models\User;
@@ -37,20 +39,12 @@ class UserController extends Controller
         //
     }
 
-    public function store(Request $request)
+    public function store(UserStoreRequest $request)
     {
-        $request->validate([
-            'nama'      => 'required|string|max:100',
-            'email'     => 'nullable|email',
-            'level'     => 'required|string',
-            'username'  => 'required|string|unique:users|max:50',
-            'password'  => 'required|string|max:50',
-        ]);
-
         $level = LevelUser::findOrFail(intval($request->level));
         $roles = DB::table('roles')->where('id', $level->roles)->first();
 
-        $uuid = Str::uuid();
+        $uuid = Str::uuid()->toString();
         $user = new User();
         $user->uuid         = $uuid;
         $user->nama_lengkap = $request->nama;
@@ -61,13 +55,9 @@ class UserController extends Controller
         $user->blokir       = 'N';
 
         if ($user->save()) {
-            $users = User::where('uuid', $uuid)->first();
-            if ($request->level == 'administrator') {
-                $users->syncRoles([]);
-                $users->assignRole('administrator');
-            } else {
-                $users->syncRoles([]);
-                $users->assignRole($roles->name);
+            if ($roles) {
+                $user->syncRoles([]);
+                $user->assignRole($roles->name);
             }
             return redirect()->back()->with('success', 'User berhasil ditambahkan.');
         } else {
@@ -75,15 +65,12 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request)
+    public function update(UserUpdateRequest $request)
     {
-        $request->validate([
-            'uid'       => 'required|numeric',
-            'nama'      => 'required|string|max:100',
-            'email'     => 'nullable|email',
-            'level'     => 'required|string',
-        ]);
-        $user = User::find($request->uid);
+        $user = is_numeric($request->uid)
+            ? User::find($request->uid)
+            : User::where('uuid', $request->uid)->first();
+
         if (!$user) return redirect()->back()->with('failed', 'User tidak ditemukan.');
 
         $level = LevelUser::findOrFail(intval($request->level));
@@ -93,10 +80,8 @@ class UserController extends Controller
         $user->email        = $request->email;
         $user->level        = intval($request->level);
         if ($user->save()) {
-            $user->syncRoles([]);
-            if ($request->level == 'administrator') {
-                $user->assignRole('administrator');
-            } else {
+            if ($roles) {
+                $user->syncRoles([]);
                 $user->assignRole($roles->name);
             }
             return redirect()->back()->with('success', 'User berhasil diperbarui.');

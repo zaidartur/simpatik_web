@@ -16,7 +16,12 @@ use App\Models\SifatSurat;
 use App\Models\Sppd;
 use App\Models\TempatBerkas;
 use App\Models\UnitKerja;
+use App\Http\Requests\OutboxStoreRequest;
+use App\Http\Requests\OutboxUpdateRequest;
+use App\Services\FileUploadService;
+use App\Services\NomorAgendaService;
 use App\Services\PdfSanitizer;
+use App\Services\SuratKeluarService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
@@ -32,7 +37,19 @@ use setasign\Fpdi\Fpdi;
 
 class OutboxController extends Controller
 {
-    public function __construct() {
+    protected SuratKeluarService $suratKeluarService;
+    protected NomorAgendaService $agendaService;
+    protected FileUploadService $fileService;
+
+    public function __construct(
+        SuratKeluarService $suratKeluarService,
+        NomorAgendaService $agendaService,
+        FileUploadService $fileService
+    ) {
+        $this->suratKeluarService = $suratKeluarService;
+        $this->agendaService = $agendaService;
+        $this->fileService = $fileService;
+
         $this->middleware('permission:surat keluar', ['only' => ['index', 'serverside', 'show']]);
         $this->middleware('permission:input surat keluar', ['only' => ['store', 'create', 'last_sppd', 'check_surat']]);
         $this->middleware('permission:edit surat keluar', ['only' => ['edit', 'update', 'duplikat']]);
@@ -135,21 +152,7 @@ class OutboxController extends Controller
                 'tgl_buat'  => Carbon::parse($ibx->created_at)->isoFormat('DD-MMM-YYYY'),
                 // 'tujuan'    => $ibx->NAMAUP,
                 'uid'       => Crypt::encryptString($ibx->id),
-                'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">' .
-                                    '<button type="button" class="btn btn-outline-info bs-tooltip" title="Detail" onclick="_detail(`'. base64_encode(json_encode($ibx)) .'`)">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                    </button>' .
-                                    // ((Auth::user()->can('edit surat keluar')) ? '<a href="'. route('outbox.edit', Crypt::encryptString($ibx->uuid)) .'" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Data">
-                                    //     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    // </a>' : '') .
-                                    ((Auth::user()->can('cetak surat keluar')) ? '<button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Kartu" onclick="printPdf(`'. Crypt::encryptString($ibx->uuid) .'`)">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                    </button>' : '') .
-
-                                    ((Auth::user()->can('hapus surat keluar')) ? '<button type="button" class="btn btn-danger bs-tooltip" title="Hapus Data" onclick="_delete(`'. Crypt::encryptString($ibx->uuid) .'`)">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                    </button>' : '') .
-                                '</div>',
+                'option'    => view('components.outbox-action-buttons', ['ibx' => $ibx])->render(),
             ];
         }
 
@@ -232,225 +235,35 @@ class OutboxController extends Controller
             'type'  => 'required|string|max:10',
         ]);
 
-        if (Auth::user()->leveluser->is_primary) {
-            $last = Outbox::where('is_primary_agenda', true)->orderBy('id', 'desc')->first();
-        } else {
-            $last = Outbox::where('level_surat', Auth::user()->level)->orderBy('id', 'desc')->first();
-        }
-        $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
+        $isPrimary = (bool) (Auth::user()->leveluser->is_primary ?? false);
+        $kode_urut = $this->agendaService->preview('outbox', $isPrimary, Auth::user()->level, intval(date('Y')));
 
         return response()->json(['status' => 'success', 'urut' => $kode_urut]);
     }
 
-    public function store(Request $request)
+    public function store(OutboxStoreRequest $request)
     {
-        $request->validate([
-            'berkas'        => 'required|string|max:255',
-            'tgl_naik'      => 'required|date',
-            'tgl_surat'     => 'required|date',
-            'darikepada'    => 'required|string|max:255',
-            'wilayah'       => 'required|string|max:100',
-            'perihal'       => 'nullable|string|max:255',
-            'isi'           => 'required|string|max:255',
-            'klasifikasi_kode' => 'required|string|max:10',
-            'urut'          => 'required|numeric',
-            'no_surat'      => 'required|string|max:15',
-            'aktif'         => 'nullable|numeric',
-            'inaktif'       => 'nullable|numeric',
-            'thn_aktif'     => 'nullable|numeric',
-            'thn_inaktif'   => 'nullable|numeric',
-            'jra'           => 'nullable|string|max:255',
-            'nilai_guna'    => 'nullable|string|max:100',
-            'tempat_berkas' => 'required|string|max:100',
-            'perkembangan'  => 'required|string|max:100',
-            'tgl_diteruskan'=> 'nullable|date',
-            'nama_up'       => 'nullable|string|max:100',
-            'kode_up'       => 'nullable|string|max:10',
-            'sifat_surat'   => 'nullable|string|max:100',
-            'ttd'           => 'nullable|string|max:100',
-            'lampiran'      => 'nullable|string|max:10',
-            'is_scan'       => 'nullable|mimes:pdf,jpeg,jpg,png|max:10240',
-            'keterangan'    => 'nullable|string|max:300',
-
-            'sppd'          => 'nullable|string|max:50',
-            'nama'          => 'nullable|string|max:100',
-            'jabatan'       => 'nullable|string|max:100',
-            'tujuan'        => 'nullable|string|max:255',
-            'kendaraan'     => 'nullable|string|max:100',
-            'berangkat'     => 'nullable|date',
-        ]);
-
-        if (Auth::user()->leveluser->is_primary) {
-            $last = Outbox::where('is_primary_agenda', true)->orderBy('id', 'desc')->first();
-            $pr   = true;
-        } else {
-            $last = Outbox::where('level_surat', Auth::user()->level)->orderBy('id', 'desc')->first();
-            $pr   = false;
-        }
-        $kode_urut = ($last->year == date('Y') ? intval($last->no_agenda) + 1 : 1);
-
-        $uuid = Str::uuid7();
-        $klas = Klasifikasi::where('klas3', $request->klasifikasi_kode)->first();
-        $unit = DataUnit::where('kode', $request->kode_up)->first();
-        if (!empty($request->file('is_scan'))) {
-            Log::info('file exists');
-            $file = $this->upload_file($request->file('is_scan'), $uuid);
-        } else {
-            $file = null;
-        }
-
-        $outbox = new Outbox();
-        $outbox->nama_berkas     = $request->berkas;
-        $outbox->tgl_surat       = Carbon::parse($request->tgl_surat)->format('Y-m-d');
-        $outbox->tgl_naik        = Carbon::parse($request->tgl_naik)->format('Y-m-d');
-        $outbox->tgl_diteruskan  = Carbon::parse($request->tgl_diteruskan)->format('Y-m-d');
-        $outbox->kepada          = $request->darikepada;
-        $outbox->wilayah         = $request->wilayah;
-        $outbox->perihal         = $request->perihal;
-        $outbox->isi_surat       = $request->isi;
-        $outbox->id_klasifikasi  = $klas->id ?? null;
-        $outbox->no_agenda       = $kode_urut;
-        $outbox->no_surat        = $request->no_surat ?? null;
-        $outbox->tempat_berkas   = $request->tempat_berkas;
-        $outbox->id_perkembangan = $request->perkembangan;
-        $outbox->id_unit         = $unit->id ?? null;
-        $outbox->unit            = empty($unit) ? $request->nama_up : null;
-        $outbox->sifat_surat     = $request->sifat_surat;
-        $outbox->keterangan      = $request->keterangan;
-        $outbox->year            = date('Y');
-        $outbox->softcopy        = $file;
-        
-        // Operator
-        $outbox->is_primary_agenda = $pr;
-        $outbox->created_by      = Auth::user()->uuid;
-        $outbox->level_surat     = Auth::user()->leveluser->id;
-
-        $save = $outbox->save();
-
-        if ($save) {
-            if (!empty($request->sppd)) {
-                $sppd = new Sppd();
-                $sppd->nosppd       = $request->sppd;
-                $sppd->nama         = $request->nama;
-                $sppd->jabatan      = $request->jabatan;
-                $sppd->tujuan       = $request->tujuan;
-                $sppd->kendaraan    = $request->kendaraan;
-                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y-m-d');
-                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y-m-d');
-                $spd = $sppd->save();
-
-                $outbox->id_spd = $sppd->id;
-                $outbox->save();
-            }
+        try {
+            $this->suratKeluarService->store($request->validated(), $request->file('is_scan'), Auth::user());
             return redirect()->route('outbox')->with('success', 'Surat keluar berhasil disimpan.');
-        } else {
-            return redirect()->route('outbox')->with('error', 'Surat keluar gagal disimpan.');
+        } catch (\Throwable $e) {
+            Log::error('Gagal menyimpan surat keluar: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->route('outbox')->with('error', 'Surat keluar gagal disimpan: ' . $e->getMessage());
         }
     }
 
-    public function update(Request $request)
+    public function update(OutboxUpdateRequest $request)
     {
-        $request->validate([
-            'uid'           => 'required|string',
-            'berkas'        => 'required|string|max:255',
-            'tgl_naik'      => 'required|date',
-            'tgl_surat'     => 'required|date',
-            'darikepada'    => 'required|string|max:255',
-            'wilayah'       => 'required|string|max:100',
-            'perihal'       => 'nullable|string|max:255',
-            'isi'           => 'required|string|max:255',
-            'klasifikasi_kode' => 'required|string|max:10',
-            'urut'          => 'required|numeric',
-            'no_surat'      => 'nullable|string|max:15',
-            'aktif'         => 'nullable|numeric',
-            'inaktif'       => 'nullable|numeric',
-            'thn_aktif'     => 'nullable|numeric',
-            'thn_inaktif'   => 'nullable|numeric',
-            'jra'           => 'nullable|string|max:255',
-            'nilai_guna'    => 'nullable|string|max:100',
-            'tempat_berkas' => 'required|string|max:100',
-            'perkembangan'  => 'required|string|max:100',
-            'tgl_diteruskan'=> 'nullable|date',
-            'nama_up'       => 'nullable|string|max:100',
-            'kode_up'       => 'nullable|string|max:10',
-            'sifat_surat'   => 'nullable|string|max:100',
-            
-            'lampiran'      => 'nullable|mimes:pdf|max:5126',
+        $outbox = Outbox::where('uuid', $request->uid)->first();
+        if (!$outbox) {
+            return redirect()->route('outbox')->with('error', 'Surat keluar tidak ditemukan.');
+        }
 
-            'sppd'          => 'nullable|string|max:50',
-            'nama'          => 'nullable|string|max:100',
-            'jabatan'       => 'nullable|string|max:100',
-            'tujuan'        => 'nullable|string|max:255',
-            'kendaraan'     => 'nullable|string|max:100',
-            'berangkat'     => 'nullable|date',
-        ]);
-
-        $id = Crypt::decryptString($request->uid);
-        if (!$id) return redirect()->back()->with('error', 'No. Agenda tidak diketahui.');
-
-        $outbox = ArsipSurat::where('NO', $id)->where('JENISSURAT', 'Keluar')->first();
-        $outbox->NAMABERKAS      = $request->berkas;
-        $outbox->TGLTERIMA       = Carbon::parse($request->tgl_naik)->format('Y-m-d');
-        $outbox->TGLSURAT        = Carbon::parse($request->tgl_surat)->format('Y-m-d');
-        $outbox->drkpd           = $request->darikepada;
-        $outbox->NAMAKOTA        = $request->wilayah;
-        $outbox->PERIHAL         = $request->perihal;
-        $outbox->ISI             = $request->isi;
-        // $outbox->masalahjra      = ' ';
-        $outbox->KLAS3           = $request->klasifikasi_kode;
-        // $outbox->NOURUT          = $request->urut;
-        // $outbox->NOAGENDA        = $request->urut;
-        // $outbox->noagenda2       = $request->urut;
-        $outbox->NOSURAT         = $request->no_surat ?? ' ';
-        $outbox->AKTIF           = $request->aktif;
-        $outbox->INAKTIF         = $request->inaktif;
-        $outbox->THAKTIF         = $request->thn_aktif;
-        $outbox->THINAKTIF       = $request->thn_inaktif;
-        $outbox->KETJRA          = $request->jra;
-        $outbox->NILAIGUNA       = $request->nilai_guna;
-        $outbox->TMPTBERKAS      = $request->tempat_berkas;
-        $outbox->TK_PERKEMBANGAN = $request->perkembangan;
-        $outbox->TGLTERUS        = Carbon::parse($request->tgl_diteruskan)->format('Y-m-d');
-        $outbox->NAMAUP          = $request->nama_up;
-        $outbox->KODEUP          = $request->kode_up;
-        $outbox->nosppd          = $request->sppd;
-        $outbox->SIFAT_SURAT     = $request->sifat_surat;
-        // $outbox->BALAS           = ' ';
-        // $outbox->TGLBALAS        = ' ';
-        // $outbox->CATATAN         = ' ';
-        $outbox->ditandatanganioleh = $request->ttd;
-
-        // Header
-        $outbox->KD_WILAYAH      = Auth::user()->kode ?? 'ID3331';
-        // $outbox->WILAYAH         = 'PEMERINTAH KABUPATEN KARANGANYAR';
-        $outbox->NAMAINSTANSI    = Auth::user()->instansi->nama_instansi ?? '-';
-        // $outbox->BULAN           = date('m');
-        // $outbox->TAHUN           = date('Y');
-        $outbox->MEDIA           = 'Teks';
-        
-        // Operator
-        $outbox->Posisi          = Auth::user()->jurusan;
-        $outbox->KODEOPR         = Auth::user()->nama_lengkap;
-        // $outbox->JENISSURAT      = 'Keluar';
-        // $outbox->TGLENTRY        = date('Y/m/d');
-        // $outbox->JAM             = date('H:i:s');
-
-        $save = $outbox->save();
-
-        if ($save) {
-            if (!empty($request->sppd)) {
-                $sppd = Sppd::where('nosppd', $request->sppd)->first();
-                $sppd->nosppd       = $request->sppd;
-                $sppd->nama         = $request->nama;
-                $sppd->jabatan      = $request->jabatan;
-                $sppd->tujuan       = $request->tujuan;
-                $sppd->kendaraan    = $request->kendaraan;
-                $sppd->tglsurat     = Carbon::parse($request->tgl_surat)->format('Y-m-d');
-                $sppd->tglberangkat = Carbon::parse($request->berangkat)->format('Y-m-d');
-                $sppd->save();
-            }
+        try {
+            $this->suratKeluarService->update($outbox, $request->validated(), $request->file('is_scan'));
             return redirect()->route('outbox')->with('success', 'Surat keluar berhasil diupdate.');
-        } else {
+        } catch (\Throwable $e) {
+            Log::error('Gagal mengupdate surat keluar: ' . $e->getMessage());
             return redirect()->route('outbox')->with('error', 'Surat keluar gagal diupdate.');
         }
     }
@@ -458,16 +271,21 @@ class OutboxController extends Controller
     public function destroy(Request $request)
     {
         $request->validate([
-            'uid'    => 'required|string'
+            'uid' => 'required|string'
         ]);
 
-        $id = json_decode(Crypt::decryptString($request->uid));
+        $id = Crypt::decryptString($request->uid);
         if (!$id) {
             return response()->json(['status' => 'failed', 'message' => 'ID Surat tidak diketahui.']);
         }
 
-        $outbox = ArsipSurat::where('NO', $id)->delete();
-        if ($outbox) {
+        $outbox = Outbox::where('uuid', $id)->first();
+        if (!$outbox) {
+            return response()->json(['status' => 'failed', 'message' => 'Surat keluar tidak ditemukan.']);
+        }
+
+        $drop = $this->suratKeluarService->destroy($outbox);
+        if ($drop) {
             return response()->json(['status' => 'success', 'message' => 'Surat keluar berhasil dihapus.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Surat keluar gagal dihapus.']);
@@ -476,83 +294,7 @@ class OutboxController extends Controller
 
     public function upload_file($file, $id)
     {
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $realMime = $finfo->file($file->getRealPath());
-
-        $imageMimes = ['image/jpeg', 'image/png', 'image/jpg'];
-        $pdfMimes = ['application/pdf'];
-
-        if (in_array($realMime, $imageMimes)) {
-            Log::info('file is image: ' . $realMime);
-            return $this->sanitize_image($file, $id);
-        } else if (in_array($realMime, $pdfMimes)) {
-            Log::info('file pdf: ' . $realMime);
-            return $this->sanitize_pdf($file, $id);
-        } else {
-            Log::warning('File outbox upload ditolak: MIME tidak valid ' . $realMime);
-            return null;
-        }
-    }
-
-    public function sanitize_image($file, $id)
-    {
-        $manager = new ImageManager(new Driver());
-        // $manager = ImageManager::gd(autoOrientation: false);
-        $image = $manager->read($file)
-                ->orient()
-                ->toJpeg(quality: 90);
-
-        // 3. Save to temporary path
-        $tempPath = storage_path('app/tmp/sanitized_' .$id. '.jpg');
-        File::ensureDirectoryExists(dirname($tempPath));
-        file_put_contents($tempPath, $image->toString());
-
-        // 4. Move to private storage folder
-        $fileName = $id . '_sanitized_' .date('YmdHis'). '.jpg';
-        $folder = storage_path('app/private/suratkeluar');
-        if (!File::exists($folder)) {
-            File::makeDirectory($folder, 0755, true);
-        }
-
-        $path = $folder . '/' . $fileName;
-        $move = File::move($tempPath, $path);
-
-        if (!$move) {
-            return null;
-        }
-        return $fileName;
-    }
-
-    public function sanitize_pdf($file, $id)
-    {
-        $sanitizer = new PdfSanitizer();
-        // Store original temporarily
-        $tempInput = storage_path('app/tmp/original_' .date('YmdHis'). '.pdf');
-        $tempOutput = storage_path('app/tmp/sanitized_' .date('YmdHis'). '.pdf');
-        $file->move(dirname($tempInput), basename($tempInput));
-
-        // Sanitize
-        $sanitizer->sanitize($tempInput, $tempOutput);
-
-        // Store sanitized PDF to private storage (never store original)
-        $folder = storage_path('app/private/suratkeluar');
-        if (!File::exists($folder)) {
-            File::makeDirectory($folder, 0755, true);
-        }
-        
-        $fileName = $id . '_sanitized_' .date('YmdHis'). '.pdf';
-        $path = $folder . '/' . $fileName;
-        $move = File::move($tempOutput, $path);
-
-        // Cleanup
-        @unlink($tempInput);
-        @unlink($tempOutput);
-
-        if ($move) {
-            return $fileName;
-        } else {
-            return null;
-        }
+        return $this->fileService->upload($file, $id, 'suratkeluar');
     }
 
     public function check_surat(Request $request)
@@ -808,15 +550,11 @@ class OutboxController extends Controller
         $safeFile = basename($file);
         if ($safeFile !== $file) return abort(404);
 
-        $privateFolder = storage_path('app/private/suratkeluar');
-        $legacyFolder = public_path('datas/uploads/suratkeluar');
-
-        if (file_exists($privateFolder . DIRECTORY_SEPARATOR . $safeFile)) {
-            return response()->file($privateFolder . DIRECTORY_SEPARATOR . $safeFile);
-        } elseif (file_exists($legacyFolder . DIRECTORY_SEPARATOR . $safeFile)) {
-            return response()->file($legacyFolder . DIRECTORY_SEPARATOR . $safeFile);
-        } else {
+        $path = $this->fileService->resolveFilePath($safeFile, 'suratkeluar');
+        if (!$path || !file_exists($path)) {
             return abort(404);
         }
+
+        return response()->file($path);
     }
 }
