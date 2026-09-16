@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Disposisi extends Model
 {
+    protected $guarded = ['id'];
     public function pengirim()
     {
         return $this->belongsTo(User::class, 'pengirim_uuid', 'uuid');

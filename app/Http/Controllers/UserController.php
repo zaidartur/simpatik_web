@@ -129,7 +129,7 @@ class UserController extends Controller
             'uid'   => 'required|string',
         ]);
 
-        $pass = base64_decode($request->pass);
+        $pass = $request->pass;
         $id = Crypt::decryptString($request->uid);
         if (!$id) return response()->json(['status' => 'failed', 'message' => 'User id tidak dikenal.']);
 
@@ -148,7 +148,9 @@ class UserController extends Controller
     {
         $request->validate([
             'uid'       => 'required|string',
-            'pass'      => 'required|string',
+            'pass'      => ['required', 'string', 'min:8'],
+        ], [
+            'pass.min'  => 'Password minimal harus 8 karakter.',
         ]);
 
         $id = Crypt::decryptString($request->uid);
@@ -157,7 +159,7 @@ class UserController extends Controller
         $user = User::find($id);
         if (!$user) return response()->json(['status' => 'failed', 'message' => 'User tidak ditemukan di database.']);
 
-        $password = base64_decode($request->pass);
+        $password = $request->pass;
         $user->password = Hash::make($password);
         if ($user->save()) {
             if (Auth::user()->id == $id) {
@@ -166,7 +168,7 @@ class UserController extends Controller
                 return response()->json(['status' => 'success', 'message' => 'Password berhasil diupdate.', 'data' => 'none']);
             }
         } else {
-            return response()->json(['status' => 'success', 'message' => 'Password gagal diupdate.']);
+            return response()->json(['status' => 'failed', 'message' => 'Password gagal diupdate.']);
         }
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pimpinan extends Model
 {
+    protected $guarded = ['id'];
     /**
      * Get the leveluser associated with the Pimpinan
      *

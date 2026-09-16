@@ -441,11 +441,16 @@
                                             return false;
                                         }
 
+                                        if (password.length < 8) {
+                                            Swal.showValidationMessage('Password minimal 8 karakter.');
+                                            return false;
+                                        }
+
                                         try {
                                             return await $.ajax({
                                                 url: "{{ route('user.change_pwd') }}",
                                                 type: "POST",
-                                                data: { _token: $('meta[name="csrf-token"]').attr('content'), pass: btoa(password), uid: datas },
+                                                data: { _token: $('meta[name="csrf-token"]').attr('content'), pass: password, uid: datas },
                                                 success: function(usr) {
                                                     if (usr.status === 'success') {
                                                         return usr

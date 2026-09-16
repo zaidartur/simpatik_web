@@ -8,13 +8,7 @@ Route::get('/', function () {
     return redirect()->route('home');
 });
 
-Route::get('/test', function () {
-    return view('test');
-});
-Auth::routes();
-
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('migrating', [App\Http\Controllers\HomeController::class, 'migrate_table']);
+Auth::routes(['register' => false, 'verify' => false]);
 
 
 Route::prefix('/')->middleware(['auth'])->group(function () {
@@ -90,8 +84,8 @@ Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(functi
     Route::post('/update-user', [App\Http\Controllers\UserController::class, 'update'])->name('user.update');
     Route::post('/hapus-user', [App\Http\Controllers\UserController::class, 'destroy'])->name('user.destroy');
 
-    Route::post('/check-user', [App\Http\Controllers\UserController::class, 'check_user'])->name('user.check');
-    Route::post('/ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->name('user.change_pwd');
+    Route::post('/check-user', [App\Http\Controllers\UserController::class, 'check_user'])->middleware('throttle:5,1')->name('user.check');
+    Route::post('/ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->middleware('throttle:5,1')->name('user.change_pwd');
 });
 
 Route::prefix('/laporan')->middleware(['auth'])->group(function () {

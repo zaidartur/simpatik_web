@@ -87,20 +87,54 @@ class HomeController extends Controller
 
     public function view_duplikat($name)
     {
-        $folder = public_path('datas/uploads/duplikat');
-        if (!file_exists($folder . '/' . $name)) return abort(404);
+        $safeName = basename($name);
+        if ($safeName !== $name || !preg_match('/^[a-zA-Z0-9._-]+$/', $safeName)) {
+            return abort(404);
+        }
 
-        return response()->file($folder. '/' . $name, [
+        $folder = public_path('datas/uploads/duplikat');
+        if (!is_dir($folder)) {
+            return abort(404);
+        }
+
+        $fullPath = realpath($folder . DIRECTORY_SEPARATOR . $safeName);
+        $realFolder = realpath($folder);
+        if (!$fullPath || !$realFolder || !str_starts_with($fullPath, $realFolder)) {
+            return abort(404);
+        }
+
+        if (!file_exists($fullPath)) {
+            return abort(404);
+        }
+
+        return response()->file($fullPath, [
             'Content-Type' => 'application/pdf',
         ]);
     }
 
     public function download_duplikat($name)
     {
-        $folder = public_path('datas/uploads/duplikat');
-        if (!file_exists($folder . '/' . $name)) return abort(404);
+        $safeName = basename($name);
+        if ($safeName !== $name || !preg_match('/^[a-zA-Z0-9._-]+$/', $safeName)) {
+            return abort(404);
+        }
 
-        return response()->download($folder .'/'. $name, $name, [
+        $folder = public_path('datas/uploads/duplikat');
+        if (!is_dir($folder)) {
+            return abort(404);
+        }
+
+        $fullPath = realpath($folder . DIRECTORY_SEPARATOR . $safeName);
+        $realFolder = realpath($folder);
+        if (!$fullPath || !$realFolder || !str_starts_with($fullPath, $realFolder)) {
+            return abort(404);
+        }
+
+        if (!file_exists($fullPath)) {
+            return abort(404);
+        }
+
+        return response()->download($fullPath, $safeName, [
             'Content-Type' => 'application/pdf',
         ]);
     }
@@ -229,158 +263,4 @@ class HomeController extends Controller
         }
     }
 
-
-    // ============================================= MIGRATION ============================================= //
-
-    public function migrate_table()
-    {
-        ini_set('max_execution_time', 3600);
-        $all = DB::table('aktif')->where('JENISSURAT', 'Keluar')->orderBy('NO')->chunk(100, function ($datas, $int) {
-            $res = 0;
-
-            // Inbox
-            // foreach ($datas as $key => $value) {
-            //     $klas  = Klasifikasi::where('klas3', $value->KLAS3)->first();
-            //     $sifat = SifatSurat::where('nama_sifat', $value->SIFAT_SURAT)->first();
-            //     $tempat= TempatBerkas::where('nama', $value->TMPTBERKAS)->first();
-            //     $ip    = Perkembangan::where('nama', $value->TK_PERKEMBANGAN)->first();
-            //     $level = LevelUser::where('nama', $value->NAMAUP)->first();
-
-            //     if ($level && $level->id) {
-            //         $user  = User::where('level', $level->id)->first();
-            //         $save = new Inbox();
-            //         $save->uuid         = Str::uuid7();
-            //         $save->no_agenda    = intval($value->NOAGENDA);
-            //         $save->nama_berkas  = $value->NAMABERKAS;
-            //         $save->no_surat     = $value->NOSURAT;
-            //         $save->dari         = $value->drkpd;
-            //         $save->wilayah      = $value->WILAYAH;
-            //         $save->perihal      = $value->PERIHAL;
-            //         $save->isi_surat    = $value->ISI;
-            //         $save->tgl_surat    = date_format(date_create($value->TGLSURAT), 'Y-m-d');
-            //         $save->tgl_diterima = Carbon::now();
-            //         $save->year         = intval($value->TAHUN);
-            //         $save->id_media     = 1;
-            //         if ($klas && $klas->id) {
-            //             $save->id_klasifikasi   = $klas->id;
-            //         }
-            //         if ($sifat && $sifat->id) {
-            //             $save->sifat_surat  = $sifat->id;
-            //         }
-            //         if ($tempat && $tempat->id) {
-            //             $save->tempat_berkas= $tempat->id;
-            //         }
-            //         if ($ip && $ip->id) {
-            //             $save->id_perkembangan  = $ip->id;
-            //         }
-            //         $save->posisi_surat = $user->uuid;
-            //         $save->tindakan     = "non balas";
-            //         $save->tgl_balas    = null;
-            //         $save->level_surat  = $level->id;
-            //         $save->status_surat = "selesai";
-            //         $save->is_primary_agenda = true;
-            //         $save->created_by   = $user->uuid;
-            //         $save->created_at   = Carbon::parse($value->TGLENTRY . ' ' . $value->JAM)->format('Y-m-d H:i:s');
-
-            //         if ($save->save()) {
-            //             $res++;
-            //         }
-            //     }
-            // }
-
-            // Outbox
-            foreach ($datas as $key => $value) {
-                $klas  = Klasifikasi::where('klas3', $value->KLAS3)->first();
-                $sifat = SifatSurat::where('nama_sifat', $value->SIFAT_SURAT)->first();
-                $tempat= TempatBerkas::where('nama', $value->TMPTBERKAS)->first();
-                $ip    = Perkembangan::where('nama', $value->TK_PERKEMBANGAN)->first();
-                $spd   = Spd::where('no_spd', $value->nosppd)->first();
-                $level = LevelUser::where('nama', $value->Posisi)->first();
-
-                if ($level && $level->id) {
-                    $user  = User::where('level', $level->id)->first();
-                    $save = new Outbox();
-                    $save->uuid         = Str::uuid7();
-                    $save->no_agenda    = intval($value->NOAGENDA);
-                    $save->nama_berkas  = $value->NAMABERKAS;
-                    $save->no_surat     = $value->NOSURAT;
-                    $save->kepada       = $value->drkpd;
-                    $save->wilayah      = $value->WILAYAH;
-                    $save->perihal      = $value->PERIHAL;
-                    $save->isi_surat    = $value->ISI;
-                    $save->tgl_surat    = date_format(date_create($value->TGLSURAT), 'Y-m-d');
-                    $save->year         = intval($value->TAHUN);
-                    $save->id_media     = 1;
-                    if ($klas && $klas->id) {
-                        $save->id_klasifikasi   = $klas->id;
-                    }
-                    if ($sifat && $sifat->id) {
-                        $save->sifat_surat  = $sifat->id;
-                    }
-                    if ($tempat && $tempat->id) {
-                        $save->tempat_berkas= $tempat->id;
-                    }
-                    if ($ip && $ip->id) {
-                        $save->id_perkembangan  = $ip->id;
-                    }
-                    if ($ip && $ip->id) {
-                        $save->id_perkembangan  = $ip->id;
-                    }
-                    if ($spd && $spd->id) {
-                        $save->id_spd  = $spd->id;
-                    }
-                    // $save->id_unit      = '';
-                    $save->tindakan     = "non balas";
-                    $save->level_surat  = $level->id;
-                    $save->is_primary_agenda = true;
-                    $save->created_by   = $user->uuid;
-                    $save->created_at   = Carbon::parse($value->TGLENTRY . ' ' . $value->JAM)->format('Y-m-d H:i:s');
-
-                    if ($save->save()) {
-                        $res++;
-                    }
-                }
-            }
-        });
-
-        // foreach ($all as $key => $value) {
-        //     $klas  = Klasifikasi::where('klas3', $value->KLAS3)->first();
-        //     $sifat = SifatSurat::where('nama_sifat', $value->SIFAT_SURAT)->first();
-        //     $tempat= TempatBerkas::where('nama', $value->TMPTBERKAS)->first();
-        //     $ip    = Perkembangan::where('nama', $value->TK_PERKEMBANGAN)->first();
-        //     $level = LevelUser::where('nama', $value->NAMAUP)->first();
-        //     // if (!empty($value->RAKTIF) && !empty($value->RINAKTIF) && !empty($value->KETJRA)) {
-        //         $save = new Inbox();
-        //         $save->uuid         = Str::uuid7();
-        //         $save->no_agenda    = intval($value->NOAGENDA);
-        //         $save->nama_berkas  = $value->NAMABERKAS;
-        //         $save->no_surat     = $value->NOSURAT;
-        //         $save->dari         = $value->drkpd;
-        //         $save->wilayah      = $value->WILAYAH;
-        //         $save->perihal      = $value->PERIHAL;
-        //         $save->isi_surat    = $value->ISI;
-        //         $save->tgl_surat    = date_format(date_create($value->TGLSURAT), 'Y-m-d');
-        //         $save->tgl_diterima = date_format(date_create($value->TGLTERIMA), 'Y-m-d');
-        //         $save->year         = intval($value->TAHUN);
-        //         $save->id_media     = 1;
-        //         $save->id_klasifikasi   = $klas->id;
-        //         $save->sifat_surat  = $sifat->id;
-        //         $save->tempat_berkas= $tempat->id;
-        //         $save->id_perkembangan  = $ip->id;
-        //         $save->posisi_surat = $value->Posisi;
-        //         $save->tindakan     = "non balas";
-        //         $save->tgl_balas    = null;
-        //         $save->level_surat  = intval($level->id) ?? 1;
-        //         $save->status_surat = "selesai";
-        //         $save->is_primary_agenda = true;
-        //         $save->created_by   = 1;
-
-        //         if ($save->save()) {
-        //             $res++;
-        //         }
-        //     // }
-        // }
-
-        // return ['total' => count($all), 'success' => $res];
-    }
 }

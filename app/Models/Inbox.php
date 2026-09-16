@@ -13,6 +13,8 @@ class Inbox extends Model
 {
     use HasUuids;
 
+    protected $guarded = ['id', 'created_at', 'updated_at'];
+
     public function uniqueIds()
     {
         // return parent::uniqueIds();

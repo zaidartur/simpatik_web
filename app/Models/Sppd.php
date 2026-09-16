@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sppd extends Model
 {
+    protected $guarded = ['id'];
     protected $table = 'spds';
 }

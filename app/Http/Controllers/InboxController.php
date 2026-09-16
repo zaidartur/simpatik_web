@@ -116,19 +116,19 @@ class InboxController extends Controller
         foreach ($inbox as $r => $ibx) {
             $ibx->cryptfile = !empty($ibx->softcopy) ? Crypt::encryptString($ibx->softcopy) : null;
             $data[] = [
-                'nomor'     => $ibx->no_surat,
-                'no_agenda' => $ibx->no_agenda,
-                'klasifikasi' => $ibx->sifat->nama_sifat ?? '',
-                'berkas'    => $ibx->berkas->nama ?? '',
-                'wilayah'   => $ibx->wilayah,
-                'isi_surat' => $ibx->isi_surat,
-                'tanggal'   => $ibx->tgl_surat,
-                'kepada'    => $ibx->dari,
-                'perihal'   => $ibx->perihal,
-                'kode'      => $ibx->klasifikasi->klas3 ?? '',
-                'tgl_buat'  => $ibx->tgl_surat,
-                'posisi'    => $ibx->posisi->leveluser->nama ?? '',
-                'class'     => $ibx->posisi->leveluser->warna ?? '',
+                'nomor'     => e($ibx->no_surat),
+                'no_agenda' => e($ibx->no_agenda),
+                'klasifikasi' => e($ibx->sifat->nama_sifat ?? ''),
+                'berkas'    => e($ibx->berkas->nama ?? ''),
+                'wilayah'   => e($ibx->wilayah),
+                'isi_surat' => e($ibx->isi_surat),
+                'tanggal'   => e($ibx->tgl_surat),
+                'kepada'    => e($ibx->dari),
+                'perihal'   => e($ibx->perihal),
+                'kode'      => e($ibx->klasifikasi->klas3 ?? ''),
+                'tgl_buat'  => e($ibx->tgl_surat),
+                'posisi'    => e($ibx->posisi->leveluser->nama ?? ''),
+                'class'     => e($ibx->posisi->leveluser->warna ?? ''),
                 'uid'       => Crypt::encryptString($ibx->id),
                 'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">'.
                                     // Detail Surat
@@ -503,16 +503,20 @@ class InboxController extends Controller
 
     public function upload_file($file, $id)
     {
-        $image = ['jpg', 'jpeg', 'png'];
-        $extension = $file->extension();
-        
-        if (in_array(strtolower($extension), $image)) {
-            Log::info('file is image');
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $realMime = $finfo->file($file->getRealPath());
+
+        $imageMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+        $pdfMimes = ['application/pdf'];
+
+        if (in_array($realMime, $imageMimes)) {
+            Log::info('file is image: ' . $realMime);
             return $this->sanitize_image($file, $id);
-        } else if (strtolower($extension) == 'pdf') {
-            Log::info('file pdf');
+        } else if (in_array($realMime, $pdfMimes)) {
+            Log::info('file pdf: ' . $realMime);
             return $this->sanitize_pdf($file, $id);
         } else {
+            Log::warning('File upload ditolak: MIME tidak diizinkan ' . $realMime);
             return null;
         }
     }
@@ -530,9 +534,9 @@ class InboxController extends Controller
         File::ensureDirectoryExists(dirname($tempPath));
         file_put_contents($tempPath, $image->toString());
 
-        // 4. Move to public folder
+        // 4. Move to private storage folder
         $fileName = $id . '_sanitized_' .date('YmdHis'). '.jpg';
-        $folder = public_path('datas/uploads/suratmasuk');
+        $folder = storage_path('app/private/suratmasuk');
         if (!File::exists($folder)) {
             File::makeDirectory($folder, 0755, true);
         }
@@ -557,9 +561,9 @@ class InboxController extends Controller
         // Sanitize
         $sanitizer->sanitize($tempInput, $tempOutput);
 
-        // Store sanitized PDF (never store original)
-        $folder = public_path('datas/uploads/suratmasuk');
-        if (! File::exists($folder)) {
+        // Store sanitized PDF to private storage (never store original)
+        $folder = storage_path('app/private/suratmasuk');
+        if (!File::exists($folder)) {
             File::makeDirectory($folder, 0755, true);
         }
         
@@ -824,9 +828,16 @@ class InboxController extends Controller
         $file = Crypt::decryptString($uid);
         if (!$file) return abort(404);
 
-        $folder = public_path('datas/uploads/suratmasuk');
-        if (file_exists($folder . '/' . $file)) {
-            return response()->file($folder . '/' . $file);
+        $safeFile = basename($file);
+        if ($safeFile !== $file) return abort(404);
+
+        $privateFolder = storage_path('app/private/suratmasuk');
+        $legacyFolder = public_path('datas/uploads/suratmasuk');
+
+        if (file_exists($privateFolder . DIRECTORY_SEPARATOR . $safeFile)) {
+            return response()->file($privateFolder . DIRECTORY_SEPARATOR . $safeFile);
+        } elseif (file_exists($legacyFolder . DIRECTORY_SEPARATOR . $safeFile)) {
+            return response()->file($legacyFolder . DIRECTORY_SEPARATOR . $safeFile);
         } else {
             return abort(404);
         }

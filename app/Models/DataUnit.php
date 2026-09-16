@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class DataUnit extends Model
 {
+    protected $guarded = ['id'];
     //
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -28,6 +29,20 @@ class LoginController extends Controller
     protected $redirectTo = '/dashboard';
 
     /**
+     * Maximum number of attempts allowed before locking out.
+     *
+     * @var int
+     */
+    protected $maxAttempts = 5;
+
+    /**
+     * Number of minutes to throttle for.
+     *
+     * @var int
+     */
+    protected $decayMinutes = 15;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
@@ -41,5 +56,20 @@ class LoginController extends Controller
     public function username()
     {
         return 'username';
+    }
+
+    /**
+     * Get the needed authorization credentials from the request.
+     * Only users with blokir = 'N' are permitted to authenticate.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    protected function credentials(Request $request)
+    {
+        return array_merge(
+            $request->only($this->username(), 'password'),
+            ['blokir' => 'N']
+        );
     }
 }

@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class SifatSurat extends Model
 {
+    protected $guarded = ['id'];
     //
 }

@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 
-ini_set('memory_limit', '1024M');
-// ini_set('max_execution_time', '300');
-set_time_limit(0); //unlimited time limit
 class LaporanController extends Controller
 {
     public function __construct() {
@@ -328,6 +325,9 @@ class LaporanController extends Controller
 
     public function agenda_print() 
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
+
         $request = Request();
         $year    = !empty($request->tahun) ? $request->tahun : date('Y');
         $month   = $request->bulan;

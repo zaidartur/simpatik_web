@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LevelUser extends Model
 {
+    protected $guarded = ['id'];
     protected $casts = [
         'akses' => 'array',
     ];
