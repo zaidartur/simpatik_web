@@ -22,4 +22,14 @@ class Disposisi extends Model
         return $this->hasMany(Inbox::class, 'uuid', 'uid_surat')
                 ->leftJoin('users as u', 'u.uuid', '=', 'disposisis.penerima_uuid');
     }
+
+    public function pimpinan()
+    {
+        return $this->belongsTo(Pimpinan::class, 'id_pimpinan');
+    }
+
+    public function inbox()
+    {
+        return $this->belongsTo(Inbox::class, 'uid_surat', 'uuid');
+    }
 }

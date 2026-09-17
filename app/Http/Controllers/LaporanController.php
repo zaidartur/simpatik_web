@@ -133,50 +133,73 @@ class LaporanController extends Controller
     {
         $request = Request();
         $user = $request->user();
-        if ($user->hasAnyRole(['administrator', 'umum'])) {
-            $start = $request->start;
-            $length = $request->length;
+        if ($user->hasAnyRole(['administrator', 'umum', 'setda', 'wabup', 'bupati', 'admin'])) {
+            $start = $request->start ?? 0;
+            $length = $request->length ?? 10;
 
-            // $query = ArsipSurat::whereNotNull('DisposisiSekda')->orWhereNotNull('DisposisiSekda2')->orWhereNotNull('DisposisiBupati')->orWhereNotNull('DisposisiWakil')
             $query = ArsipSurat::where(function($q) {
-                        return $q->whereNotNull('DisposisiSekda')->whereRaw('TRIM(DisposisiSekda) != ""');
-                    })
-                    ->orWhere(function($q) {
-                        return $q->whereNotNull('DisposisiSekda2')->whereRaw('TRIM(DisposisiSekda2) != ""');
-                    })
-                    ->orWhere(function($q) {
-                        return $q->whereNotNull('DisposisiBupati')->whereRaw('TRIM(DisposisiBupati) != ""');
-                    })
-                    ->orWhere(function($q) {
-                        return $q->whereNotNull('DisposisiWakil')->whereRaw('TRIM(DisposisiWakil) != ""');
+                        $q->where(function($sub) {
+                            $sub->whereNotNull('DisposisiSekda')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiSekda\", ''))) > 0");
+                        })
+                        ->orWhere(function($sub) {
+                            $sub->whereNotNull('DisposisiSekda2')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiSekda2\", ''))) > 0");
+                        })
+                        ->orWhere(function($sub) {
+                            $sub->whereNotNull('DisposisiBupati')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiBupati\", ''))) > 0");
+                        })
+                        ->orWhere(function($sub) {
+                            $sub->whereNotNull('DisposisiWakil')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiWakil\", ''))) > 0");
+                        });
                     })
                     ->where('JENISSURAT', 'Masuk')
                     ->orderBy('NO', 'DESC');
-            if (Auth::user()->hasRole('setda')) {
-                $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Bupati']);
+
+            if ($user->hasRole('setda')) {
+                $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Sekretaris Daerah', 'Bupati']);
             }
-            if (Auth::user()->hasRole('wabup')) {
-                $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Wakil Bupati']);
+            if ($user->hasRole('wabup')) {
+                $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Sekretaris Daerah', 'Wakil Bupati']);
             }
-            if (Auth::user()->hasRole('bupati')) {
+            if ($user->hasRole('bupati')) {
                 $query->whereIn('Posisi', ['Bupati']);
             }
 
             $totalData = $query->count();
 
             // search query
-            if ($request->has('search') && $request->search['value'] != '') {
+            if ($request->has('search') && !empty($request->search['value'])) {
                 $search = $request->search['value'];
                 $query->where(function ($q) use ($search) {
-                    $q->where('NOSURAT', 'like', "%$search%")
-                        ->orWhere('drkpd', 'like', "%$search%")
-                        ->orWhere('PERIHAL', 'like', "%$search%")
-                        ->orWhere('ISI', 'like', "%$search%")
-                        ->orWhere('KLAS3', 'like', "%$search%");
+                    $q->where('NOSURAT', 'ilike', "%$search%")
+                        ->orWhere('drkpd', 'ilike', "%$search%")
+                        ->orWhere('PERIHAL', 'ilike', "%$search%")
+                        ->orWhere('ISI', 'ilike', "%$search%")
+                        ->orWhere('KLAS3', 'ilike', "%$search%");
                 });
             }
             $totalFiltered = $query->count();
             $list = $query->skip($start)->take($length)->get();
+
+            $parseLegacyDate = function($dateStr, $format = 'DD-MM-YYYY') {
+                if (empty($dateStr)) return null;
+                try {
+                    $str = trim((string)$dateStr);
+                    if (str_contains($str, '/')) {
+                        $parts = explode(' ', $str);
+                        $dmy = explode('/', $parts[0]);
+                        if (count($dmy) === 3) {
+                            $normDate = sprintf('%04d-%02d-%02d', $dmy[2], $dmy[1], $dmy[0]);
+                            if (isset($parts[1])) {
+                                $normDate .= ' ' . $parts[1];
+                            }
+                            return Carbon::parse($normDate)->isoFormat($format);
+                        }
+                    }
+                    return Carbon::parse($str)->isoFormat($format);
+                } catch (\Throwable $e) {
+                    return (string) $dateStr;
+                }
+            };
 
             $data = [];
             foreach ($list as $row) {
@@ -187,11 +210,11 @@ class LaporanController extends Controller
                     'berkas'    => $row->NAMABERKAS,
                     'wilayah'   => $row->WILAYAH,
                     'isi_surat' => $row->ISI,
-                    'tanggal'   => Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'),
+                    'tanggal'   => $parseLegacyDate($row->TGLSURAT) ?? '-',
                     'kepada'    => $row->drkpd,
                     'perihal'   => $row->PERIHAL,
                     'kode'      => $row->KLAS3,
-                    'tgl_buat'  => Carbon::parse($row->TGLENTRY)->isoFormat('DD-MM-YYYY'),
+                    'tgl_buat'  => $parseLegacyDate($row->TGLENTRY) ?? '-',
                     'posisi'    => $row->Posisi,
                     'class'     => ($row->Posisi == 'Sekretaris Daerah' ? 'badge-info' : ($row->Posisi == 'Wakil Bupati' ? 'badge-secondary' : ($row->Posisi == 'Bupati' ? 'badge-primary' : 'badge-dark'))),
                     'uid'       => Crypt::encryptString($row->NO),
@@ -199,10 +222,10 @@ class LaporanController extends Controller
                     'sekda2'    => $row->DisposisiSekda2,
                     'bupati'    => $row->DisposisiBupati,
                     'wakil'     => $row->DisposisiWakil,
-                    'tsekda'    => empty($row->tglsekda1) ? null : Carbon::parse($row->tglsekda1)->isoFormat('DD-MM-YYYY'),
-                    'tsekda2'   => empty($row->tglsekda2) ? null : Carbon::parse($row->tglsekda2)->isoFormat('DD-MM-YYYY'),
-                    'tbupati'   => empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY'),
-                    'twakil'    => empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY'),
+                    'tsekda'    => $parseLegacyDate($row->tglsekda1),
+                    'tsekda2'   => $parseLegacyDate($row->tglsekda2),
+                    'tbupati'   => $parseLegacyDate($row->tglbupati1),
+                    'twakil'    => $parseLegacyDate($row->tglwakil),
                     'option'    => '',
                     'status'    => $row->statussurat == 'selesai' ? '<span class="badge badge-success mb-2 me-4">Selesai</span>' : '<span class="badge badge-secondary mb-2 me-4">Menunggu</span>',
                 ];
@@ -214,40 +237,42 @@ class LaporanController extends Controller
                 'recordsFiltered' => $totalFiltered,
                 'data' => $data,
             ]);
-        } else {
-            return response()->json([
-                'draw' => intval($request->draw) ?? 0,
-                'recordsTotal' => 0,
-                'recordsFiltered' => 0,
-                'data' => [],
-            ]);
         }
+
+        return response()->json([
+            'draw' => intval($request->draw) ?? 0,
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => [],
+        ]);
     }
 
     public function agenda_ssr()
     {
         $request = Request();
         $user = $request->user();
-        if ($user->hasAnyRole(['administrator', 'admin', 'setda', 'wabup', 'bupati'])) {
-            $start = $request->start;
-            $length = $request->length;
+        if ($user->hasAnyRole(['administrator', 'admin', 'setda', 'wabup', 'bupati', 'umum'])) {
+            $start = $request->start ?? 0;
+            $length = $request->length ?? 10;
+            $jenis = $request->input('jenis');
 
-            // $query = ArsipSurat::select('*');
-
-            if (isset($request->jenis) && ($request->jenis == 'Masuk')) {
-                $query = Inbox::select('*');
-            } elseif (isset($request->jenis) && $request->jenis == 'Keluar') {
-                $query = Outbox::select('*');
+            if ($jenis === 'Keluar') {
+                $query = Outbox::whereNull('on_delete')->with(['klasifikasi', 'creator.leveluser']);
             } else {
-                //
+                // Default ke Surat Masuk jika 'Masuk', kosong, atau 'Semua'
+                $query = Inbox::whereNull('on_delete')->with([
+                    'klasifikasi',
+                    'creator.leveluser',
+                    'disposisi.pengirim.leveluser',
+                    'disposisi.penerima.leveluser',
+                    'disposisi.pimpinan',
+                ]);
             }
-            // if (isset($request->bulan) && !empty($request->bulan) && (intval($request->bulan) > 0 && intval($request->bulan) < 13)) {
-            //     $query->where('BULAN', intval($request->bulan));
-            // }
-            if (isset($request->start_date) && !empty($request->start_date) && isset($request->end_date) && !empty($request->end_date)) {
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
                 $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
                 $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-                $query->whereBetween('created_at', [Carbon::parse($startDate)->format('Y-m-d'), Carbon::parse($endDate)->format('Y-m-d')]);
+                $query->whereBetween('created_at', [$startDate, $endDate]);
             }
 
             $query->orderBy('created_at', 'ASC');
@@ -255,65 +280,109 @@ class LaporanController extends Controller
             $totalData = $query->count();
 
             // search query
-            if ($request->has('search') && $request->search['value'] != '') {
+            if ($request->has('search') && !empty($request->search['value'])) {
                 $search = $request->search['value'];
-                $query->where(function ($q) use ($search) {
-                    $q->where('no_surat', 'like', "%$search%")
-                        ->orWhere('no_agenda', 'like', "%$search%")
-                        ->orWhere('perihal', 'like', "%$search%")
-                        ->orWhere('isi', 'like', "%$search%")
-                        ->orWhere('wilayah', 'like', "%$search%");
-                });
+                if ($jenis === 'Keluar') {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('no_surat', 'ilike', "%$search%")
+                            ->orWhere('no_agenda', 'ilike', "%$search%")
+                            ->orWhere('perihal', 'ilike', "%$search%")
+                            ->orWhere('isi_surat', 'ilike', "%$search%")
+                            ->orWhere('kepada', 'ilike', "%$search%")
+                            ->orWhere('wilayah', 'ilike', "%$search%");
+                    });
+                } else {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('no_surat', 'ilike', "%$search%")
+                            ->orWhere('no_agenda', 'ilike', "%$search%")
+                            ->orWhere('perihal', 'ilike', "%$search%")
+                            ->orWhere('isi_surat', 'ilike', "%$search%")
+                            ->orWhere('dari', 'ilike', "%$search%")
+                            ->orWhere('wilayah', 'ilike', "%$search%");
+                    });
+                }
             }
+
             $totalFiltered = $query->count();
             $list = $query->skip($start)->take($length)->get();
 
+            $getDisposisiInfo = function($disposisis, $target) {
+                if (!$disposisis || $disposisis->isEmpty()) return '-';
+                $found = $disposisis->first(function($d) use ($target) {
+                    $senderLevel = strtolower($d->pengirim?->leveluser?->nama ?? '');
+                    if ($target === 'bupati') {
+                        return $d->id_pimpinan == 1 || str_contains($senderLevel, 'bupati') || ($d->pengirim && $d->pengirim->hasRole('bupati'));
+                    }
+                    if ($target === 'wakil') {
+                        return $d->id_pimpinan == 3 || str_contains($senderLevel, 'wakil') || ($d->pengirim && $d->pengirim->hasRole('wabup'));
+                    }
+                    if ($target === 'sekda') {
+                        return $d->id_pimpinan == 4 || str_contains($senderLevel, 'sekda') || str_contains($senderLevel, 'sekretaris daerah') || ($d->pengirim && $d->pengirim->hasRole('setda'));
+                    }
+                    return false;
+                });
+
+                if ($found && !empty($found->catatan_disposisi)) {
+                    $tgl = $found->created_at ? Carbon::parse($found->created_at)->isoFormat('DD-MM-YYYY HH:mm') : '';
+                    return '<b><p style="width: 100%; text-align: right;">' . $tgl . '</p></b><br>' . e($found->catatan_disposisi);
+                }
+
+                return '-';
+            };
+
             $data = [];
             foreach ($list as $l => $row) {
+                $tglKirim = $row->created_at ? Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY') : '-';
+                $tglSurat = $row->tgl_surat ? Carbon::parse($row->tgl_surat)->isoFormat('DD-MM-YYYY') : '-';
+                $noSurat = e($row->no_surat ?? '-');
+
+                $klas3 = e($row->klasifikasi->klas3 ?? '-');
+                $ketJra = e($row->klasifikasi->ket_jra ?? '');
+                $isiSurat = e($row->isi_surat ?? $row->perihal ?? '-');
+
+                $kepada = $jenis === 'Keluar' ? ($row->kepada ?? '-') : ($row->kepada ?? 'Sekretariat Daerah');
+                $dari = $jenis === 'Keluar'
+                    ? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? ($row->unit ?? 'Sekretariat Daerah')))
+                    : ($row->dari ?? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? '-')));
+
+                $disposisis = $jenis === 'Keluar' ? collect([]) : ($row->disposisi ?? collect([]));
+
                 $data[$l] = [
-                    'no_agenda' => $row->no_agenda,
-                    'kepada'    => $row->dari ?? $row->kepada,
-                    'tgl_buat'  => Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY'),
-                    'tanggal'   => Carbon::parse($row->tgl_surat)->isoFormat('DD-MM-YYYY'),
-                    'nomor'     => $row->NOSURAT,
-                    'row3'      => Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY'). '<br>' .Carbon::parse($row->TGLSURAT)->isoFormat('DD-MM-YYYY'). '<br>' .$row->NOSURAT,
-                    'kode'      => $row->klasifikasi->klas3 ?? '',
-                    'jra'       => $row->klasifikasi->ket_jra ?? '',
-                    'isi_surat' => $row->isi_surat,
-                    'row4'      => $row->klasifikasi?->klas3. '<br><b>' .$row->klasifikasi?->ket_jra. '</b><br>' .$row->isi_surat,
-                    // 'dari'      => $row->drkpd,
-                    'berkas'    => $row->nama_berkas,
-                    'wilayah'   => $row->wilayah,
-                    'dari'      => $row->creator->leveluser->nama,
-                    'perihal'   => $row->perihal,
-                    'class'     => $row->posisi_level,
+                    'no_agenda' => $row->no_agenda ?? '-',
+                    'kepada'    => $kepada,
+                    'tgl_buat'  => $tglKirim,
+                    'tanggal'   => $tglSurat,
+                    'nomor'     => $noSurat,
+                    'row3'      => $tglKirim . '<br>' . $tglSurat . '<br>' . $noSurat,
+                    'kode'      => $klas3,
+                    'jra'       => $ketJra,
+                    'isi_surat' => $isiSurat,
+                    'row4'      => $klas3 . '<br><b>' . $ketJra . '</b><br>' . $isiSurat,
+                    'berkas'    => $row->nama_berkas ?? '-',
+                    'wilayah'   => $row->wilayah ?? '-',
+                    'dari'      => $dari,
+                    'perihal'   => $row->perihal ?? '-',
+                    'class'     => $row->posisi_level ?? '',
                     'uid'       => Crypt::encryptString($row->uuid),
                 ];
 
                 if ($user->hasAnyRole(['administrator', 'umum', 'setda'])) {
                     $data[$l] += [
-                        'sekda'     => '<b><p style="width: 100%; text-align: right;">' .(empty($row->tglsekda1) ? null : Carbon::parse($row->tglsekda1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiSekda,
-                        'sekda2'    => '<b><p style="width: 100%; text-align: right;">' . (empty($row->tglsekda2) ? null : Carbon::parse($row->tglsekda2)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiSekda2,
-                        'bupati'    => '<b><p style="width: 100%; text-align: right;">' .(empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiBupati,
-                        'wakil'     => '<b><p style="width: 100%; text-align: right;">'. (empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiWakil,
-                        'tsekda'    => empty($row->tglsekda1) ? null : Carbon::parse($row->tglsekda1)->isoFormat('DD-MM-YYYY HH:mm'),
-                        'tsekda2'   => empty($row->tglsekda2) ? null : Carbon::parse($row->tglsekda2)->isoFormat('DD-MM-YYYY HH:mm'),
-                        'tbupati'   => empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm'),
-                        'twakil'    => empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm'),
+                        'sekda'     => $getDisposisiInfo($disposisis, 'sekda'),
+                        'bupati'    => $getDisposisiInfo($disposisis, 'bupati'),
+                        'wakil'     => $getDisposisiInfo($disposisis, 'wakil'),
                     ];
                 }
 
-                if ($user->hasAnyRole(['wabup'])) {
+                if ($user->hasRole('wabup')) {
                     $data[$l] += [
-                        'wakil'     => '<b><p style="width: 100%; text-align: right;">'. (empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiWakil,
-                        'twakil'    => empty($row->tglwakil) ? null : Carbon::parse($row->tglwakil)->isoFormat('DD-MM-YYYY HH:mm'),
+                        'wakil'     => $getDisposisiInfo($disposisis, 'wakil'),
                     ];
                 }
 
-                if ($user->hasAnyRole(['bupati'])) {
+                if ($user->hasRole('bupati')) {
                     $data[$l] += [
-                        'bupati'    => '<b><p style="width: 100%; text-align: right;">' .(empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$row->DisposisiBupati,
-                        'tbupati'   => empty($row->tglbupati1) ? null : Carbon::parse($row->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm'),
+                        'bupati'    => $getDisposisiInfo($disposisis, 'bupati'),
                     ];
                 }
             }
@@ -324,14 +393,14 @@ class LaporanController extends Controller
                 'recordsFiltered' => $totalFiltered,
                 'data' => $data,
             ]);
-        } else {
-            return response()->json([
-                'draw' => intval($request->draw) ?? 0,
-                'recordsTotal' => 0,
-                'recordsFiltered' => 0,
-                'data' => [],
-            ]);
         }
+
+        return response()->json([
+            'draw' => intval($request->draw) ?? 0,
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => [],
+        ]);
     }
 
     public function agenda_print() 
