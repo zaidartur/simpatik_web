@@ -11,12 +11,12 @@ Route::get('/', function () {
 Auth::routes(['register' => false, 'verify' => false]);
 
 
-Route::prefix('/')->middleware(['auth'])->group(function () {
+Route::prefix('/')->middleware(['auth', 'throttle:web-global'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('daftar-surat', [App\Http\Controllers\HomeController::class, 'list_surat'])->name('home.list');
     Route::get('settings', [App\Http\Controllers\HomeController::class, 'settings'])->name('admin.settings');
     Route::post('update-profile', [App\Http\Controllers\HomeController::class, 'updateProfile'])->name('admin.updateProfile');
-    Route::post('change-password', [App\Http\Controllers\HomeController::class, 'changePassword'])->name('admin.changePassword');
+    Route::post('change-password', [App\Http\Controllers\HomeController::class, 'changePassword'])->middleware('throttle:sensitive-auth')->name('admin.changePassword');
 });
 
 Route::post('detail-jra', [App\Http\Controllers\InboxController::class, 'get_jra'])->middleware(['auth'])->name('jra');
@@ -84,8 +84,8 @@ Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(functi
     Route::post('/update-user', [App\Http\Controllers\UserController::class, 'update'])->name('user.update');
     Route::post('/hapus-user', [App\Http\Controllers\UserController::class, 'destroy'])->name('user.destroy');
 
-    Route::post('/check-user', [App\Http\Controllers\UserController::class, 'check_user'])->middleware('throttle:5,1')->name('user.check');
-    Route::post('/ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->middleware('throttle:5,1')->name('user.change_pwd');
+    Route::post('/check-user', [App\Http\Controllers\UserController::class, 'check_user'])->middleware('throttle:sensitive-auth')->name('user.check');
+    Route::post('/ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->middleware('throttle:sensitive-auth')->name('user.change_pwd');
 });
 
 Route::prefix('/laporan')->middleware(['auth'])->group(function () {
@@ -97,8 +97,8 @@ Route::prefix('/laporan')->middleware(['auth'])->group(function () {
     Route::get('/tabel-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_ssr'])->name('report.agenda.ssr');
     
     Route::get('/print-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_print'])->name('report.agenda.print');
-    Route::get('/export-agenda', [App\Http\Controllers\LaporanController::class, 'export_agenda'])->name('report.agenda.export');
-    Route::get('/export-statistik', [App\Http\Controllers\LaporanController::class, 'export_statistik'])->name('report.statistik.export');
+    Route::get('/export-agenda', [App\Http\Controllers\LaporanController::class, 'export_agenda'])->middleware('throttle:exports')->name('report.agenda.export');
+    Route::get('/export-statistik', [App\Http\Controllers\LaporanController::class, 'export_statistik'])->middleware('throttle:exports')->name('report.statistik.export');
 });
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->middleware(['auth'])->name('search');

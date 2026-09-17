@@ -40,15 +40,18 @@ class InboxController extends Controller
     protected SuratMasukService $suratMasukService;
     protected NomorAgendaService $agendaService;
     protected FileUploadService $fileService;
+    protected \App\Services\ReferenceCacheService $cacheService;
 
     public function __construct(
         SuratMasukService $suratMasukService,
         NomorAgendaService $agendaService,
-        FileUploadService $fileService
+        FileUploadService $fileService,
+        \App\Services\ReferenceCacheService $cacheService
     ) {
         $this->suratMasukService = $suratMasukService;
         $this->agendaService = $agendaService;
         $this->fileService = $fileService;
+        $this->cacheService = $cacheService;
 
         $this->middleware('permission:surat masuk', ['only' => ['index', 'serverside', 'show']]);
         $this->middleware('permission:input surat masuk', ['only' => ['store', 'create', 'nomor_urut', 'upload_file']]);
@@ -205,12 +208,12 @@ class InboxController extends Controller
     {
         $list = json_decode(Auth::user()->leveluser->daftar_terusan);
         $data = [
-            'jra'       => Klasifikasi::all(),
-            'berkas'    => TempatBerkas::all(),
-            'sifat'     => SifatSurat::all(),
-            'perkembangan' => Perkembangan::all(),
+            'jra'          => $this->cacheService->getKlasifikasi(),
+            'berkas'       => $this->cacheService->getTempatBerkas(),
+            'sifat'        => $this->cacheService->getSifatSurat(),
+            'perkembangan' => $this->cacheService->getPerkembangan(),
             // 'level'     => LevelUser::whereNotIn('role', ['administrator'])->get(),
-            'level'     => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
+            'level'        => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
         ];
         return view('main.inbox.new', $data);
     }
@@ -224,11 +227,11 @@ class InboxController extends Controller
             $inbox->cryptfile = Crypt::encryptString($inbox->softcopy);
         }
         $data  = [
-            'inbox'     => $inbox,
-            'jra'       => Klasifikasi::all(),
-            'berkas'    => TempatBerkas::all(),
-            'sifat'     => SifatSurat::all(),
-            'perkembangan' => Perkembangan::all(),
+            'inbox'        => $inbox,
+            'jra'          => $this->cacheService->getKlasifikasi(),
+            'berkas'       => $this->cacheService->getTempatBerkas(),
+            'sifat'        => $this->cacheService->getSifatSurat(),
+            'perkembangan' => $this->cacheService->getPerkembangan(),
         ];
 
         return view('main.inbox.edit', $data);

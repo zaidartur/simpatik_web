@@ -24,17 +24,24 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+use App\Services\ActivityLogService;
+use App\Services\ReferenceCacheService;
+use Illuminate\Support\Facades\Hash;
+
 class HomeController extends Controller
 {
+    protected ReferenceCacheService $cacheService;
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(ReferenceCacheService $cacheService)
     {
         $this->middleware('auth');
         $this->middleware('permission:pimpinan', ['only' => ['list_pejabat', 'save_pimpinan', 'update_pimpinan', 'set_default', 'delete_pimpinan']]);
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -278,6 +285,7 @@ class HomeController extends Controller
         $save = $pimpinan->save();
 
         if ($save) {
+            $this->cacheService->forgetPimpinan();
             return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil disimpan.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal disimpan.']);
@@ -305,6 +313,7 @@ class HomeController extends Controller
         $save = $pimpinan->save();
 
         if ($save) {
+            $this->cacheService->forgetPimpinan();
             return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil diubah.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal diubah.']);
@@ -326,6 +335,7 @@ class HomeController extends Controller
         $save = $pimpinan->save();
 
         if ($save) {
+            $this->cacheService->forgetPimpinan();
             return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil dijadikan default.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal dijadikan default.']);
@@ -342,10 +352,52 @@ class HomeController extends Controller
         if (!$id) return response()->json(['status' => 'failed', 'message' => 'Data pimpinan tidak ditemukan.']);
         $drop = Pimpinan::where('id', $id)->delete();
         if ($drop) {
+            $this->cacheService->forgetPimpinan();
             return response()->json(['status' => 'success', 'message' => 'Data pimpinan berhasil dihapus.']);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Data pimpinan gagal dihapus.']);
         }
     }
 
+    /**
+     * Change authenticated user password with session revocation on other devices.
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'current_password.required' => 'Password saat ini harus diisi.',
+            'password.min'              => 'Password baru minimal harus 8 karakter.',
+            'password.confirmed'        => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'Password saat ini tidak sesuai.',
+            ], 422);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Security hardening: Revoke sessions on all other devices
+        Auth::logoutOtherDevices($request->password);
+
+        ActivityLogService::log(
+            'change_password',
+            'auth',
+            'Pengguna berhasil mengubah password akun dan mencabut sesi di perangkat lain.',
+            $user
+        );
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Password berhasil diubah. Sesi di perangkat lain telah dinonaktifkan.',
+        ]);
+    }
 }

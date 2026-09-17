@@ -12,15 +12,19 @@ use App\Models\Perkembangan;
 use App\Models\SifatSurat;
 use App\Models\TempatBerkas;
 use App\Services\ActivityLogService;
+use App\Services\ReferenceCacheService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ReferensiController extends Controller
 {
-    public function __construct()
+    protected ReferenceCacheService $cacheService;
+
+    public function __construct(ReferenceCacheService $cacheService)
     {
         $this->middleware(['auth', 'permission:referensi|administrator']);
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -30,11 +34,11 @@ class ReferensiController extends Controller
     {
         $activeTab = $request->query('tab', 'klasifikasi');
 
-        $klasifikasis = Klasifikasi::orderBy('klas3')->get();
-        $sifats = SifatSurat::orderBy('nama_sifat')->get();
-        $tempats = TempatBerkas::orderBy('nama')->get();
-        $perkembangans = Perkembangan::orderBy('nama')->get();
-        $medias = MediaSurat::orderBy('nama')->get();
+        $klasifikasis = $this->cacheService->getKlasifikasi();
+        $sifats = $this->cacheService->getSifatSurat();
+        $tempats = $this->cacheService->getTempatBerkas();
+        $perkembangans = $this->cacheService->getPerkembangan();
+        $medias = $this->cacheService->getMediaSurat();
 
         return view('main.referensi.index', compact(
             'activeTab',
@@ -94,6 +98,7 @@ class ReferensiController extends Controller
         }
 
         ActivityLogService::log('create', 'referensi', "Menambahkan data master {$label}", $created, null, $created->toArray());
+        $this->cacheService->forgetByType($type);
 
         return response()->json(['status' => 'success', 'message' => 'Data berhasil ditambahkan.']);
     }
@@ -165,6 +170,8 @@ class ReferensiController extends Controller
                 return response()->json(['status' => 'failed', 'message' => 'Tipe referensi tidak valid.'], 400);
         }
 
+        $this->cacheService->forgetByType($type);
+
         return response()->json(['status' => 'success', 'message' => 'Data berhasil diperbarui.']);
     }
 
@@ -230,6 +237,7 @@ class ReferensiController extends Controller
 
         $item->delete();
         ActivityLogService::log('delete', 'referensi', "Menghapus data master {$label} ID #{$id}", $item);
+        $this->cacheService->forgetByType($type);
 
         return response()->json(['status' => 'success', 'message' => "Data {$label} berhasil dihapus."]);
     }

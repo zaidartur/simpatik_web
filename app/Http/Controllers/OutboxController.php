@@ -40,15 +40,18 @@ class OutboxController extends Controller
     protected SuratKeluarService $suratKeluarService;
     protected NomorAgendaService $agendaService;
     protected FileUploadService $fileService;
+    protected \App\Services\ReferenceCacheService $cacheService;
 
     public function __construct(
         SuratKeluarService $suratKeluarService,
         NomorAgendaService $agendaService,
-        FileUploadService $fileService
+        FileUploadService $fileService,
+        \App\Services\ReferenceCacheService $cacheService
     ) {
         $this->suratKeluarService = $suratKeluarService;
         $this->agendaService = $agendaService;
         $this->fileService = $fileService;
+        $this->cacheService = $cacheService;
 
         $this->middleware('permission:surat keluar', ['only' => ['index', 'serverside', 'show']]);
         $this->middleware('permission:input surat keluar', ['only' => ['store', 'create', 'last_sppd', 'check_surat']]);
@@ -166,13 +169,14 @@ class OutboxController extends Controller
 
     public function create()
     {
+        $list = json_decode(Auth::user()->leveluser->daftar_terusan ?? '[]');
         $data = [
-            'jra'       => Klasifikasi::all(),
-            'berkas'    => TempatBerkas::all(),
-            'instansi'  => DataUnit::all(),
-            'perkembangan' => Perkembangan::all(),
-            'sifat'     => SifatSurat::all(),
-            'level'     => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
+            'jra'          => $this->cacheService->getKlasifikasi(),
+            'berkas'       => $this->cacheService->getTempatBerkas(),
+            'instansi'     => DataUnit::all(),
+            'perkembangan' => $this->cacheService->getPerkembangan(),
+            'sifat'        => $this->cacheService->getSifatSurat(),
+            'level'        => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
         ];
         return view('main.outbox.new', $data);
     }
@@ -204,15 +208,16 @@ class OutboxController extends Controller
             $outbox->nilai_guna = $jra->nilai_guna;
         }
 
+        $list = json_decode(Auth::user()->leveluser->daftar_terusan ?? '[]');
         // $outbox->uid = $id;
         $data  = [
-            'jra'       => Klasifikasi::all(),
-            'berkas'    => TempatBerkas::all(),
-            'instansi'  => DataUnit::all(),
-            'perkembangan' => Perkembangan::all(),
-            'sifat'     => SifatSurat::all(),
-            'level'     => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
-            'outbox'    => $outbox,
+            'jra'          => $this->cacheService->getKlasifikasi(),
+            'berkas'       => $this->cacheService->getTempatBerkas(),
+            'instansi'     => DataUnit::all(),
+            'perkembangan' => $this->cacheService->getPerkembangan(),
+            'sifat'        => $this->cacheService->getSifatSurat(),
+            'level'        => (!empty($list) && is_array($list)) ? LevelUser::whereIn('id', $list)->get() : [],
+            'outbox'       => $outbox,
         ];
 
         return view('main.outbox.edit', $data);

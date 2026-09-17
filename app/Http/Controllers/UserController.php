@@ -147,7 +147,15 @@ class UserController extends Controller
         $password = $request->pass;
         $user->password = Hash::make($password);
         if ($user->save()) {
+            \App\Services\ActivityLogService::log(
+                'change_password',
+                'user',
+                "Mengubah password untuk pengguna: {$user->nama_lengkap} ({$user->username})",
+                $user
+            );
+
             if (Auth::user()->id == $id) {
+                Auth::logoutOtherDevices($password);
                 return response()->json(['status' => 'success', 'message' => 'Password berhasil diupdate.', 'data' => 'relog']);
             } else {
                 return response()->json(['status' => 'success', 'message' => 'Password berhasil diupdate.', 'data' => 'none']);
