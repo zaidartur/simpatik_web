@@ -72,4 +72,12 @@ class LoginController extends Controller
             ['blokir' => 'N']
         );
     }
+
+    /**
+     * The user has been authenticated.
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        \App\Services\ActivityLogService::log('login', 'auth', "Pengguna {$user->nama_lengkap} ({$user->username}) berhasil login ke sistem.", null, null, null, $user);
+    }
 }

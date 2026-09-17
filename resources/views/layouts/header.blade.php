@@ -8,9 +8,9 @@
 
             <div class="search-animated toggle-search">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <form class="form-inline search-full form-inline search" role="search">
+                <form class="form-inline search-full form-inline search" role="search" action="{{ route('search') }}" method="GET">
                     <div class="search-bar">
-                        <input type="text" class="form-control search-form-control  ml-lg-auto" placeholder="Search...">
+                        <input type="text" name="q" class="form-control search-form-control ml-lg-auto" placeholder="Cari surat (no. surat, agenda, perihal, instansi)..." value="{{ request('q') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x search-close"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </div>
                 </form>
@@ -39,120 +39,44 @@
                     </a>
                 </li>
 
-                {{-- <li class="nav-item dropdown notification-dropdown">
+                <li class="nav-item dropdown notification-dropdown">
                     <a href="javascript:void(0);" class="nav-link dropdown-toggle" id="notificationDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bell"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="badge badge-success"></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bell"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <span class="badge badge-success {{ Auth::user()->unreadNotifications->count() > 0 ? '' : 'd-none' }}" id="notifBadge">{{ Auth::user()->unreadNotifications->count() }}</span>
                     </a>
 
-                    <div class="dropdown-menu position-absolute" aria-labelledby="notificationDropdown">
-                        <div class="drodpown-title message">
-                            <h6 class="d-flex justify-content-between"><span class="align-self-center">Messages</span> <span class="badge badge-primary">9 Unread</span></h6>
+                    <div class="dropdown-menu position-absolute" aria-labelledby="notificationDropdown" style="min-width: 340px;">
+                        <div class="drodpown-title message p-2 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold">Notifikasi Persuratan</h6>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="markAllNotificationsRead()" title="Tandai semua sudah dibaca">
+                                <small>Tandai dibaca</small>
+                            </button>
                         </div>
-                        <div class="notification-scroll">
-                            <div class="dropdown-item">
-                                <div class="media server-log">
-                                    <img src="{{ asset('templates/assets/img/profile-16.jpeg') }}" class="img-fluid me-2" alt="avatar">
-                                    <div class="media-body">
-                                        <div class="data-info">
-                                            <h6 class="">Kara Young</h6>
-                                            <p class="">1 hr ago</p>
+                        <div class="notification-scroll" id="notifListContainer" style="max-height: 350px; overflow-y: auto;">
+                            @forelse(Auth::user()->notifications()->latest()->limit(7)->get() as $notif)
+                                <div class="dropdown-item p-2 border-bottom {{ is_null($notif->read_at) ? 'bg-light-primary' : '' }}" id="notif-{{ $notif->id }}">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <div class="p-1 rounded bg-primary text-white mt-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                                         </div>
-                                        
-                                        <div class="icon-status">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="dropdown-item">
-                                <div class="media ">
-                                    <img src="{{ asset('templates/assets/img/profile-15.jpeg') }}" class="img-fluid me-2" alt="avatar">
-                                    <div class="media-body">
-                                        <div class="data-info">
-                                            <h6 class="">Daisy Anderson</h6>
-                                            <p class="">8 hrs ago</p>
-                                        </div>
-
-                                        <div class="icon-status">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        <div class="flex-grow-1" onclick="handleNotifClick('{{ $notif->id }}', '{{ $notif->data['surat_uuid'] ?? '' }}')" style="cursor: pointer;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="small text-dark">{{ $notif->data['title'] ?? 'Notifikasi' }}</strong>
+                                                <small class="text-muted" style="font-size: 0.75rem;">{{ $notif->created_at->diffForHumans() }}</small>
+                                            </div>
+                                            <p class="mb-0 text-muted small text-truncate" style="max-width: 250px;">{{ $notif->data['perihal'] ?? ($notif->data['message'] ?? '-') }}</p>
+                                            <small class="text-secondary" style="font-size: 0.7rem;">Dari: {{ $notif->data['pengirim_nama'] ?? '-' }}</small>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="dropdown-item">
-                                <div class="media file-upload">
-                                    <img src="{{ asset('templates/assets/img/profile-21.jpeg') }}" class="img-fluid me-2" alt="avatar">
-                                    <div class="media-body">
-                                        <div class="data-info">
-                                            <h6 class="">Oscar Garner</h6>
-                                            <p class="">14 hrs ago</p>
-                                        </div>
-
-                                        <div class="icon-status">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        </div>
-                                    </div>
+                            @empty
+                                <div class="text-center py-4 text-muted" id="notifEmptyState">
+                                    <small>Tidak ada notifikasi baru.</small>
                                 </div>
-                            </div>
-                            
-                            <div class="drodpown-title notification mt-2">
-                                <h6 class="d-flex justify-content-between"><span class="align-self-center">Notifications</span> <span class="badge badge-secondary">16 New</span></h6>
-                            </div>
-
-                            <div class="dropdown-item">
-                                <div class="media server-log">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6" y2="6"></line><line x1="6" y1="18" x2="6" y2="18"></line></svg>
-                                    <div class="media-body">
-                                        <div class="data-info">
-                                            <h6 class="">Server Rebooted</h6>
-                                            <p class="">45 min ago</p>
-                                        </div>
-
-                                        <div class="icon-status">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="dropdown-item">
-                                <div class="media file-upload">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                    <div class="media-body">
-                                        <div class="data-info">
-                                            <h6 class="">Kelly Portfolio.pdf</h6>
-                                            <p class="">670 kb</p>
-                                        </div>
-
-                                        <div class="icon-status">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="dropdown-item">
-                                <div class="media ">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                    <div class="media-body">
-                                        <div class="data-info">
-                                            <h6 class="">Licence Expiring Soon</h6>
-                                            <p class="">8 hrs ago</p>
-                                        </div>
-
-                                        <div class="icon-status">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
+                            @endforelse
                         </div>
                     </div>
-                    
-                </li> --}}
+                </li>
 
                 <li class="nav-item dropdown user-profile-dropdown  order-lg-0 order-1">
                     <a href="javascript:void(0);" class="nav-link dropdown-toggle user" id="userProfileDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -205,3 +129,92 @@
     <!--  END NAVBAR  -->
 
     <form action="{{ route('logout') }}" method="POST" id="flogout">@csrf</form>
+
+    <script>
+        function updateNotifBadge(count) {
+            const badge = document.getElementById('notifBadge');
+            if (!badge) return;
+            if (count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
+        }
+
+        function handleNotifClick(notifId, suratUuid) {
+            $.ajax({
+                url: `/notifikasi/${notifId}/mark-read`,
+                type: 'POST',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function (res) {
+                    updateNotifBadge(res.unread_count);
+                    const item = document.getElementById(`notif-${notifId}`);
+                    if (item) item.classList.remove('bg-light-primary');
+                    if (suratUuid) {
+                        window.location.href = `{{ route('inbox') }}`;
+                    }
+                },
+                error: function () {
+                    if (suratUuid) window.location.href = `{{ route('inbox') }}`;
+                }
+            });
+        }
+
+        function markAllNotificationsRead() {
+            $.ajax({
+                url: `{{ route('notifikasi.mark_all_read') }}`,
+                type: 'POST',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function (res) {
+                    updateNotifBadge(0);
+                    $('.notification-dropdown .bg-light-primary').removeClass('bg-light-primary');
+                    if (typeof Toast !== 'undefined') {
+                        Toast.fire({ icon: 'success', title: 'Semua notifikasi ditandai dibaca.' });
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof window.Echo !== 'undefined') {
+                window.Echo.private('App.Models.User.{{ Auth::id() }}')
+                    .notification((notification) => {
+                        const currentBadge = parseInt($('#notifBadge').text() || '0') + 1;
+                        updateNotifBadge(currentBadge);
+
+                        const html = `
+                            <div class="dropdown-item p-2 border-bottom bg-light-primary" id="notif-${notification.id}">
+                                <div class="d-flex align-items-start gap-2">
+                                    <div class="p-1 rounded bg-primary text-white mt-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                    </div>
+                                    <div class="flex-grow-1" onclick="handleNotifClick('${notification.id}', '${notification.surat_uuid}')" style="cursor: pointer;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong class="small text-dark">${notification.title || 'Notifikasi'}</strong>
+                                            <small class="text-muted" style="font-size: 0.75rem;">Baru saja</small>
+                                        </div>
+                                        <p class="mb-0 text-muted small text-truncate" style="max-width: 250px;">${notification.perihal || notification.message}</p>
+                                        <small class="text-secondary" style="font-size: 0.7rem;">Dari: ${notification.pengirim_nama}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $('#notifEmptyState').remove();
+                        $('#notifListContainer').prepend(html);
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'info',
+                                title: notification.title,
+                                text: notification.message,
+                                showConfirmButton: false,
+                                timer: 6000
+                            });
+                        }
+                    });
+            }
+        });
+    </script>

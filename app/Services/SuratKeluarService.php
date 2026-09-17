@@ -7,6 +7,7 @@ use App\Models\Klasifikasi;
 use App\Models\Outbox;
 use App\Models\Sppd;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +94,8 @@ class SuratKeluarService
                 $outbox->save();
             }
 
+            ActivityLogService::log('create', 'surat_keluar', "Membuat surat keluar baru No. Agenda {$outbox->no_agenda}/{$outbox->year} (No. Surat: {$outbox->no_surat})", $outbox, null, $outbox->toArray(), $user);
+
             return $outbox;
         });
     }
@@ -108,6 +111,8 @@ class SuratKeluarService
         } else {
             $file = $outbox->softcopy;
         }
+
+        $oldValues = $outbox->only(['nama_berkas', 'perihal', 'kepada', 'no_surat', 'sifat_surat', 'isi_surat']);
 
         $outbox->nama_berkas     = $data['berkas'];
         $outbox->tgl_surat       = Carbon::parse($data['tgl_surat'])->format('Y-m-d');
@@ -125,7 +130,12 @@ class SuratKeluarService
         $outbox->keterangan      = $data['keterangan'] ?? $outbox->keterangan;
         $outbox->softcopy        = $file;
 
-        return $outbox->save();
+        $saved = $outbox->save();
+        if ($saved) {
+            ActivityLogService::log('update', 'surat_keluar', "Memperbarui surat keluar No. Agenda {$outbox->no_agenda}/{$outbox->year}", $outbox, $oldValues, $outbox->toArray());
+        }
+
+        return $saved;
     }
 
     /**
@@ -134,6 +144,10 @@ class SuratKeluarService
     public function destroy(Outbox $outbox): bool
     {
         $outbox->on_delete = Carbon::now();
-        return $outbox->save();
+        $saved = $outbox->save();
+        if ($saved) {
+            ActivityLogService::log('delete', 'surat_keluar', "Menghapus surat keluar No. Agenda {$outbox->no_agenda}/{$outbox->year} (No. Surat: {$outbox->no_surat})", $outbox);
+        }
+        return $saved;
     }
 }

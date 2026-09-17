@@ -7,6 +7,8 @@ use App\Models\Inbox;
 use App\Models\Klasifikasi;
 use App\Models\Pimpinan;
 use App\Models\User;
+use App\Notifications\SuratDiterimaNotification;
+use App\Services\ActivityLogService;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -93,8 +95,14 @@ class SuratMasukService
                     $inbox->posisi_surat = $rcv->uuid;
                     $inbox->posisi_level = $data['diteruskan_kpd'];
                     $inbox->save();
+
+                    // Realtime notification to destination recipient
+                    $rcv->notify(new SuratDiterimaNotification($inbox, $user, 'disposisi'));
+                    ActivityLogService::log('forward', 'disposisi', "Meneruskan surat masuk No. Agenda {$inbox->no_agenda} ke {$rcv->nama_lengkap}", $dispo, null, null, $user);
                 }
             }
+
+            ActivityLogService::log('create', 'surat_masuk', "Membuat surat masuk baru No. Agenda {$inbox->no_agenda}/{$inbox->year} (No. Surat: {$inbox->no_surat})", $inbox, null, $inbox->toArray(), $user);
 
             return $inbox;
         });
@@ -112,6 +120,8 @@ class SuratMasukService
             $file = $inbox->softcopy;
         }
 
+        $oldValues = $inbox->only(['nama_berkas', 'perihal', 'dari', 'no_surat', 'sifat_surat', 'isi_surat']);
+
         $inbox->nama_berkas     = $data['berkas'];
         $inbox->tgl_diterima    = Carbon::parse($data['tgl_terima'])->format('Y-m-d');
         $inbox->tgl_surat       = Carbon::parse($data['tgl_surat'])->format('Y-m-d');
@@ -128,7 +138,12 @@ class SuratMasukService
         $inbox->tgl_balas       = (isset($data['tindakan']) && strtolower($data['tindakan']) === 'non balas') ? null : (!empty($data['tgl_balas']) ? Carbon::parse($data['tgl_balas'])->format('Y-m-d') : null);
         $inbox->softcopy        = $file;
 
-        return $inbox->save();
+        $saved = $inbox->save();
+        if ($saved) {
+            ActivityLogService::log('update', 'surat_masuk', "Memperbarui data surat masuk No. Agenda {$inbox->no_agenda}/{$inbox->year}", $inbox, $oldValues, $inbox->toArray(), $user);
+        }
+
+        return $saved;
     }
 
     /**
@@ -137,7 +152,11 @@ class SuratMasukService
     public function destroy(Inbox $inbox): bool
     {
         $inbox->on_delete = Carbon::now();
-        return $inbox->save();
+        $saved = $inbox->save();
+        if ($saved) {
+            ActivityLogService::log('delete', 'surat_masuk', "Menghapus surat masuk No. Agenda {$inbox->no_agenda}/{$inbox->year} (No. Surat: {$inbox->no_surat})", $inbox);
+        }
+        return $saved;
     }
 
     /**
@@ -169,6 +188,10 @@ class SuratMasukService
             $inbox->posisi_level = $targetLevel;
             $inbox->posisi_surat = $penerima->uuid;
             $inbox->save();
+
+            // Realtime WebSocket notification strictly to destination recipient
+            $penerima->notify(new SuratDiterimaNotification($inbox, $currentUser, 'disposisi'));
+            ActivityLogService::log('forward', 'disposisi', "Meneruskan surat masuk No. Agenda {$inbox->no_agenda} ke {$penerima->nama_lengkap}", $dispo, null, null, $currentUser);
 
             return ['status' => 'success', 'message' => 'Surat berhasil diteruskan.'];
         }
@@ -212,6 +235,8 @@ class SuratMasukService
 
         if ($dispo->save()) {
             $this->checkSuratSelesai($inbox->uuid);
+            ActivityLogService::log('reply', 'disposisi', "Memberikan tanggapan disposisi surat No. Agenda {$inbox->no_agenda}: '{$notes}'", $dispo, null, null, $currentUser);
+
             return ['status' => 'success', 'message' => 'Surat berhasil ditanggapi.'];
         }
 

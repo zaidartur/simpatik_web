@@ -685,11 +685,32 @@
                             <td colspan="3"><label>${data.softcopy ? '<button class="btn btn-info bs-tooltip" title="Lihat dokumen" onclick="view_file(`'+data.cryptfile+'`)">Lihat</button>' : '-'}</label></td>
                         </tr>
                     </table>
+                    <div id="timeline-container" class="mt-3">
+                        <div class="text-center py-2 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Memuat alur disposisi...</div>
+                    </div>
                 </div>
             `
             $('#detail').html(detail);
-            // lastLoc = 3;
             $('#detailSurat').modal('show');
+
+            // Load visual timeline chain from backend
+            if (data.uuid) {
+                $.ajax({
+                    url: `/surat-masuk/lihat-surat/${data.uuid}`,
+                    type: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    success: function (res) {
+                        if (res.timeline) {
+                            $('#timeline-container').html(res.timeline);
+                        } else {
+                            $('#timeline-container').html('');
+                        }
+                    },
+                    error: function () {
+                        $('#timeline-container').html('');
+                    }
+                });
+            }
         }
 
         function view_file(file) {

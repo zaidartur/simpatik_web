@@ -97,6 +97,29 @@ Route::prefix('/laporan')->middleware(['auth'])->group(function () {
     Route::get('/tabel-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_ssr'])->name('report.agenda.ssr');
     
     Route::get('/print-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_print'])->name('report.agenda.print');
+    Route::get('/export-agenda', [App\Http\Controllers\LaporanController::class, 'export_agenda'])->name('report.agenda.export');
+    Route::get('/export-statistik', [App\Http\Controllers\LaporanController::class, 'export_statistik'])->name('report.statistik.export');
+});
+
+Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->middleware(['auth'])->name('search');
+
+Route::prefix('/notifikasi')->middleware(['auth'])->group(function () {
+    Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'unread_count'])->name('notifikasi.count');
+    Route::get('/recent', [App\Http\Controllers\NotificationController::class, 'recent'])->name('notifikasi.recent');
+    Route::post('/{id}/mark-read', [App\Http\Controllers\NotificationController::class, 'mark_read'])->name('notifikasi.read');
+    Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'mark_all_read'])->name('notifikasi.mark_all_read');
+});
+
+Route::prefix('/audit-log')->middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('/view', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('audit');
+    Route::get('/daftar-log', [App\Http\Controllers\ActivityLogController::class, 'serverside'])->name('audit.ssr');
+});
+
+Route::prefix('/referensi')->middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('/{type?}', [App\Http\Controllers\ReferensiController::class, 'index'])->name('referensi.index');
+    Route::post('/{type}/simpan', [App\Http\Controllers\ReferensiController::class, 'store'])->name('referensi.store');
+    Route::post('/{type}/update', [App\Http\Controllers\ReferensiController::class, 'update'])->name('referensi.update');
+    Route::post('/{type}/hapus', [App\Http\Controllers\ReferensiController::class, 'destroy'])->name('referensi.destroy');
 });
 
 Route::prefix('/instansi')->middleware(['auth', 'role:administrator'])->group(function () {

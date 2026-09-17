@@ -64,19 +64,19 @@
 
             <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
                 <div class="widget-content widget-content-area br-8 p-3">
-                    <div class="row justify-content-space-between">
-                        <div class="col-12">
-                            <h4 class="">
+                    <div class="row justify-content-between align-items-center">
+                        <div class="col-6">
+                            <h4 class="mb-0">
                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"></path></svg>
                                 Tabel Statistik
                             </h4>
                         </div>
-                        {{-- <div class="col-6">
-                            <button class="btn btn-success mb-2 me-4 float-end" id="bt_new" onclick="_new()">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                                <span class="btn-text-inner">Tambah Instansi</span>
+                        <div class="col-6 text-end">
+                            <button class="btn btn-success" onclick="_exportStatistikExcel()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                <span class="btn-text-inner">Export Excel</span>
                             </button>
-                        </div> --}}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,6 +201,11 @@
             // let year = $(elem).val();
             let tb_stat = $('#zero-config').DataTable();
             tb_stat.ajax.url(`{{ route('report.statistik.ssr') }}?tahun=${elem}`).load();
+        }
+
+        function _exportStatistikExcel() {
+            let year = $('#customSearch').val() || new Date().getFullYear();
+            window.open(`{{ route('report.statistik.export') }}?year=${year}`, '_blank');
         }
     </script>
 @endsection

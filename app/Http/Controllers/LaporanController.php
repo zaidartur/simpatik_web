@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AgendaKeluarExport;
+use App\Exports\AgendaMasukExport;
+use App\Exports\StatistikExport;
 use App\Models\ArsipSurat;
 use App\Models\Inbox;
 use App\Models\Outbox;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Permission;
 
 class LaporanController extends Controller
@@ -381,5 +385,34 @@ class LaporanController extends Controller
         ];
         $pdf->loadView('main.laporan.template_agenda', $data);
         return $pdf;
+    }
+
+    /**
+     * Export Agenda Surat Masuk / Keluar to Excel (.xlsx).
+     */
+    public function export_agenda(Request $request)
+    {
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+        $jenis = $request->jenis;
+
+        $fileName = 'Agenda_' . ($jenis ?: 'Semua') . '_' . date('Ymd_His') . '.xlsx';
+
+        if ($jenis === 'Keluar') {
+            return Excel::download(new AgendaKeluarExport($startDate, $endDate), $fileName);
+        }
+
+        return Excel::download(new AgendaMasukExport($startDate, $endDate), $fileName);
+    }
+
+    /**
+     * Export Statistik Persuratan to Excel (.xlsx).
+     */
+    public function export_statistik(Request $request)
+    {
+        $year = intval($request->input('year', date('Y')));
+        $fileName = 'Statistik_Persuratan_' . $year . '_' . date('Ymd_His') . '.xlsx';
+
+        return Excel::download(new StatistikExport($year), $fileName);
     }
 }

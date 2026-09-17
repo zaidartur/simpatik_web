@@ -129,6 +129,10 @@
                                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                     <span class="btn-text-inner">Cetak</span>
                                 </button>
+                                <button type="button" class="btn btn-success" onclick="_exportExcel()" id="btexcel" title="Export ke Excel">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    <span class="btn-text-inner">Excel</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -358,6 +362,23 @@
 
             // window.open(`/laporan/print-agenda?tahun=${year}&bulan=${month}&jenis=${jenis}`, '_blank')
             window.open(`/laporan/print-agenda?start_date=${startDate}&end_date=${endDate}&jenis=${jenis}`, '_blank')
+        }
+
+        function _exportExcel() {
+            const jenis = $('#jenis').val();
+            let date_range = $('#rangeCalendar').val();
+            let startDate = '';
+            let endDate = '';
+            if (date_range && date_range.includes(' - ')) {
+                const dates = date_range.split(' - ');
+                startDate = dates[0];
+                endDate = dates[1];
+            } else if (date_range) {
+                startDate = date_range;
+                endDate = date_range;
+            }
+
+            window.open(`{{ route('report.agenda.export') }}?start_date=${startDate}&end_date=${endDate}&jenis=${jenis}`, '_blank');
         }
     </script>
 @endsection

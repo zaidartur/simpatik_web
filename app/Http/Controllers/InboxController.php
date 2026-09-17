@@ -72,6 +72,49 @@ class InboxController extends Controller
         return view('main.inbox.index', $data);
     }
 
+    /**
+     * Display the specified surat masuk details and disposisi timeline.
+     */
+    public function show($id)
+    {
+        try {
+            $uuid = Crypt::decryptString($id);
+        } catch (\Exception $e) {
+            $uuid = $id;
+        }
+
+        $inbox = Inbox::with([
+            'disposisi.pengirim.leveluser',
+            'disposisi.penerima.leveluser',
+            'disposisi.pimpinan',
+            'klasifikasi',
+            'media',
+            'sifat',
+            'berkas',
+            'perkembangan',
+            'posisi.leveluser',
+            'level',
+            'creator'
+        ])->where('uuid', $uuid)->first();
+
+        if (!$inbox) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['status' => 'failed', 'message' => 'Surat tidak ditemukan.'], 404);
+            }
+            return abort(404);
+        }
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'status'   => 'success',
+                'inbox'    => $inbox,
+                'timeline' => view('components.disposisi-timeline', ['inbox' => $inbox])->render(),
+            ]);
+        }
+
+        return view('main.inbox.show', compact('inbox'));
+    }
+
     public function serverside()
     {
         $request = Request();
@@ -189,17 +232,6 @@ class InboxController extends Controller
         ];
 
         return view('main.inbox.edit', $data);
-    }
-
-    public function show($id)
-    {
-        $no    = json_decode(Crypt::decryptString($id));
-        $inbox = ArsipSurat::where('id', $no)->first();
-        $data  = [
-            'inbox' => $inbox,
-        ];
-
-        return view('main.inbox.view', $data);
     }
 
     public function nomor_urut(Request $request)

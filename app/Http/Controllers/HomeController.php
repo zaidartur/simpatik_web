@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PimpinanStoreRequest;
 use App\Http\Requests\PimpinanUpdateRequest;
 use App\Models\ArsipSurat;
+use App\Models\Disposisi;
 use App\Models\Inbox;
 use App\Models\Instansi;
 use App\Models\Klasifikasi;
@@ -43,7 +44,102 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $user = Auth::user();
+        $isAdmin = $user->hasRole(['administrator', 'admin']);
+        $level = LevelUser::where('id', $user->level)->first();
+        $akses = $level ? $level->akses : [$user->level];
+
+        $currentYear = intval(date('Y'));
+        $today = Carbon::today();
+        $currentMonth = Carbon::now()->month;
+
+        // Base query scoped by role & level access
+        $inboxBase = Inbox::whereNull('on_delete');
+        $outboxBase = Outbox::whereNull('on_delete');
+
+        if (!$isAdmin) {
+            $inboxBase->where(function ($q) use ($akses, $user) {
+                $q->whereIn('posisi_level', $akses)
+                  ->orWhere('posisi_surat', $user->uuid)
+                  ->orWhere('created_by', $user->uuid);
+            });
+
+            $outboxBase->where(function ($q) use ($akses, $user) {
+                $q->whereIn('level_surat', $akses)
+                  ->orWhere('created_by', $user->uuid);
+            });
+        }
+
+        // Metrics
+        $masukHariIni = (clone $inboxBase)->whereDate('created_at', $today)->count();
+        $masukBulanIni = (clone $inboxBase)->whereYear('created_at', $currentYear)->whereMonth('created_at', $currentMonth)->count();
+
+        $keluarHariIni = (clone $outboxBase)->whereDate('created_at', $today)->count();
+        $keluarBulanIni = (clone $outboxBase)->whereYear('created_at', $currentYear)->whereMonth('created_at', $currentMonth)->count();
+
+        $suratSelesai = (clone $inboxBase)->where('status_surat', 'selesai')->count();
+
+        // Disposisi menunggu tindakan
+        $disposisiMenungguUser = Disposisi::where('penerima_uuid', $user->uuid)
+            ->where('is_completed', false)
+            ->whereNull('on_delete')
+            ->count();
+
+        $totalDisposisiGlobal = $isAdmin 
+            ? Disposisi::where('is_completed', false)->whereNull('on_delete')->count()
+            : $disposisiMenungguUser;
+
+        // Pending disposisi items for current user
+        $pendingDisposisis = Disposisi::with(['pengirim.leveluser', 'inbox'])
+            ->where('penerima_uuid', $user->uuid)
+            ->where('is_completed', false)
+            ->whereNull('on_delete')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        // Fallback for admin: if no direct personal pending disposisi, show latest ongoing inboxes
+        $recentInboxes = ($isAdmin && $pendingDisposisis->isEmpty())
+            ? (clone $inboxBase)->where('status_surat', 'diproses')->with(['posisi.leveluser'])->latest()->limit(5)->get()
+            : collect();
+
+        // Monthly Trend for Current Year
+        $inboxMonthly = (clone $inboxBase)
+            ->selectRaw('EXTRACT(MONTH FROM created_at) as m, count(*) as c')
+            ->whereYear('created_at', $currentYear)
+            ->groupBy('m')
+            ->pluck('c', 'm')
+            ->toArray();
+
+        $outboxMonthly = (clone $outboxBase)
+            ->selectRaw('EXTRACT(MONTH FROM created_at) as m, count(*) as c')
+            ->whereYear('created_at', $currentYear)
+            ->groupBy('m')
+            ->pluck('c', 'm')
+            ->toArray();
+
+        $trendMasuk = [];
+        $trendKeluar = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $trendMasuk[] = intval($inboxMonthly[$m] ?? 0);
+            $trendKeluar[] = intval($outboxMonthly[$m] ?? 0);
+        }
+
+        return view('home', compact(
+            'isAdmin',
+            'masukHariIni',
+            'masukBulanIni',
+            'keluarHariIni',
+            'keluarBulanIni',
+            'suratSelesai',
+            'disposisiMenungguUser',
+            'totalDisposisiGlobal',
+            'pendingDisposisis',
+            'recentInboxes',
+            'trendMasuk',
+            'trendKeluar',
+            'currentYear'
+        ));
     }
 
     public function list_surat()
