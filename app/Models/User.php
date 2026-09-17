@@ -75,8 +75,13 @@ class User extends Authenticatable
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function leveluser(): HasOne
+    // public function leveluser(): HasOne
+    // {
+    //     return $this->hasOne(LevelUser::class, 'id', 'level');
+    // }
+
+    public function leveluser(): BelongsTo
     {
-        return $this->hasOne(LevelUser::class, 'id', 'level');
+        return $this->belongsTo(LevelUser::class, 'level', 'id');
     }
 }

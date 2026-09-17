@@ -4,6 +4,8 @@ namespace App\Exports;
 
 use App\Models\Inbox;
 use Carbon\Carbon;
+use Illuminate\Support\Enumerable;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -28,16 +30,23 @@ class AgendaMasukExport implements FromCollection, WithHeadings, WithMapping, Sh
         $this->sifatId = $sifatId;
     }
 
-    public function collection()
+    public function collection(): Enumerable
     {
-        $query = Inbox::with(['sifat', 'klasifikasi', 'posisi:uuid,nama_lengkap'])
+        $query = Inbox::with(['sifat:id,nama_sifat', 'klasifikasi:id,klas3', 'posisi:id,uuid,nama_lengkap,level', 'posisi.leveluser:id,nama,warna'])
             ->whereNull('on_delete');
 
         if ($this->startDate && $this->endDate) {
-            $query->whereBetween('tgl_diterima', [
-                Carbon::parse($this->startDate)->format('Y-m-d'),
-                Carbon::parse($this->endDate)->format('Y-m-d'),
-            ]);
+            $startDate = Carbon::parse($this->startDate)->startOfDay();
+            $endDate = Carbon::parse($this->endDate)->endOfDay();
+            $sDateStr = Carbon::parse($this->startDate)->format('Y-m-d');
+            $eDateStr = Carbon::parse($this->endDate)->format('Y-m-d');
+
+            $query->where(function ($q) use ($startDate, $endDate, $sDateStr, $eDateStr) {
+                $q->whereBetween('created_at', [$startDate, $endDate])
+                  ->orWhereBetween('tgl_surat', [$sDateStr, $eDateStr]);
+            });
+        } else {
+            $query->where('year', date('Y'));
         }
 
         if ($this->sifatId) {
@@ -79,7 +88,8 @@ class AgendaMasukExport implements FromCollection, WithHeadings, WithMapping, Sh
             $inbox->sifat->nama_sifat ?? '-',
             $inbox->klasifikasi->klas3 ?? '-',
             strtoupper($inbox->status_surat),
-            $inbox->posisi->nama_lengkap ?? '-',
+            // $inbox->posisi->nama_lengkap ?? '-',
+            $inbox->posisi->leveluser->nama ?? '-',
         ];
     }
 

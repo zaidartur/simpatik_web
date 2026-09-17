@@ -9,26 +9,26 @@
             margin: 1cm;
         }
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11px;
             margin: 0;
-        }
-        .half-page {
-            /* height: 14.85cm; Half of A4 (29.7cm / 2) */
-            /* border: 1px solid #000; */
-            padding: 10px;
-            margin-left: 20px;
-            margin-right: 20px;
+            color: #333;
         }
         table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 10.5px;
         }
         td, th {
             border: 1px solid #000;
-            padding: 4px 6px;
+            padding: 4px 5px;
             vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        tr {
+            page-break-inside: avoid;
         }
         .center { text-align: center; }
         .no-border td, .no-border th { border: none; }
@@ -36,15 +36,6 @@
             font-weight: bold;
             text-align: center;
             font-size: 12px;
-            /* margin-bottom: 8px; */
-        }
-        .disposisi-list {
-            margin-bottom: 2px;
-        }
-        .disposisi-box {
-            height: 80px;
-            border: 1px solid #000;
-            margin-top: 5px;
         }
     </style>
 </head>
@@ -79,63 +70,88 @@
         <thead>
             <tr>
                 <th style="width:5%; vertical-align: middle; text-align: left;">NO. AGENDA</th>
-                <th style="width:10%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">KEPADA</th>
-                <th style="width:5%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">TGL. KIRIM /<br>TGL. SURAT /<br>NO. SURAT</th>
-                <th style="width:15%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">KLASIFIKASI /<br>KET. JRA /<br>ISI INFORMASI</th>
-                <th style="width:10%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DARI UNIT KERJA</th>
+                <th style="width:10%; vertical-align: middle; text-align: left;">KEPADA</th>
+                <th style="width:10%; vertical-align: middle; text-align: left;">TGL. KIRIM /<br>TGL. SURAT /<br>NO. SURAT</th>
+                <th style="width:24%; vertical-align: middle; text-align: left;">KLASIFIKASI /<br>KET. JRA /<br>ISI INFORMASI</th>
+                <th style="width:11%; vertical-align: middle; text-align: left;">DARI UNIT KERJA</th>
 
                 @role(['administrator'])
-                <th style="width: 18%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI SEKDA</th>
-                <th style="width: 18%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI WAKIL BUPATI</th>
-                <th style="width: 19%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI BUPATI</th>
+                <th style="width: 13%; vertical-align: middle; text-align: left;">DISPOSISI SEKDA</th>
+                <th style="width: 13%; vertical-align: middle; text-align: left;">DISPOSISI WAKIL BUPATI</th>
+                <th style="width: 14%; vertical-align: middle; text-align: left;">DISPOSISI BUPATI</th>
                 @endrole
 
                 @role(['umum', 'setda'])
-                <th style="width: 27%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI SEKDA</th>
-                <th style="width: 28%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI BUPATI</th>
+                <th style="width: 20%; vertical-align: middle; text-align: left;">DISPOSISI SEKDA</th>
+                <th style="width: 20%; vertical-align: middle; text-align: left;">DISPOSISI BUPATI</th>
                 @endrole
 
                 @role(['wabup'])
-                <th style="width: 30%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI WAKIL BUPATI</th>
+                <th style="width: 40%; vertical-align: middle; text-align: left;">DISPOSISI WAKIL BUPATI</th>
                 @endrole
 
                 @role(['bupati'])
-                <th style="width: 30%; vertical-align: middle; text-align: left; word-wrap: break-word; white-space: normal;">DISPOSISI BUPATI</th>
+                <th style="width: 40%; vertical-align: middle; text-align: left;">DISPOSISI BUPATI</th>
                 @endrole
             </tr>
         </thead>
         <tbody>
-            <tr>
-                @for ($t = 1; $t < 8; $t++)
-                <td>{{ $t }}</td>
-                @endfor
+            <tr style="text-align: center; font-weight: bold; background-color: #f2f2f2;">
+                <td>1</td>
+                <td>2</td>
+                <td>3</td>
+                <td>4</td>
+                <td>5</td>
+                @role(['administrator'])
+                <td>6</td>
+                <td>7</td>
+                <td>8</td>
+                @endrole
+                @role(['umum', 'setda'])
+                <td>6</td>
+                <td>7</td>
+                @endrole
+                @role(['wabup', 'bupati'])
+                <td>6</td>
+                @endrole
             </tr>
 
             @foreach ($data as $item)
+                @php
+                    $isObj = is_object($item);
+                    $noAgenda = $isObj ? ($item->no_agenda ?? $item->NOAGENDA ?? '-') : ($item['no_agenda'] ?? '-');
+                    $kepada = $isObj ? ($item->kepada ?? ($item->JENISSURAT == 'Masuk' ? $item->Posisi : $item->drkpd)) : ($item['kepada'] ?? '-');
+                    $row3 = $isObj ? ($item->row3 ?? (!empty($item->TGLENTRY) ? \Carbon\Carbon::parse($item->TGLENTRY)->isoFormat('DD-MM-YYYY') . '<br>' . \Carbon\Carbon::parse($item->TGLSURAT)->isoFormat('DD-MM-YYYY') . '<br>' . ($item->NOSURAT ?? '-') : '-')) : ($item['row3'] ?? '-');
+                    $row4 = $isObj ? ($item->row4 ?? (($item->KLAS3 ?? '-') . '<br><b>' . ($item->KETJRA ?? '') . '</b><br>' . ($item->ISI ?? '-'))) : ($item['row4'] ?? '-');
+                    $dari = $isObj ? ($item->dari ?? ($item->JENISSURAT == 'Keluar' ? $item->NAMAUP : $item->drkpd)) : ($item['dari'] ?? '-');
+                    $sekda = $isObj ? ($item->sekda ?? ($item->DisposisiSekda ?? '-')) : ($item['sekda'] ?? '-');
+                    $wakil = $isObj ? ($item->wakil ?? ($item->DisposisiWakil ?? '-')) : ($item['wakil'] ?? '-');
+                    $bupati = $isObj ? ($item->bupati ?? ($item->DisposisiBupati ?? '-')) : ($item['bupati'] ?? '-');
+                @endphp
                 <tr>
-                    <td>{{ $item->NOAGENDA }}</td>
-                    <td>{{ $item->JENISSURAT == 'Masuk' ? $item->Posisi : $item->drkpd }}</td>
-                    <td>{!! \Carbon\Carbon::parse($item->TGLENTRY)->isoFormat('DD-MM-YYYY'). '<br>' .\Carbon\Carbon::parse($item->TGLSURAT)->isoFormat('DD-MM-YYYY'). '<br>' .$item->NOSURAT !!}</td>
-                    <td>{!! $item->KLAS3. '<br><b>' .$item->KETJRA. '</b><br>' .$item->ISI !!}</td>
-                    <td>{{ $item->JENISSURAT == 'Keluar' ? $item->NAMAUP : $item->drkpd }}</td>
+                    <td>{!! $noAgenda !!}</td>
+                    <td>{{ $kepada }}</td>
+                    <td>{!! $row3 !!}</td>
+                    <td>{!! $row4 !!}</td>
+                    <td>{{ $dari }}</td>
 
                     @role(['administrator'])
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">' .(empty($item->tglsekda1) ? null : \Carbon\Carbon::parse($item->tglsekda1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiSekda !!}</td>
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">'. (empty($item->tglwakil) ? null : \Carbon\Carbon::parse($item->tglwakil)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiWakil !!}</td>
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">' .(empty($item->tglbupati1) ? null : \Carbon\Carbon::parse($item->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiBupati !!}</td>
+                    <td>{!! $sekda !!}</td>
+                    <td>{!! $wakil !!}</td>
+                    <td>{!! $bupati !!}</td>
                     @endrole
 
                     @role(['umum', 'setda'])
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">' .(empty($item->tglsekda1) ? null : \Carbon\Carbon::parse($item->tglsekda1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiSekda !!}</td>
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">' .(empty($item->tglbupati1) ? null : \Carbon\Carbon::parse($item->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiBupati !!}</td>
+                    <td>{!! $sekda !!}</td>
+                    <td>{!! $bupati !!}</td>
                     @endrole
 
                     @role(['wabup'])
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">'. (empty($item->tglwakil) ? null : \Carbon\Carbon::parse($item->tglwakil)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiWakil !!}</td>
+                    <td>{!! $wakil !!}</td>
                     @endrole
 
                     @role(['bupati'])
-                    <td>{!! '<b><p style="width: 100%; text-align: right;">' .(empty($item->tglbupati1) ? null : \Carbon\Carbon::parse($item->tglbupati1)->isoFormat('DD-MM-YYYY HH:mm')). '</p></b><br>' .$item->DisposisiBupati !!}</td>
+                    <td>{!! $bupati !!}</td>
                     @endrole
                 </tr>
             @endforeach

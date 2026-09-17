@@ -97,6 +97,7 @@ Route::prefix('/laporan')->middleware(['auth'])->group(function () {
     Route::get('/tabel-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_ssr'])->name('report.agenda.ssr');
     
     Route::get('/print-agenda', [App\Http\Controllers\LaporanController::class, 'agenda_print'])->name('report.agenda.print');
+    Route::get('/print-agenda-fpdf', [App\Http\Controllers\LaporanController::class, 'agenda_print_fpdf'])->name('report.agenda.print_fpdf');
     Route::get('/export-agenda', [App\Http\Controllers\LaporanController::class, 'export_agenda'])->middleware('throttle:exports')->name('report.agenda.export');
     Route::get('/export-statistik', [App\Http\Controllers\LaporanController::class, 'export_statistik'])->middleware('throttle:exports')->name('report.statistik.export');
 });

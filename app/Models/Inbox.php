@@ -106,9 +106,14 @@ class Inbox extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function posisi(): HasOne
+    // public function posisi(): HasOne
+    // {
+    //     return $this->hasOne(User::class, 'uuid', 'posisi_surat');
+    // }
+
+    public function posisi(): BelongsTo
     {
-        return $this->hasOne(User::class, 'uuid', 'posisi_surat');
+        return $this->belongsTo(User::class, 'posisi_surat', 'uuid');
     }
 
     /**

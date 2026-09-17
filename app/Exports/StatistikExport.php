@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Inbox;
 use App\Models\Outbox;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -23,7 +24,7 @@ class StatistikExport implements FromCollection, WithHeadings, WithMapping, Shou
         $this->year = $year ?: intval(date('Y'));
     }
 
-    public function collection()
+    public function collection(): Enumerable
     {
         $months = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',

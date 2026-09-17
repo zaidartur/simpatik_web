@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AgendaAllExport;
 use App\Exports\AgendaKeluarExport;
 use App\Exports\AgendaMasukExport;
 use App\Exports\StatistikExport;
 use App\Models\ArsipSurat;
 use App\Models\Inbox;
 use App\Models\Outbox;
+use App\Services\AgendaFpdfService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -23,7 +25,7 @@ class LaporanController extends Controller
     public function __construct() {
         $this->middleware('permission:statistik', ['only' => ['statistik', 'statistik_ssr']]);
         $this->middleware('permission:tindak lanjut', ['only' => ['tindak_lanjut', 'tindak_lanjut_ssr']]);
-        $this->middleware('permission:agenda', ['only' => ['agenda', 'agenda_ssr', 'agenda_print']]);
+        $this->middleware('permission:agenda', ['only' => ['agenda', 'agenda_ssr', 'agenda_print', 'agenda_print_fpdf']]);
     }
 
     public function statistik()
@@ -272,10 +274,16 @@ class LaporanController extends Controller
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
                 $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-                $query->whereBetween('created_at', [$startDate, $endDate]);
+                $sDateStr = $request->start_date;
+                $eDateStr = $request->end_date;
+
+                $query->where(function($q) use ($startDate, $endDate, $sDateStr, $eDateStr) {
+                    $q->whereBetween('created_at', [$startDate, $endDate])
+                      ->orWhereBetween('tgl_surat', [$sDateStr, $eDateStr]);
+                });
             }
 
-            $query->orderBy('created_at', 'ASC');
+            $query->orderBy('created_at', 'DESC');
 
             $totalData = $query->count();
 
@@ -403,38 +411,235 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function agenda_print() 
+    /**
+     * Helper terpusat untuk mengambil data agenda dan memformatnya secara konsisten untuk PDF (DomPDF & FPDF).
+     */
+    protected function getAgendaExportData(Request $request): array
     {
-        ini_set('memory_limit', '1024M');
-        set_time_limit(300);
-
-        $request = Request();
         $year    = !empty($request->tahun) ? $request->tahun : date('Y');
         $month   = $request->bulan;
         $type    = $request->jenis;
 
-        $query   = ArsipSurat::where('TAHUN', $year);
-        if (!empty($type) && in_array($type, ['Masuk', 'Keluar'])) {
-            $query->where('JENISSURAT', $type);
-        }
-        // if (!empty($month) && (intval($month) > 0 && intval($month) < 13)) {
-        //     $query->where('BULAN', (intval($month) < 10 ? '0'.$month : $month));
-        // }
-        if (isset($request->start_date) && !empty($request->start_date) && isset($request->end_date) && !empty($request->end_date)) {
+        $startDate = null;
+        $endDate = null;
+        $sDateStr = null;
+        $eDateStr = null;
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
             $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
             $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-            $query->whereBetween('TGLENTRY', [$startDate, $endDate]);
-        } else {
-            return '<script>alert("Rentang waktu harus diisi untuk mencetak laporan agenda."); window.close();</script>';
-        }
-        
-        $res = $query->orderBy('noagenda2', 'ASC')->get();
+            $sDateStr = $request->start_date;
+            $eDateStr = $request->end_date;
 
-        $pdf = $this->build_pdf($res, $type, $year, $month, $request->start_date, $request->end_date);
-        return $pdf->stream('agenda_' .$year.$month. '.pdf');
+            // Validasi batas maksimal 31 hari untuk keamanan performa render PDF
+            if ($startDate->diffInDays($endDate) > 31) {
+                throw new \InvalidArgumentException('Rentang waktu cetak PDF maksimal 31 hari (1 bulan). Silakan gunakan fitur Ekspor Excel untuk rentang waktu yang lebih panjang.');
+            }
+        }
+
+        $filterDate = function($q) use ($startDate, $endDate, $sDateStr, $eDateStr, $year) {
+            if ($startDate && $endDate) {
+                $q->where(function ($sub) use ($startDate, $endDate, $sDateStr, $eDateStr) {
+                    $sub->whereBetween('created_at', [$startDate, $endDate])
+                        ->orWhereBetween('tgl_surat', [$sDateStr, $eDateStr]);
+                });
+            } elseif (!empty($year)) {
+                $q->where('year', $year);
+            }
+        };
+
+        $getDisposisiInfo = function($disposisis, $target) {
+            if (!$disposisis || $disposisis->isEmpty()) return '-';
+            $found = $disposisis->first(function($d) use ($target) {
+                $senderLevel = strtolower($d->pengirim?->leveluser?->nama ?? '');
+                if ($target === 'bupati') {
+                    return $d->id_pimpinan == 1 || str_contains($senderLevel, 'bupati') || ($d->pengirim && $d->pengirim->hasRole('bupati'));
+                }
+                if ($target === 'wakil') {
+                    return $d->id_pimpinan == 3 || str_contains($senderLevel, 'wakil') || ($d->pengirim && $d->pengirim->hasRole('wabup'));
+                }
+                if ($target === 'sekda') {
+                    return $d->id_pimpinan == 4 || str_contains($senderLevel, 'sekda') || str_contains($senderLevel, 'sekretaris daerah') || ($d->pengirim && $d->pengirim->hasRole('setda'));
+                }
+                return false;
+            });
+
+            if ($found && !empty($found->catatan_disposisi)) {
+                $tgl = $found->created_at ? Carbon::parse($found->created_at)->isoFormat('DD-MM-YYYY HH:mm') : '';
+                return '<b><p style="width: 100%; text-align: right;">' . $tgl . '</p></b><br>' . e($found->catatan_disposisi);
+            }
+
+            return '-';
+        };
+
+        $inboxSelect = [
+            'id', 'uuid', 'no_agenda', 'no_surat', 'tgl_surat', 'created_at',
+            'isi_surat', 'perihal', 'dari', 'id_klasifikasi', 'sifat_surat',
+            'created_by', 'posisi_surat', 'nama_berkas', 'wilayah'
+        ];
+        $outboxSelect = [
+            'id', 'uuid', 'no_agenda', 'no_surat', 'tgl_surat', 'created_at',
+            'isi_surat', 'perihal', 'kepada', 'id_klasifikasi', 'sifat_surat',
+            'created_by', 'unit', 'id_unit', 'wilayah'
+        ];
+
+        $inboxWith = [
+            'klasifikasi:id,klas3,ket_jra',
+            'creator:id,nama_lengkap,level',
+            'creator.leveluser:id,nama',
+            'disposisi:id,uid_surat,catatan_disposisi,created_at,id_pimpinan,pengirim_uuid',
+            'disposisi.pengirim:id,uuid,nama_lengkap,level',
+            'disposisi.pengirim.leveluser:id,nama',
+            'disposisi.pimpinan:id,nama,level',
+        ];
+        $outboxWith = [
+            'klasifikasi:id,klas3,ket_jra',
+            'creator:id,nama_lengkap,level',
+            'creator.leveluser:id,nama',
+            'pengolah:id,nama_unit',
+        ];
+
+        if ($type === 'Keluar') {
+            $queryOutbox = Outbox::whereNull('on_delete')->select($outboxSelect)->with($outboxWith);
+            $filterDate($queryOutbox);
+            $items = $queryOutbox->orderBy('no_agenda', 'ASC')->get();
+        } elseif ($type === 'Masuk') {
+            $queryInbox = Inbox::whereNull('on_delete')->select($inboxSelect)->with($inboxWith);
+            $filterDate($queryInbox);
+            $items = $queryInbox->orderBy('no_agenda', 'ASC')->get();
+        } else {
+            // Semua (Masuk dan Keluar digabungkan)
+            $queryInbox = Inbox::whereNull('on_delete')->select($inboxSelect)->with($inboxWith);
+            $filterDate($queryInbox);
+            $inboxList = $queryInbox->get();
+
+            $queryOutbox = Outbox::whereNull('on_delete')->select($outboxSelect)->with($outboxWith);
+            $filterDate($queryOutbox);
+            $outboxList = $queryOutbox->get();
+
+            $items = $inboxList->concat($outboxList)->sortByDesc(function($item) {
+                return $item->created_at;
+            });
+        }
+
+        $data = [];
+        foreach ($items as $row) {
+            $isKeluar = ($row instanceof Outbox);
+            $tglKirim = $row->created_at ? Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY') : '-';
+            $tglSurat = $row->tgl_surat ? Carbon::parse($row->tgl_surat)->isoFormat('DD-MM-YYYY') : '-';
+            $noSurat = e($row->no_surat ?? '-');
+
+            $klas3 = e($row->klasifikasi->klas3 ?? '-');
+            $ketJra = e($row->klasifikasi->ket_jra ?? '');
+            $isiSurat = e($row->isi_surat ?? $row->perihal ?? '-');
+
+            $kepada = $isKeluar ? ($row->kepada ?? '-') : ($row->kepada ?? 'Sekretariat Daerah');
+            $dari = $isKeluar
+                ? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? ($row->unit ?? 'Sekretariat Daerah')))
+                : ($row->dari ?? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? '-')));
+
+            $disposisis = $isKeluar ? collect([]) : ($row->disposisi ?? collect([]));
+
+            $noAgenda = $row->no_agenda ?? '-';
+            if (empty($type)) {
+                $labelJenis = $isKeluar ? '[Keluar]' : '[Masuk]';
+                $noAgenda = $noAgenda . '<br><small>' . $labelJenis . '</small>';
+            }
+
+            $data[] = [
+                'no_agenda'   => $noAgenda,
+                'jenis_surat' => $isKeluar ? 'Keluar' : 'Masuk',
+                'kepada'      => $kepada,
+                'row3'        => $tglKirim . '<br>' . $tglSurat . '<br>' . $noSurat,
+                'row4'        => $klas3 . '<br><b>' . $ketJra . '</b><br>' . $isiSurat,
+                'dari'        => $dari,
+                'sekda'       => $getDisposisiInfo($disposisis, 'sekda'),
+                'bupati'      => $getDisposisiInfo($disposisis, 'bupati'),
+                'wakil'       => $getDisposisiInfo($disposisis, 'wakil'),
+            ];
+        }
+
+        unset($items, $inboxList, $outboxList);
+
+        if (!empty($request->start_date) && !empty($request->end_date)) {
+            $rangeFormatted = Carbon::createFromFormat('Y-m-d', $request->start_date)->isoFormat('DD MMMM YYYY') . ' s/d ' . Carbon::createFromFormat('Y-m-d', $request->end_date)->isoFormat('DD MMMM YYYY');
+        } elseif (!empty($month) && !empty($year)) {
+            $rangeFormatted = 'Bulan: ' . Carbon::createFromDate((int)$year, (int)$month, 1)->isoFormat('MMMM YYYY');
+        } elseif (!empty($year)) {
+            $rangeFormatted = 'Tahun: ' . $year;
+        } else {
+            $rangeFormatted = '';
+        }
+
+        return [
+            'data'       => $data,
+            'type'       => $type,
+            'year'       => $year,
+            'month'      => $month,
+            'range'      => $rangeFormatted,
+            'start_date' => $request->start_date,
+            'end_date'   => $request->end_date,
+        ];
     }
 
-    public function build_pdf($agenda, $type, $tahun, $bulan, $start_date = null, $end_date = null)
+    /**
+     * Cetak Laporan Agenda menggunakan Engine DomPDF (Dioptimalkan).
+     */
+    public function agenda_print(Request $request) 
+    {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
+
+        try {
+            $exportData = $this->getAgendaExportData($request);
+        } catch (\InvalidArgumentException $e) {
+            return '<script>alert("' . e($e->getMessage()) . '"); window.close();</script>';
+        }
+
+        $pdf = $this->build_pdf(
+            $exportData['data'],
+            $exportData['type'],
+            $exportData['year'],
+            $exportData['month'],
+            $exportData['start_date'],
+            $exportData['end_date'],
+            $exportData['range']
+        );
+
+        return $pdf->stream('agenda_dompdf_' . $exportData['year'] . ($exportData['month'] ?: date('m')) . '.pdf');
+    }
+
+    /**
+     * Cetak Laporan Agenda menggunakan Engine Native FPDF (Cepat & Hemat RAM).
+     */
+    public function agenda_print_fpdf(Request $request)
+    {
+        ini_set('memory_limit', '128M');
+        set_time_limit(120);
+
+        try {
+            $exportData = $this->getAgendaExportData($request);
+        } catch (\InvalidArgumentException $e) {
+            return '<script>alert("' . e($e->getMessage()) . '"); window.close();</script>';
+        }
+
+        $fpdfService = new AgendaFpdfService();
+        $pdfContent = $fpdfService->build(
+            $exportData['data'],
+            $exportData['type'] ?? '',
+            $exportData['range'],
+            $request->user()
+        );
+
+        $fileName = 'agenda_fpdf_' . $exportData['year'] . ($exportData['month'] ?: date('m')) . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+        ]);
+    }
+
+    public function build_pdf($agenda, $type, $tahun, $bulan, $start_date = null, $end_date = null, $range = null)
     {
         $pdf = Pdf::setPaper('legal', 'landscape');
         $pdf->setOption([
@@ -443,14 +648,16 @@ class LaporanController extends Controller
             'isPhpEnabled' => false,
             'isRemoteEnabled' => false,
             'isHtml5ParserEnabled' => true,
+            'isFontSubsettingEnabled' => true,
+            'defaultFont' => 'Helvetica',
         ]);
-        // $pdf = Pdf::setPaper([0, 0, 792, 612], 'portrait');
+
         $data = [
             'data'  => $agenda,
             'jenis' => $type,
             'tahun' => $tahun,
             'bulan' => $bulan,
-            'range' => (!empty($start_date) && !empty($end_date) ? Carbon::createFromFormat('Y-m-d', $start_date)->isoFormat('DD MMMM YYYY') . ' s/d ' . Carbon::createFromFormat('Y-m-d', $end_date)->isoFormat('DD MMMM YYYY') : ''),
+            'range' => $range ?? (!empty($start_date) && !empty($end_date) ? Carbon::createFromFormat('Y-m-d', $start_date)->isoFormat('DD MMMM YYYY') . ' s/d ' . Carbon::createFromFormat('Y-m-d', $end_date)->isoFormat('DD MMMM YYYY') : ''),
         ];
         $pdf->loadView('main.laporan.template_agenda', $data);
         return $pdf;
@@ -461,6 +668,9 @@ class LaporanController extends Controller
      */
     public function export_agenda(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $startDate = $request->start_date;
         $endDate = $request->end_date;
         $jenis = $request->jenis;
@@ -469,9 +679,11 @@ class LaporanController extends Controller
 
         if ($jenis === 'Keluar') {
             return Excel::download(new AgendaKeluarExport($startDate, $endDate), $fileName);
+        } elseif ($jenis === 'Masuk') {
+            return Excel::download(new AgendaMasukExport($startDate, $endDate), $fileName);
         }
 
-        return Excel::download(new AgendaMasukExport($startDate, $endDate), $fileName);
+        return Excel::download(new AgendaAllExport($startDate, $endDate), $fileName);
     }
 
     /**
@@ -479,6 +691,9 @@ class LaporanController extends Controller
      */
     public function export_statistik(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $year = intval($request->input('year', date('Y')));
         $fileName = 'Statistik_Persuratan_' . $year . '_' . date('Ymd_His') . '.xlsx';
 

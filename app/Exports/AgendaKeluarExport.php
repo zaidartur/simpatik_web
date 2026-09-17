@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Outbox;
 use Carbon\Carbon;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -25,16 +26,23 @@ class AgendaKeluarExport implements FromCollection, WithHeadings, WithMapping, S
         $this->endDate = $endDate;
     }
 
-    public function collection()
+    public function collection(): Enumerable
     {
-        $query = Outbox::with(['sifat', 'klasifikasi', 'pengolah'])
+        $query = Outbox::with(['sifat:id,nama_sifat', 'klasifikasi:id,klas3', 'pengolah:id,nama_unit'])
             ->whereNull('on_delete');
 
         if ($this->startDate && $this->endDate) {
-            $query->whereBetween('tgl_surat', [
-                Carbon::parse($this->startDate)->format('Y-m-d'),
-                Carbon::parse($this->endDate)->format('Y-m-d'),
-            ]);
+            $startDate = Carbon::parse($this->startDate)->startOfDay();
+            $endDate = Carbon::parse($this->endDate)->endOfDay();
+            $sDateStr = Carbon::parse($this->startDate)->format('Y-m-d');
+            $eDateStr = Carbon::parse($this->endDate)->format('Y-m-d');
+
+            $query->where(function ($q) use ($startDate, $endDate, $sDateStr, $eDateStr) {
+                $q->whereBetween('created_at', [$startDate, $endDate])
+                  ->orWhereBetween('tgl_surat', [$sDateStr, $eDateStr]);
+            });
+        } else {
+            $query->where('year', date('Y'));
         }
 
         return $query->orderBy('no_agenda', 'asc')->get();
@@ -70,7 +78,7 @@ class AgendaKeluarExport implements FromCollection, WithHeadings, WithMapping, S
             $outbox->kepada,
             $outbox->wilayah ?: '-',
             $outbox->perihal,
-            $outbox->pengolah->nama ?? ($outbox->unit ?: '-'),
+            $outbox->pengolah->nama_unit ?? ($outbox->unit ?: '-'),
             $outbox->sifat->nama_sifat ?? '-',
             $outbox->klasifikasi->klas3 ?? '-',
         ];
