@@ -1,0 +1,27 @@
+name: Mirror to GitLab
+
+on:
+  push:
+    branches:
+      - dev # Ubah ke 'master' jika repo Anda menggunakan master
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Mengambil seluruh riwayat commit
+
+      - name: Push to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_USERNAME: "soeroso" # Ganti dengan username GitLab Anda
+          GITLAB_REPO: "simpatik-web" # Ganti dengan nama repo GitLab Anda
+        run: |
+          # Menambahkan remote URL GitLab beserta token autentikasi
+          git remote add gitlab https://oauth2:$GITLAB_TOKEN@git.karanganyarkab.go.id/$GITLAB_USERNAME/$GITLAB_REPO.git
+          
+          # Mendorong paksa (force push) pembaruan ke branch main di GitLab
+          git push gitlab main --force
