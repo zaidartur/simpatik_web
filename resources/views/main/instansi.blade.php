@@ -78,7 +78,7 @@
                                             <a href="javascript:void(0)" onclick="_edit('{{ base64_encode(json_encode($ins)) }}')" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Instansi">
                                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                             </a>
-                                            <button type="button" class="btn btn-danger bs-tooltip" onclick="_delete('{{ $ins->INSTANSI }}', '{{ Crypt::encryptString($ins->id) }}')" title="Hapus Instansi">
+                                            <button type="button" class="btn btn-danger bs-tooltip" onclick="_delete('{{ addslashes($ins->nama_unit ?? $ins->INSTANSI) }}', '{{ Crypt::encryptString($ins->id) }}')" title="Hapus Instansi">
                                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                             </button>
                                         </div>
@@ -101,7 +101,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="userLabel">Buat User</h5>
+                <h5 class="modal-title" id="userLabel">Tambah Instansi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
@@ -155,8 +155,8 @@
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group mb-4">
-                                                            <label for="telepon">Website</label>
-                                                            <input type="url" class="form-control" id="telepon" name="telepon" placeholder="https://">
+                                                            <label for="website">Website</label>
+                                                            <input type="url" class="form-control" id="website" name="website" placeholder="https://">
                                                         </div>
                                                     </div>
                                                     <div class="col-6">
@@ -267,11 +267,12 @@
                 $('.form-ins').attr("action", "{{ route('instansi.update') }}")
                 
                 $('#uid').val(data.id)
-                $('#nama').val(data.INSTANSI)
-                $('#akronim').val(data.Akronim)
-                $('#kode').val(data.KODE)
-                $('#alamat').val(data.ALAMAT)
-                $('#telepon').val(data.TELEPON)
+                $('#nama').val(data.nama_unit || data.INSTANSI || '')
+                $('#akronim').val(data.akronim || data.Akronim || '')
+                $('#kode').val(data.kode || data.KODE || '')
+                $('#alamat').val(data.alamat || data.ALAMAT || '')
+                $('#website').val(data.website || data.TELEPON || '')
+                $('#email').val(data.email || data.EMAIL || '')
 
                 $('#modalInstansi').modal('show')
             } else {

@@ -29,7 +29,8 @@ class InstansiController extends Controller
             'akronim'   => 'required|string|max:20',
             'kode'      => 'required|string|max:10',
             'alamat'    => 'nullable|string|max:255',
-            'telepon'   => 'nullable|string|max:15',
+            'website'   => 'nullable|string|max:255',
+            'telepon'   => 'nullable|string|max:255',
             'email'     => 'nullable|email|max:100',
         ]);
 
@@ -38,7 +39,7 @@ class InstansiController extends Controller
         $instansi->akronim  = $request->akronim;
         $instansi->kode     = $request->kode;
         $instansi->alamat   = $request->alamat;
-        $instansi->website  = $request->telepon;
+        $instansi->website  = $request->website ?? $request->telepon;
         $instansi->email    = $request->email;
         
         if ($instansi->save()) {
@@ -51,21 +52,26 @@ class InstansiController extends Controller
     public function update_instansi(Request $request)
     {
         $request->validate([
-            'uid'       => 'required|string',
+            'uid'       => 'required',
             'nama'      => 'required|string|max:100',
             'akronim'   => 'required|string|max:20',
             'kode'      => 'required|string|max:10',
             'alamat'    => 'nullable|string|max:255',
-            'telepon'   => 'nullable|string|max:15',
+            'website'   => 'nullable|string|max:255',
+            'telepon'   => 'nullable|string|max:255',
             'email'     => 'nullable|email|max:100',
         ]);
 
         $instansi = DataUnit::find($request->uid);
+        if (!$instansi) {
+            return redirect()->back()->with('error', 'Data instansi tidak ditemukan.');
+        }
+
         $instansi->nama_unit = $request->nama;
         $instansi->akronim  = $request->akronim;
         $instansi->kode     = $request->kode;
         $instansi->alamat   = $request->alamat;
-        $instansi->website  = $request->telepon;
+        $instansi->website  = $request->website ?? $request->telepon;
         $instansi->email    = $request->email;
         
         if ($instansi->save()) {

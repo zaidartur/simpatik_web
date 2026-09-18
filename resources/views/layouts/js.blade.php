@@ -26,6 +26,17 @@
             }
         })
 
+        // Global override: alihkan semua alert() browser bawaan ke SweetAlert2
+        window.alert = function(message) {
+            return Swal.fire({
+                title: 'Informasi',
+                text: typeof message === 'object' ? JSON.stringify(message) : message,
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4361ee'
+            });
+        };
+
         function _logout() {
             Swal.fire({
                 title: 'Logout Sesi',

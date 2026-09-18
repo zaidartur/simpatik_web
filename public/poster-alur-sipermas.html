@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poster Alur Tata Naskah Dinas & Pelaporan - SIPERMAS Karanganyar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #0f172a;
+            --primary-light: #3b82f6;
+            --emerald: #047857;
+            --amber: #b45309;
+            --slate: #334155;
+            --border: #cbd5e1;
+            --bg-card: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #e2e8f0;
+            color: #0f172a;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* A4 Canvas */
+        .poster-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            padding: 12mm 14mm;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            border-bottom: 2.5px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand-badge {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(30, 58, 138, 0.2);
+        }
+
+        .header-titles h1 {
+            font-size: 15pt;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .header-titles h2 {
+            font-size: 9pt;
+            font-weight: 700;
+            color: var(--slate);
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-titles p {
+            font-size: 7.5pt;
+            color: #64748b;
+            margin-top: 1px;
+        }
+
+        .badge-regulasi {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 7pt;
+            font-weight: 700;
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        /* Section Layout */
+        .section {
+            margin-bottom: 11px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            position: relative;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .section-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 9pt;
+        }
+
+        .section-num.green { background: var(--emerald); }
+        .section-num.amber { background: var(--amber); }
+
+        .section-title {
+            font-size: 10pt;
+            font-weight: 800;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        /* Flow Grid */
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            position: relative;
+        }
+
+        .flow-grid.five-cols {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .flow-grid.three-cols {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .card-step {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 7px 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .card-step-header {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 4px;
+        }
+
+        .step-tag {
+            font-size: 6.5pt;
+            font-weight: 800;
+            padding: 1.5px 5px;
+            border-radius: 4px;
+            color: #fff;
+            background: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .step-tag.green { background: var(--emerald); }
+        .step-tag.amber { background: var(--amber); }
+        .step-tag.slate { background: var(--slate); }
+
+        .step-title {
+            font-size: 7.5pt;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .step-actor {
+            font-size: 7pt;
+            font-weight: 700;
+            color: var(--primary-light);
+            margin-bottom: 3px;
+        }
+
+        .step-desc {
+            font-size: 6.5pt;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        .step-desc ul {
+            padding-left: 11px;
+            margin-top: 2px;
+        }
+
+        .step-desc li {
+            margin-bottom: 1.5px;
+        }
+
+        .step-footer-badge {
+            margin-top: 4px;
+            padding-top: 3px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 6pt;
+            font-weight: 700;
+            color: var(--emerald);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* Callout Box */
+        .callout-box {
+            margin-top: 6px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 5px;
+            padding: 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 6.5pt;
+            color: #166534;
+        }
+
+        .callout-icon {
+            font-size: 10pt;
+            font-weight: 800;
+        }
+
+        /* Footer */
+        .footer {
+            border-top: 1.5px solid #cbd5e1;
+            padding-top: 8px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 6.5pt;
+            color: #64748b;
+        }
+
+        .footer-left {
+            font-weight: 600;
+        }
+
+        /* Print Button Floating */
+        .btn-print {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: var(--primary);
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-size: 10pt;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            transition: all 0.2s ease;
+        }
+
+        .btn-print:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+
+            .poster-container {
+                width: 100%;
+                min-height: auto;
+                box-shadow: none;
+                padding: 10mm 12mm;
+            }
+
+            .btn-print {
+                display: none;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-print" onclick="window.print()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Cetak Poster (A4)
+    </button>
+
+    <div class="poster-container">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <div class="header-brand-badge">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div class="header-titles">
+                    <h1>SIPERMAS &mdash; ALUR PERSURATAN DINAS & PELAPORAN</h1>
+                    <h2>Sistem Informasi Manajemen Persuratan & Disposisi</h2>
+                    <p>Bagan Prosedur Standar Operasional Persuratan Masuk, Surat Keluar, Disposisi & Eksekutif Reporting</p>
+                </div>
+            </div>
+            <div class="badge-regulasi">
+                SESUAI REGULASI<br>
+                <strong>PERMENDAGRI NO. 1 / 2023</strong><br>
+                <span>Tata Naskah Dinas Pemda</span>
+            </div>
+        </header>
+
+        <!-- SECTION 1: SURAT MASUK & DISPOSISI -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-num">1</div>
+                <div class="section-title">Alur Surat Masuk & Disposisi (Dua Arah: Top-Down & Bottom-Up)</div>
+            </div>
+            <div class="flow-grid five-cols">
+                <!-- Step 1 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag">Tahap 1</span>
+                        <div class="step-title">Input & Registrasi</div>
+                    </div>
+                    <div class="step-actor">Aktor: TU Umum (Level 9)</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Input nomor & tgl surat, instansi pengirim, perihal.</li>
+                            <li>Pilih Kode Klasifikasi & JRA.</li>
+                            <li>Upload scan berkas (Sanitasi PDF/JPG ke private).</li>
+                            <li>Terbit otomatis <strong>No. Agenda</strong>.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">✓ Agenda Otomatis</div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag">Tahap 2</span>
+                        <div class="step-title">Penerusan Awal</div>
+                    </div>
+                    <div class="step-actor">Aktor: TU Umum (Level 9)</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Meneruskan surat masuk:</li>
+                            <li><strong>Jalur Utama:</strong> Ke Sekda (Level 3).</li>
+                            <li><strong>Jalur Khusus:</strong> Ke Bupati (Level 8) / Wabup (Level 7).</li>
+                            <li>Notifikasi real-time terkirim ke akun tujuan.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">➔ Disposisi Awal</div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag green">Tahap 3</span>
+                        <div class="step-title">Arahan Pimpinan</div>
+                    </div>
+                    <div class="step-actor">Aktor: Bupati / Wabup / Sekda</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li><strong>Bupati/Wabup:</strong> Beri arahan & disposisi turun ke Sekda atau Asisten 1/2/3.</li>
+                            <li><strong>Sekda:</strong> Poros koordinasi; mendisposisikan ke Asisten 1, 2, 3, Staf Ahli, atau Bag. Umum.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">✓ Disposisi Top-Down</div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag amber">Tahap 4</span>
+                        <div class="step-title">Tindak Lanjut & Tanggapan</div>
+                    </div>
+                    <div class="step-actor">Aktor: Asisten 1/2/3 & Bagian</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Asisten menelaah sesuai bidang tugas.</li>
+                            <li>Input catatan telaahan via tombol <strong>Disposisi Surat</strong>.</li>
+                            <li>Dapat meneruskan teknis ke Bagian Umum.</li>
+                            <li>Catatan tersimpan dengan penandatangan.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">✓ Catatan Terintegrasi</div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag slate">Tahap 5</span>
+                        <div class="step-title">Penyelesaian & Cetak</div>
+                    </div>
+                    <div class="step-actor">Status: Selesai / Arsip</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Status surat otomatis berubah <strong>Selesai</strong>.</li>
+                            <li>Cetak <strong>Lembar Disposisi Resmi</strong> (Format Standar Naskah Dinas).</li>
+                            <li>Cetak <strong>Kartu Surat Masuk</strong> untuk arsip buku ekspedisi.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">★ Cetak Dokumen Legal</div>
+                </div>
+            </div>
+
+            <div class="callout-box">
+                <span class="callout-icon">💡</span>
+                <div><strong>Fitur Tracking Real-Time:</strong> Pimpinan (Sekda, Bupati, Wabup, Asisten) <em>tetap dapat memonitor</em> surat yang pernah diteruskan/didisposisikan di tabelnya. Surat tidak hilang meskipun posisi surat berpindah tangan ke bawahan.</div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: SURAT KELUAR & DUPLIKASI -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-num green">2</div>
+                <div class="section-title">Alur Persuratan Keluar & Integrasi SPPD</div>
+            </div>
+            <div class="flow-grid">
+                <!-- Step 1 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag green">Langkah 1</span>
+                        <div class="step-title">Penyusunan & Pengajuan</div>
+                    </div>
+                    <div class="step-actor">Aktor: Unit Pengolah / Staf / TU</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Input instansi tujuan (Kepada), wilayah, perihal, isi ringkas.</li>
+                            <li>Pilih Kode Klasifikasi & Unit Pengolah.</li>
+                            <li>Isi tanggal surat, tanggal naik, & diteruskan.</li>
+                            <li>Upload draft/softcopy scan resmi.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">✓ Registrasi Naskah</div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag green">Langkah 2</span>
+                        <div class="step-title">Penomoran Agenda & SPPD</div>
+                    </div>
+                    <div class="step-actor">Aktor: Sistem SIPERMAS</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Sistem otomatis menerbitkan <strong>No. Agenda Keluar</strong> urut per tahun.</li>
+                            <li><strong>Integrasi SPPD (Jika Ada):</strong> Mencatat No. SPD, nama pejabat, tujuan, kendaraan, tgl berangkat.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">✓ No. Agenda Terverifikasi</div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag amber">Langkah 3</span>
+                        <div class="step-title">Koreksi Data (Edit)</div>
+                    </div>
+                    <div class="step-actor">Aktor: Pengguna Berwenang</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Tersedia tombol <strong>Edit (Kuning)</strong> di tabel aksi.</li>
+                            <li>Memungkinkan koreksi kesalahan ketik nomor surat, perihal, tanggal, atau revisi softcopy sebelum diarsipkan permanen.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">✓ Tombol Edit Aktif</div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag slate">Langkah 4</span>
+                        <div class="step-title">Duplikasi & Cetak Kartu</div>
+                    </div>
+                    <div class="step-actor">Aktor: Agendator / TU Umum</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li><strong>Fitur Duplikasi Surat:</strong> Membuat penomoran rentang urut otomatis (misal: 10 undangan/SK sekaligus).</li>
+                            <li>Cetak Kartu Kendali Surat Keluar.</li>
+                            <li>File duplikat aman di <code>storage/app/private</code>.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">★ Output Selesai</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: MODUL PELAPORAN EKSEKUTIF -->
+        <section class="section" style="margin-bottom: 0;">
+            <div class="section-header">
+                <div class="section-num amber">3</div>
+                <div class="section-title">Modul Laporan & Eksekutif Dashboard (Multi-Format Export)</div>
+            </div>
+            <div class="flow-grid three-cols">
+                <!-- Laporan 1 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag amber">Modul 1</span>
+                        <div class="step-title">Laporan Buku Agenda</div>
+                    </div>
+                    <div class="step-actor">Cakupan: Surat Masuk, Keluar, & Semua</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Menampilkan buku agenda berdasarkan filter rentang tanggal, bulan, dan tahun.</li>
+                            <li>Opsi Cetak PDF DomPDF (A4 Landscape).</li>
+                            <li>Opsi Cetak PDF Native FPDF (Cepat, 10x lebih hemat memori, format standar).</li>
+                            <li>Ekspor Excel (.xlsx) rapi multi-sheet.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">📊 PDF + FPDF + Excel</div>
+                </div>
+
+                <!-- Laporan 2 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag green">Modul 2</span>
+                        <div class="step-title">Laporan Tindak Lanjut</div>
+                    </div>
+                    <div class="step-actor">Cakupan: Monitoring Disposisi Pimpinan</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Tabel komprehensif 10 kolom: Nomor Surat, Pengirim, Perihal, Disposisi Sekda, Wabup, Bupati, Posisi, & Status.</li>
+                            <li>Filter rentang waktu Flatpickr terintegrasi.</li>
+                            <li><strong>Cetak PDF Resmi:</strong> Legal Landscape berkop standar tata naskah dinas.</li>
+                            <li>Ekspor Excel resmi dengan header biru.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">📋 PDF Legal + Excel</div>
+                </div>
+
+                <!-- Laporan 3 -->
+                <div class="card-step">
+                    <div class="card-step-header">
+                        <span class="step-tag">Modul 3</span>
+                        <div class="step-title">Laporan Statistik</div>
+                    </div>
+                    <div class="step-actor">Cakupan: Analisis Volume Persuratan</div>
+                    <div class="step-desc">
+                        <ul>
+                            <li>Rekapitulasi total surat masuk & keluar per bulan dan per tahun.</li>
+                            <li>Distribusi berdasarkan Kode Klasifikasi Arsip.</li>
+                            <li>Distribusi berdasarkan Sifat Surat & Media.</li>
+                            <li>Analisis beban kerja unit pengolah.</li>
+                            <li>Ekspor Excel (.xlsx) untuk laporan berkala.</li>
+                        </ul>
+                    </div>
+                    <div class="step-footer-badge">📈 Excel Statistik</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-left">
+                SIPERMAS v0.6.0 &bull; Sistem Informasi Manajemen Persuratan &bull; Standar Tata Naskah Dinas
+            </div>
+            <div class="footer-right">
+                Penyimpanan Privat Terproteksi: <code>storage/app/private/</code> &bull; Cetak A4 Portrait 300 DPI
+            </div>
+        </footer>
+    </div>
+
+</body>
+</html>

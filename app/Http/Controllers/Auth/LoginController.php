@@ -80,4 +80,29 @@ class LoginController extends Controller
     {
         \App\Services\ActivityLogService::log('login', 'auth', "Pengguna {$user->nama_lengkap} ({$user->username}) berhasil login ke sistem.", null, null, null, $user);
     }
+
+    /**
+     * Get the failed login response instance.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        $user = \App\Models\User::where($this->username(), $request->input($this->username()))->first();
+
+        if ($user && \Illuminate\Support\Facades\Hash::check($request->input('password'), $user->password)) {
+            if ($user->blokir === 'Y') {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    $this->username() => ['Akun Anda telah dinonaktifkan. Silakan hubungi administrator.'],
+                ]);
+            }
+        }
+
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            $this->username() => [trans('auth.failed')],
+        ]);
+    }
 }

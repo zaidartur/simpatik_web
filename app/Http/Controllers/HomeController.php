@@ -41,6 +41,7 @@ class HomeController extends Controller
     {
         $this->middleware('auth');
         $this->middleware('permission:pimpinan', ['only' => ['list_pejabat', 'save_pimpinan', 'update_pimpinan', 'set_default', 'delete_pimpinan']]);
+        $this->middleware('permission:surat keluar', ['only' => ['view_duplikat', 'download_duplikat']]);
         $this->cacheService = $cacheService;
     }
 
@@ -197,7 +198,7 @@ class HomeController extends Controller
             return abort(404);
         }
 
-        $folder = public_path('datas/uploads/duplikat');
+        $folder = storage_path('app/private/duplikat');
         if (!is_dir($folder)) {
             return abort(404);
         }
@@ -224,7 +225,7 @@ class HomeController extends Controller
             return abort(404);
         }
 
-        $folder = public_path('datas/uploads/duplikat');
+        $folder = storage_path('app/private/duplikat');
         if (!is_dir($folder)) {
             return abort(404);
         }

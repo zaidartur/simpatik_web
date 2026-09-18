@@ -18,6 +18,7 @@ class UserUpdateRequest extends FormRequest
             'nama'      => ['required', 'string', 'max:100'],
             'email'     => ['nullable', 'email', 'max:255'],
             'level'     => ['required', 'string'],
+            'blokir'    => ['nullable', 'in:Y,N'],
         ];
     }
 

@@ -226,6 +226,12 @@ class SuratMasukService
 
         $pimpinan = Pimpinan::where('level', $currentUser->level)->where('is_default', true)->first();
         if (!$pimpinan) {
+            $pimpinan = Pimpinan::where('level', $currentUser->level)->first();
+        }
+        if (!$pimpinan) {
+            $pimpinan = Pimpinan::where('is_default', true)->first() ?? Pimpinan::first();
+        }
+        if (!$pimpinan) {
             return ['status' => 'failed', 'message' => 'Data pejabat penandatangan default untuk level Anda belum ditentukan.'];
         }
 

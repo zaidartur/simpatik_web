@@ -5,16 +5,61 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
 class FileUploadService
 {
     protected PdfSanitizer $pdfSanitizer;
+    protected string $activeDisk;
 
-    public function __construct(PdfSanitizer $pdfSanitizer)
+    public function __construct(PdfSanitizer $pdfSanitizer, ?string $disk = null)
     {
         $this->pdfSanitizer = $pdfSanitizer;
+        $this->activeDisk = $disk ?? config('filesystems.document_disk', env('DOCUMENT_STORAGE_DISK', 'local'));
+    }
+
+    /**
+     * Dapatkan disk penyimpanan aktif saat ini ('local', 'minio', atau 'nas').
+     */
+    public function getActiveDisk(): string
+    {
+        return $this->activeDisk;
+    }
+
+    /**
+     * Ganti mode penyimpanan secara dinamis pada runtime (misal: untuk testing/migrasi).
+     */
+    public function setActiveDisk(string $disk): self
+    {
+        $validDisks = ['local', 'minio', 'nas'];
+        $normalized = strtolower(trim($disk));
+        if (!in_array($normalized, $validDisks, true)) {
+            throw new \InvalidArgumentException("Storage disk [{$disk}] tidak didukung. Pilihan valid: " . implode(', ', $validDisks));
+        }
+
+        $this->activeDisk = $normalized;
+        return $this;
+    }
+
+    /**
+     * Dapatkan path direktori NAS (dapat dikonfigurasi via env NAS_STORAGE_PATH).
+     */
+    public function getNasFolderPath(string $subfolder = ''): string
+    {
+        $base = config('filesystems.disks.nas.root', env('NAS_STORAGE_PATH', storage_path('app/private')));
+        return $subfolder !== '' ? rtrim($base, '/\\') . DIRECTORY_SEPARATOR . $subfolder : rtrim($base, '/\\');
+    }
+
+    /**
+     * Cek apakah kredensial MinIO sudah dikonfigurasi di .env atau runtime.
+     */
+    public function isMinioConfigured(): bool
+    {
+        $key = config('filesystems.disks.minio.key');
+        $bucket = config('filesystems.disks.minio.bucket');
+        return !empty($key) && !empty($bucket);
     }
 
     /**
@@ -29,7 +74,7 @@ class FileUploadService
     }
 
     /**
-     * Upload and sanitize file, saving into private storage.
+     * Upload and sanitize file, saving into active storage (local, minio, or nas).
      */
     public function upload(UploadedFile $file, string $id, string $subfolder = 'suratmasuk'): ?string
     {
@@ -61,14 +106,9 @@ class FileUploadService
             ->toJpeg(quality: 90);
 
         $fileName = $id . '_sanitized_' . date('YmdHis') . '.jpg';
-        $destinationFolder = storage_path("app/private/{$subfolder}");
+        $saved = $this->saveFileContent($fileName, $image->toString(), $subfolder);
 
-        File::ensureDirectoryExists($destinationFolder);
-
-        $destinationPath = $destinationFolder . DIRECTORY_SEPARATOR . $fileName;
-        file_put_contents($destinationPath, $image->toString());
-
-        return $fileName;
+        return $saved ? $fileName : null;
     }
 
     /**
@@ -85,18 +125,13 @@ class FileUploadService
         try {
             $this->pdfSanitizer->sanitize($tempInput, $tempOutput);
 
-            $destinationFolder = storage_path("app/private/{$subfolder}");
-            File::ensureDirectoryExists($destinationFolder);
-
             $fileName = $id . '_sanitized_' . date('YmdHis') . '.pdf';
-            $destinationPath = $destinationFolder . DIRECTORY_SEPARATOR . $fileName;
-
-            $moved = File::move($tempOutput, $destinationPath);
+            $saved = $this->saveFileFromPath($fileName, $tempOutput, $subfolder);
 
             @unlink($tempInput);
             @unlink($tempOutput);
 
-            return $moved ? $fileName : null;
+            return $saved ? $fileName : null;
         } catch (\Throwable $e) {
             Log::error('Gagal sanitasi PDF: ' . $e->getMessage());
             @unlink($tempInput);
@@ -106,7 +141,80 @@ class FileUploadService
     }
 
     /**
-     * Resolve file path with fallback to legacy public uploads.
+     * Simpan konten binary ke target storage aktif (local, minio, atau nas).
+     */
+    protected function saveFileContent(string $fileName, string $content, string $subfolder): bool
+    {
+        if ($this->activeDisk === 'minio') {
+            try {
+                return Storage::disk('minio')->put("{$subfolder}/{$fileName}", $content);
+            } catch (\Throwable $e) {
+                Log::error("Gagal simpan konten ke MinIO [{$subfolder}/{$fileName}], fallback ke local: " . $e->getMessage());
+                return $this->saveToLocalPrivate($fileName, $content, $subfolder);
+            }
+        }
+
+        if ($this->activeDisk === 'nas') {
+            $dir = $this->getNasFolderPath($subfolder);
+            File::ensureDirectoryExists($dir);
+            $res = file_put_contents($dir . DIRECTORY_SEPARATOR . $fileName, $content);
+            return $res !== false;
+        }
+
+        return $this->saveToLocalPrivate($fileName, $content, $subfolder);
+    }
+
+    /**
+     * Simpan file dari path fisik lokal ke target storage aktif.
+     */
+    protected function saveFileFromPath(string $fileName, string $sourcePath, string $subfolder): bool
+    {
+        if ($this->activeDisk === 'minio') {
+            try {
+                $stream = fopen($sourcePath, 'r');
+                if ($stream !== false) {
+                    $saved = Storage::disk('minio')->put("{$subfolder}/{$fileName}", $stream);
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                    if ($saved) {
+                        return true;
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error("Gagal upload stream ke MinIO [{$subfolder}/{$fileName}], fallback ke local: " . $e->getMessage());
+            }
+            return $this->copyToLocalPrivate($fileName, $sourcePath, $subfolder);
+        }
+
+        if ($this->activeDisk === 'nas') {
+            $dir = $this->getNasFolderPath($subfolder);
+            File::ensureDirectoryExists($dir);
+            return File::copy($sourcePath, $dir . DIRECTORY_SEPARATOR . $fileName);
+        }
+
+        return $this->copyToLocalPrivate($fileName, $sourcePath, $subfolder);
+    }
+
+    protected function saveToLocalPrivate(string $fileName, string $content, string $subfolder): bool
+    {
+        $dir = storage_path("app/private/{$subfolder}");
+        File::ensureDirectoryExists($dir);
+        return file_put_contents($dir . DIRECTORY_SEPARATOR . $fileName, $content) !== false;
+    }
+
+    protected function copyToLocalPrivate(string $fileName, string $sourcePath, string $subfolder): bool
+    {
+        $dir = storage_path("app/private/{$subfolder}");
+        File::ensureDirectoryExists($dir);
+        return File::copy($sourcePath, $dir . DIRECTORY_SEPARATOR . $fileName);
+    }
+
+    /**
+     * Resolve file path dengan auto-switch & fallback berantai:
+     * 1. Cek disk aktif (local, nas, atau minio dengan auto-cache)
+     * 2. Fallback: jika tidak ada di disk aktif, cari di disk lain secara otomatis
+     * 3. Fallback: cari di legacy public uploads jika ada arsip lama
      */
     public function resolveFilePath(string $fileName, string $subfolder): ?string
     {
@@ -115,11 +223,46 @@ class FileUploadService
             return null;
         }
 
+        // 1. Cek pada disk aktif terlebih dahulu
+        if ($this->activeDisk === 'local') {
+            $localPath = storage_path("app/private/{$subfolder}/{$safeName}");
+            if (file_exists($localPath)) {
+                return $localPath;
+            }
+        } elseif ($this->activeDisk === 'nas') {
+            $nasPath = $this->getNasFolderPath($subfolder) . DIRECTORY_SEPARATOR . $safeName;
+            if (file_exists($nasPath)) {
+                return $nasPath;
+            }
+        } elseif ($this->activeDisk === 'minio') {
+            $cached = $this->fetchFromMinioToLocalCache($safeName, $subfolder);
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        // 2. Auto-switch fallback: jika file diunggah sebelum admin mengganti mode disk
+        // Cek Local Private
         $privatePath = storage_path("app/private/{$subfolder}/{$safeName}");
         if (file_exists($privatePath)) {
             return $privatePath;
         }
 
+        // Cek NAS (jika lokasi NAS terpisah dari local private)
+        $nasFallback = $this->getNasFolderPath($subfolder) . DIRECTORY_SEPARATOR . $safeName;
+        if (file_exists($nasFallback)) {
+            return $nasFallback;
+        }
+
+        // Cek MinIO hanya jika mode aktif adalah minio
+        if ($this->activeDisk === 'minio') {
+            $cached = $this->fetchFromMinioToLocalCache($safeName, $subfolder);
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        // Cek Legacy Public Folder
         $legacyPath = public_path("datas/uploads/{$subfolder}/{$safeName}");
         if (file_exists($legacyPath)) {
             return $legacyPath;
@@ -129,7 +272,56 @@ class FileUploadService
     }
 
     /**
-     * Delete file from private or legacy storage.
+     * Download file dari MinIO ke cache lokal sementara untuk kompatibilitas stream/FPDI.
+     */
+    protected function fetchFromMinioToLocalCache(string $safeName, string $subfolder): ?string
+    {
+        if ($this->activeDisk !== 'minio') {
+            return null;
+        }
+
+        $cacheDir = storage_path("app/tmp/minio_cache/{$subfolder}");
+        $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $safeName;
+
+        if (file_exists($cachePath) && filesize($cachePath) > 0) {
+            return $cachePath;
+        }
+
+        try {
+            if (Storage::disk('minio')->exists("{$subfolder}/{$safeName}")) {
+                File::ensureDirectoryExists($cacheDir);
+                $content = Storage::disk('minio')->get("{$subfolder}/{$safeName}");
+                if ($content !== null && file_put_contents($cachePath, $content) !== false) {
+                    return $cachePath;
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Gagal fetch file dari MinIO [{$subfolder}/{$safeName}]: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Kirim response file langsung ke browser (stream response).
+     */
+    public function responseFile(string $fileName, string $subfolder, array $headers = [])
+    {
+        $safeName = basename($fileName);
+        if ($safeName !== $fileName) {
+            return abort(404);
+        }
+
+        $path = $this->resolveFilePath($safeName, $subfolder);
+        if (!$path || !file_exists($path)) {
+            return abort(404);
+        }
+
+        return response()->file($path, $headers);
+    }
+
+    /**
+     * Delete file from active disk and all fallback locations.
      */
     public function deleteFile(?string $fileName, string $subfolder): void
     {
@@ -137,9 +329,59 @@ class FileUploadService
             return;
         }
 
-        $path = $this->resolveFilePath($fileName, $subfolder);
-        if ($path && file_exists($path)) {
-            @unlink($path);
+        $safeName = basename($fileName);
+        if ($safeName !== $fileName) {
+            return;
         }
+
+        // Hapus dari local private
+        $localPath = storage_path("app/private/{$subfolder}/{$safeName}");
+        if (file_exists($localPath)) {
+            @unlink($localPath);
+        }
+
+        // Hapus dari NAS
+        $nasPath = $this->getNasFolderPath($subfolder) . DIRECTORY_SEPARATOR . $safeName;
+        if (file_exists($nasPath)) {
+            @unlink($nasPath);
+        }
+
+        // Hapus dari MinIO (hanya jika mode aktif adalah minio)
+        if ($this->activeDisk === 'minio') {
+            try {
+                if (Storage::disk('minio')->exists("{$subfolder}/{$safeName}")) {
+                    Storage::disk('minio')->delete("{$subfolder}/{$safeName}");
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Gagal hapus file dari MinIO [{$subfolder}/{$safeName}]: " . $e->getMessage());
+            }
+        }
+
+        // Hapus dari local minio cache jika ada
+        $cachePath = storage_path("app/tmp/minio_cache/{$subfolder}/{$safeName}");
+        if (file_exists($cachePath)) {
+            @unlink($cachePath);
+        }
+
+        // Hapus dari legacy public uploads
+        $legacyPath = public_path("datas/uploads/{$subfolder}/{$safeName}");
+        if (file_exists($legacyPath)) {
+            @unlink($legacyPath);
+        }
+    }
+
+    /**
+     * Dapatkan informasi dan status konfigurasi storage aktif.
+     */
+    public function getStorageStatus(): array
+    {
+        return [
+            'active_disk'     => $this->activeDisk,
+            'supported_disks' => ['local', 'minio', 'nas'],
+            'local_path'      => storage_path('app/private'),
+            'nas_path'        => $this->getNasFolderPath(),
+            'minio_endpoint'  => env('MINIO_ENDPOINT', 'belum dikonfigurasi'),
+            'minio_bucket'    => env('MINIO_BUCKET', 'belum dikonfigurasi'),
+        ];
     }
 }

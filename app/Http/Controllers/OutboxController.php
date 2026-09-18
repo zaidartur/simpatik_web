@@ -53,7 +53,7 @@ class OutboxController extends Controller
         $this->fileService = $fileService;
         $this->cacheService = $cacheService;
 
-        $this->middleware('permission:surat keluar', ['only' => ['index', 'serverside', 'show']]);
+        $this->middleware('permission:surat keluar', ['only' => ['index', 'serverside', 'show', 'duplicate', 'view_file']]);
         $this->middleware('permission:input surat keluar', ['only' => ['store', 'create', 'last_sppd', 'check_surat']]);
         $this->middleware('permission:edit surat keluar', ['only' => ['edit', 'update', 'duplikat']]);
         $this->middleware('permission:hapus surat keluar', ['only' => ['destroy']]);
@@ -103,7 +103,10 @@ class OutboxController extends Controller
         }
 
         $query->whereNull('on_delete');
-        $query->whereIn('level_surat', $level->akses);
+        $query->where(function ($q) use ($level, $user) {
+            $q->whereIn('level_surat', $level->akses ?? [])
+              ->orWhere('created_by', $user->uuid);
+        });
         $totalData = $query->count();
 
         // search query
@@ -384,7 +387,7 @@ class OutboxController extends Controller
         $list  = [$surat];
         $raw_pdf = [];
         $nosurat = [];
-        $folder = public_path('datas/uploads/duplikat');
+        $folder = storage_path('app/private/duplikat');
 
         for ($i = 0; $i < intval($request->jumlah); $i++) {
             $newSurat = $surat->replicate();
@@ -465,7 +468,7 @@ class OutboxController extends Controller
 
     public function merge_pdf($files, $name)
     {
-        $folder = public_path('datas/uploads/duplikat');
+        $folder = storage_path('app/private/duplikat');
         $pdf = new Fpdi();
         if (count($files) > 0) {
             foreach ($files as $key => $value) {
@@ -549,7 +552,12 @@ class OutboxController extends Controller
 
     public function view_file($uid)
     {
-        $file = Crypt::decryptString($uid);
+        try {
+            $file = Crypt::decryptString($uid);
+        } catch (\Throwable $e) {
+            return abort(404);
+        }
+
         if (!$file) return abort(404);
 
         $safeFile = basename($file);

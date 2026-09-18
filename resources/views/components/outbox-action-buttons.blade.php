@@ -8,6 +8,13 @@
         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
     </button>
 
+    {{-- Edit Surat Keluar --}}
+    @can('edit surat keluar')
+    <a href="{{ route('outbox.edit', $encryptedUuid) }}" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit Surat">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+    </a>
+    @endcan
+
     {{-- Cetak Kartu --}}
     @can('cetak surat keluar')
     <button type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Kartu" onclick="printPdf('{{ $encryptedUuid }}')">

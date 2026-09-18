@@ -414,7 +414,6 @@
             });
         }
 
-        @role(['administrator', 'setda'])
         function followUp(uid) {
             Swal.fire({
                 title: 'Tindak Lanjut Surat',
@@ -486,9 +485,7 @@
                 }
             });
         }
-        @endrole
 
-        @role(['administrator', 'admin', 'wabup', 'bupati', 'setda'])
         function _reply(uid) {
             Swal.fire({
                 title: 'Disposisi Surat',
@@ -559,7 +556,6 @@
                 }
             });
         }
-        @endrole
 
         function viewSurat(uid) {
             const data = JSON.parse(atob(uid));

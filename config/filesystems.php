@@ -70,9 +70,31 @@ return [
             'use_path_style_endpoint' => env('MINIO_USE_PATH_STYLE_ENDPOINT', true),
             // 'url' => env('MINIO_URL'),
             'throw' => true,
+            'http' => [
+                'connect_timeout' => 2,
+                'timeout' => 3,
+            ],
+        ],
+
+        'nas' => [
+            'driver' => 'local',
+            'root' => env('NAS_STORAGE_PATH', storage_path('app/private')),
+            'throw' => false,
+            'report' => false,
         ],
 
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Document Storage Disk (SIPERMAS)
+    |--------------------------------------------------------------------------
+    |
+    | Menentukan target penyimpanan arsip dinas secara sederhana:
+    | Pilihan: 'local' (default), 'minio' (S3 Object Storage), 'nas' (NFS/SMB).
+    |
+    */
+    'document_disk' => env('DOCUMENT_STORAGE_DISK', 'local'),
 
     /*
     |--------------------------------------------------------------------------

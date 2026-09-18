@@ -19,7 +19,7 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:aplikasi', ['only' => ['index', 'store', 'update', 'destroy', 'change_pwd', 'check_user']]);
+        $this->middleware('permission:aplikasi', ['only' => ['index', 'store', 'update', 'destroy', 'change_pwd', 'check_user', 'toggle_status']]);
     }
 
     public function index()
@@ -32,11 +32,6 @@ class UserController extends Controller
         ];
         
         return view('main.users', $data);
-    }
-
-    public function save(Request $request)
-    {
-        //
     }
 
     public function store(UserStoreRequest $request)
@@ -79,14 +74,66 @@ class UserController extends Controller
         $user->nama_lengkap = $request->nama;
         $user->email        = $request->email;
         $user->level        = intval($request->level);
+
+        if ($request->filled('blokir')) {
+            if ($user->id == Auth::id() && $request->blokir === 'Y') {
+                return redirect()->back()->with('failed', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+            }
+            $user->blokir = $request->blokir;
+        }
+
         if ($user->save()) {
             if ($roles) {
                 $user->syncRoles([]);
                 $user->assignRole($roles->name);
             }
+            \App\Services\ActivityLogService::log(
+                'update_user',
+                'user',
+                "Memperbarui data pengguna: {$user->nama_lengkap} ({$user->username}), status: " . ($user->blokir === 'N' ? 'Aktif' : 'Nonaktif'),
+                $user
+            );
             return redirect()->back()->with('success', 'User berhasil diperbarui.');
         } else {
             return redirect()->back()->with('failed', 'User gagal diperbarui.');
+        }
+    }
+
+    public function toggle_status(Request $request)
+    {
+        $request->validate([
+            'uid'   => 'required|string'
+        ]);
+
+        $id = Crypt::decryptString($request->uid);
+        if (!$id) return response()->json(['status' => 'failed', 'message' => 'User ID tidak dikenal.']);
+
+        $user = is_numeric($id) ? User::find($id) : User::where('uuid', $id)->first();
+        if (!$user) return response()->json(['status' => 'failed', 'message' => 'User tidak ditemukan.']);
+
+        if ($user->id == Auth::id()) {
+            return response()->json(['status' => 'failed', 'message' => 'Anda tidak dapat mengubah status akun Anda sendiri.']);
+        }
+
+        $newStatus = ($user->blokir === 'Y') ? 'N' : 'Y';
+        $user->blokir = $newStatus;
+
+        if ($user->save()) {
+            $actionText = ($newStatus === 'Y') ? 'Menonaktifkan / Memblokir' : 'Mengaktifkan';
+            \App\Services\ActivityLogService::log(
+                'toggle_status',
+                'user',
+                "{$actionText} pengguna: {$user->nama_lengkap} ({$user->username})",
+                $user
+            );
+
+            return response()->json([
+                'status'     => 'success',
+                'message'    => 'Status akun berhasil diubah menjadi ' . ($newStatus === 'N' ? 'Aktif' : 'Nonaktif') . '.',
+                'new_status' => $newStatus,
+            ]);
+        } else {
+            return response()->json(['status' => 'failed', 'message' => 'Status akun gagal diperbarui.']);
         }
     }
 

@@ -147,10 +147,11 @@
                                             stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                                         </svg>
-                                        <span class="btn-text-inner">FPDF</span>
+                                        <span class="btn-text-inner">PDF</span>
                                     </button>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="_exportExcel()"
-                                        id="btexcel" title="Export ke Excel">
+                                    <button type="button" class="btn btn-success btn-sm bs-tooltip" onclick="_exportExcel()"
+                                        id="btexcel"
+                                        title="Export ke Excel (Jika rentang waktu kosong, akan mengunduh rekapan 1 tahun berjalan)">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round" class="feather feather-file-text">
@@ -300,19 +301,19 @@
                     { data: 'row4', orderable: false },
                     { data: 'dari', orderable: false },
                     @role(['administrator'])
-                                                                                                    { data: 'sekda', orderable: false },
+                                                                                                        { data: 'sekda', orderable: false },
                     { data: 'wakil', orderable: false },
                     { data: 'bupati', orderable: false },
                     @endrole
                     @role(['setda', 'umum'])
-                                                                                                    { data: 'sekda', orderable: false },
+                                                                                                        { data: 'sekda', orderable: false },
                     { data: 'bupati', orderable: false },
                     @endrole
                     @role(['wabup'])
-                                                                                                    { data: 'wakil', orderable: false },
+                                                                                                        { data: 'wakil', orderable: false },
                     @endrole
                     @role(['bupati'])
-                                                                                                    { data: 'bupati', orderable: false },
+                                                                                                        { data: 'bupati', orderable: false },
                     @endrole
                 ],
             });
@@ -386,7 +387,12 @@
             }
 
             if (!sDate || !eDate) {
-                alert("Rentang waktu harus dipilih terlebih dahulu untuk mencetak laporan agenda.");
+                Swal.fire({
+                    title: 'Pilih Rentang Waktu',
+                    text: 'Untuk mencetak PDF laporan agenda, silakan pilih rentang waktu tanggal (maksimal 31 hari) terlebih dahulu.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
                 return;
             }
 
@@ -396,7 +402,12 @@
             const diffTime = Math.abs(d2 - d1);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             if (diffDays > 31) {
-                alert("Rentang waktu cetak PDF maksimal 31 hari (1 bulan). Silakan gunakan tombol Excel untuk rentang waktu yang lebih panjang.");
+                Swal.fire({
+                    title: 'Rentang Waktu Terlalu Panjang',
+                    text: 'Rentang waktu cetak PDF maksimal 31 hari (1 bulan). Silakan gunakan tombol Excel untuk rentang waktu yang lebih panjang.',
+                    icon: 'warning',
+                    confirmButtonText: 'Mengerti'
+                });
                 return;
             }
 
@@ -421,6 +432,24 @@
                     sDate = rangeVal.trim();
                     eDate = rangeVal.trim();
                 }
+            }
+
+            if (!sDate || !eDate) {
+                const currentYear = new Date().getFullYear();
+                Swal.fire({
+                    title: 'Unduh Seluruh Data?',
+                    text: `Rentang waktu belum dipilih. Apakah Anda ingin mengunduh seluruh rekapan agenda tahun berjalan (${currentYear}) ke format Excel?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Unduh',
+                    cancelButtonText: 'Batalkan',
+                    confirmButtonColor: '#00ab55'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.open(`{{ route('report.agenda.export') }}?start_date=${sDate}&end_date=${eDate}&jenis=${jenis}`, '_blank');
+                    }
+                });
+                return;
             }
 
             window.open(`{{ route('report.agenda.export') }}?start_date=${sDate}&end_date=${eDate}&jenis=${jenis}`, '_blank');

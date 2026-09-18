@@ -146,4 +146,30 @@ class ExportExcelTest extends TestCase
         $responseFpdf = $this->actingAs($user)->get('/laporan/print-agenda-fpdf?start_date=2026-01-01&end_date=2026-02-15&jenis=Masuk');
         $this->assertTrue(str_contains($responseFpdf->getContent(), 'Rentang waktu cetak PDF maksimal 31 hari'));
     }
+
+    /**
+     * Test FPDF normalizes UTF-8 smart quotes, dashes, and bullets cleanly without throwing errors.
+     */
+    public function test_fpdf_normalizes_utf8_special_characters(): void
+    {
+        $user = User::first();
+        $service = new \App\Services\AgendaFpdfService();
+
+        $sampleData = [
+            [
+                'no_agenda'   => "001\n[Masuk]",
+                'kepada'      => 'Kepada “Dinas Kesehatan” – Sub Bagian',
+                'row3'        => "01-09-2026\n01-09-2026\n800/1/2026",
+                'row4'        => "Klasifikasi • Catatan penting…\nIsi surat ‘rahasia’",
+                'dari'        => 'Kemenpan-RB',
+                'sekda'       => 'Disposisi Sekda: tindak lanjuti — segera!',
+                'bupati'      => '-',
+                'wakil'       => '-',
+            ],
+        ];
+
+        $output = $service->build($sampleData, 'Semua', 'Bulan: September 2026', $user);
+        $this->assertNotEmpty($output);
+        $this->assertStringStartsWith('%PDF', $output);
+    }
 }

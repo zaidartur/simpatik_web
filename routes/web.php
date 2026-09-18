@@ -69,23 +69,21 @@ Route::prefix('/sppd')->middleware(['auth'])->group(function () {
     Route::get('/buat-sppd', [App\Http\Controllers\SppdController::class, 'create'])->name('sppd.create');
     Route::post('/simpan-sppd', [App\Http\Controllers\SppdController::class, 'store'])->name('sppd.store');
     Route::post('/simpan-sppd-query', [App\Http\Controllers\SppdController::class, 'save'])->name('sppd.save');
-    Route::get('/edit-sppd/{id}', [App\Http\Controllers\SppdController::class, 'edit'])->name('sppd.edit');
     Route::post('/update-sppd', [App\Http\Controllers\SppdController::class, 'update'])->name('sppd.update');
     Route::post('/hapus-sppd', [App\Http\Controllers\SppdController::class, 'destroy'])->name('sppd.destroy');
-    Route::get('/lihat-sppd/{id}', [App\Http\Controllers\SppdController::class, 'show'])->name('sppd.show');
+    Route::get('/print-pdf/{id}', [App\Http\Controllers\SppdController::class, 'print_pdf'])->name('sppd.pdf');
 });
 
 
 Route::prefix('/user')->middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('/view', [App\Http\Controllers\UserController::class, 'index'])->name('user');
-    Route::get('/buat-user', [App\Http\Controllers\UserController::class, 'create'])->name('user.create');
     Route::post('/simpan-user', [App\Http\Controllers\UserController::class, 'store'])->name('user.store');
-    Route::post('/simpan-user-query', [App\Http\Controllers\UserController::class, 'save'])->name('user.save');
     Route::post('/update-user', [App\Http\Controllers\UserController::class, 'update'])->name('user.update');
     Route::post('/hapus-user', [App\Http\Controllers\UserController::class, 'destroy'])->name('user.destroy');
 
     Route::post('/check-user', [App\Http\Controllers\UserController::class, 'check_user'])->middleware('throttle:sensitive-auth')->name('user.check');
     Route::post('/ubah-password-user', [App\Http\Controllers\UserController::class, 'change_pwd'])->middleware('throttle:sensitive-auth')->name('user.change_pwd');
+    Route::post('/toggle-status', [App\Http\Controllers\UserController::class, 'toggle_status'])->name('user.toggle');
 });
 
 Route::prefix('/laporan')->middleware(['auth'])->group(function () {
@@ -100,6 +98,8 @@ Route::prefix('/laporan')->middleware(['auth'])->group(function () {
     Route::get('/print-agenda-fpdf', [App\Http\Controllers\LaporanController::class, 'agenda_print_fpdf'])->name('report.agenda.print_fpdf');
     Route::get('/export-agenda', [App\Http\Controllers\LaporanController::class, 'export_agenda'])->middleware('throttle:exports')->name('report.agenda.export');
     Route::get('/export-statistik', [App\Http\Controllers\LaporanController::class, 'export_statistik'])->middleware('throttle:exports')->name('report.statistik.export');
+    Route::get('/cetak-tindak-lanjut', [App\Http\Controllers\LaporanController::class, 'tindak_lanjut_print'])->name('report.next.print');
+    Route::get('/export-tindak-lanjut', [App\Http\Controllers\LaporanController::class, 'tindak_lanjut_excel'])->middleware('throttle:exports')->name('report.next.excel');
 });
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->middleware(['auth'])->name('search');

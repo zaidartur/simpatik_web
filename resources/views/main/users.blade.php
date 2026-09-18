@@ -84,6 +84,15 @@
                                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
                                             </button>
                                             @if($item->id != Auth::user()->id)
+                                            @if($item->blokir == 'N')
+                                            <button type="button" class="btn btn-outline-danger bs-tooltip" onclick="_toggleStatus('{{ addslashes($item->nama_lengkap) }}', '{{ Crypt::encryptString($item->id) }}', 'blokir')" title="Nonaktifkan (Blokir) User">
+                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                            </button>
+                                            @else
+                                            <button type="button" class="btn btn-outline-success bs-tooltip" onclick="_toggleStatus('{{ addslashes($item->nama_lengkap) }}', '{{ Crypt::encryptString($item->id) }}', 'aktifkan')" title="Aktifkan User">
+                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                                            </button>
+                                            @endif
                                             <button type="button" class="btn btn-danger bs-tooltip" onclick="_delete('{{ $item->nama_lengkap }}', '{{ Crypt::encryptString($item->uuid) }}')" title="Hapus User">
                                                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                             </button>
@@ -172,6 +181,15 @@
                                                         <div class="invalid-feedback">
                                                             Field ini wajib di isi.
                                                         </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3 is-status" style="display: none;">
+                                                    <label for="blokir" class="col-sm-3 col-form-label">Status Akun*</label>
+                                                    <div class="col-sm-5">
+                                                        <select name="blokir" id="blokir" class="form-control">
+                                                            <option value="N">Aktif</option>
+                                                            <option value="Y">Nonaktif (Diblokir)</option>
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
@@ -315,6 +333,7 @@
 
             $('#userLabel').html('Buat User')
             $('.form-user').attr("action", "{{ route('user.store') }}")
+            $('.is-status').hide()
 
             $('#userNew').modal('show')
         }
@@ -340,6 +359,8 @@
                 $('#instansi').val(data.jurusan)
                 $('#username').val(data.username)
                 $('#level').val(data.level)
+                $('#blokir').val(data.blokir || 'N')
+                $('.is-status').show()
 
                 $('#userNew').modal('show')
             } else {
@@ -528,6 +549,46 @@
             } else {
                 Toast.fire({ icon: "error", title: "Data user tidak diketahui." })
             }
+        }
+
+        function _toggleStatus(name, uid, action) {
+            const isBlock = action === 'blokir';
+            Swal.fire({
+                title: isBlock ? 'Nonaktifkan Akun' : 'Aktifkan Akun',
+                html: `Anda yakin ingin ${isBlock ? '<b>menonaktifkan / memblokir</b>' : '<b>mengaktifkan kembali</b>'} akun <b>${name}</b>?` +
+                      (isBlock ? '<br><small class="text-danger">Pengguna tidak akan dapat login ke sistem.</small>' : ''),
+                icon: isBlock ? 'warning' : 'question',
+                showCancelButton: true,
+                cancelButtonText: 'Batalkan',
+                confirmButtonText: isBlock ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan',
+                confirmButtonColor: isBlock ? '#e7515a' : '#00ab55',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('user.toggle') }}",
+                        type: "POST",
+                        dataType: 'JSON',
+                        data: { _token: $('meta[name="csrf-token"]').attr('content'), uid: uid },
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire({
+                                    title: 'Sukses',
+                                    text: res.message,
+                                    icon: 'success',
+                                }).then(() => { location.reload() })
+                            } else {
+                                Toast.fire({ icon: 'error', title: res.message })
+                            }
+                        },
+                        error: function(xhr) {
+                            const msg = xhr.responseJSON?.message || 'Terjadi kesalahan pada sistem.';
+                            Toast.fire({ icon: 'error', title: msg })
+                        }
+                    })
+                }
+            })
         }
 
         function _pwd() {

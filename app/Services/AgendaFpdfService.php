@@ -270,13 +270,37 @@ class AgendaFpdfService extends \FPDF
         // Tambahkan halaman pertama setelah kolom siap
         $this->AddPage();
 
-        // Helper pembersih HTML menjadi teks terformat baris
+        // Helper pembersih HTML menjadi teks terformat baris dengan normalisasi UTF-8 / Word
         $cleanHtml = function($str) {
             if (!$str || $str === '-') return '-';
             $s = str_ireplace(['<br>', '<br/>', '<br />'], "\n", $str);
             $s = str_ireplace(['</p>', '</div>'], "\n", $s);
             $s = strip_tags($s);
             $s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            // Normalisasi simbol-simbol tipografi Word / UTF-8 ke ASCII standar (anti-garbled text)
+            $replacements = [
+                // Smart double quotes
+                '“' => '"', '”' => '"', '„' => '"', '«' => '"', '»' => '"',
+                // Smart single quotes & apostrophes
+                '‘' => "'", '’' => "'", '‚' => "'", '`' => "'",
+                // Dashes & hyphens
+                '–' => '-', '—' => '-', '−' => '-', '‐' => '-',
+                // Bullets, dots & ellipses
+                '•' => '-', '·' => '-', '…' => '...',
+                // Spaces
+                "\xc2\xa0" => ' ', // Non-breaking space
+            ];
+            $s = strtr($s, $replacements);
+
+            // Konversi encoding UTF-8 ke ISO-8859-1 / Windows-1252 yang didukung FPDF secara native
+            if (function_exists('iconv')) {
+                $converted = @iconv('UTF-8', 'windows-1252//TRANSLIT//IGNORE', $s);
+                if ($converted !== false) {
+                    $s = $converted;
+                }
+            }
+
             $s = preg_replace("/\n{3,}/", "\n\n", trim($s));
             return $s ?: '-';
         };

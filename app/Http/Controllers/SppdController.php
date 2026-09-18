@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SppdStoreRequest;
 use App\Http\Requests\SppdUpdateRequest;
+use App\Models\Pimpinan;
 use App\Models\Sppd;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -13,7 +15,7 @@ class SppdController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:spd', ['only' => ['index', 'serverside', 'create', 'list', 'save', 'store', 'edit', 'update', 'destroy']]);
+        $this->middleware('permission:spd', ['only' => ['index', 'serverside', 'create', 'list', 'save', 'store', 'update', 'destroy', 'print_pdf']]);
     }
 
     public function index()
@@ -40,12 +42,13 @@ class SppdController extends Controller
         if ($request->has('search') && $request->search['value'] != '') {
             $search = $request->search['value'];
             $query->where(function ($q) use ($search) {
-                $q->where('no_spd', 'like', "%$search%")
-                    ->orWhere('nama', 'like', "%$search%")
-                    ->orWhere('jabatan', 'like', "%$search%")
-                    ->orWhere('tujuan', 'like', "%$search%")
-                    ->orWhere('tgl_surat', 'like', "%$search%")
-                    ->orWhere('tgl_berangkat', 'like', "%$search%");
+                $q->where('no_spd', 'ilike', "%$search%")
+                    ->orWhere('nama', 'ilike', "%$search%")
+                    ->orWhere('jabatan', 'ilike', "%$search%")
+                    ->orWhere('tujuan', 'ilike', "%$search%")
+                    ->orWhere('kendaraan', 'ilike', "%$search%")
+                    ->orWhereRaw("CAST(tgl_surat AS TEXT) ILIKE ?", ["%$search%"])
+                    ->orWhereRaw("CAST(tgl_berangkat AS TEXT) ILIKE ?", ["%$search%"]);
             });
         }
 
@@ -68,8 +71,11 @@ class SppdController extends Controller
                 'tgl_berangkat' => Carbon::parse($sp->tgl_berangkat)->isoFormat('DD-MMM-YYYY'),
                 'created_at'    => $sp->created_at ?? null,
                 'uid'       => Crypt::encryptString($sp->id),
-                'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">
-                                    <a href="javascript:void(0)" onclick="_edit(`'. base64_encode(json_encode($sp)) .'`)" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit SPPD">
+                'option'    => '<div class="btn-group-vertical" role="group" aria-label="Second group">'.
+                                    // <a href="' . route('sppd.pdf', Crypt::encryptString($sp->id)) . '" target="_blank" type="button" class="btn btn-outline-info bs-tooltip" title="Cetak Lembar SPPD">
+                                    //     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                    // </a>
+                                    '<a href="javascript:void(0)" onclick="_edit(`'. base64_encode(json_encode($sp)) .'`)" type="button" class="btn btn-outline-warning bs-tooltip" title="Edit SPPD">
                                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>
                                     <button type="button" class="btn btn-danger bs-tooltip" onclick="_delete(`'. Crypt::encryptString($sp->id) .'`, `'. base64_encode(json_encode($sp)) .'`, `'. Crypt::encryptString($sp->id) .'`)" title="Hapus SPPD">
@@ -138,13 +144,6 @@ class SppdController extends Controller
         }
     }
 
-    public function edit($uid)
-    {
-        $id = Crypt::decryptString($uid);
-        if (!$id) return abort(404);
-        return abort(404);
-    }
-
     public function update(SppdUpdateRequest $request)
     {
         $sppd = Sppd::find($request->uid);
@@ -182,5 +181,33 @@ class SppdController extends Controller
         } else {
             return response()->json(['status' => 'failed', 'message' => 'Data gagal dihapus.']);
         }
+    }
+
+    public function print_pdf($uid)
+    {
+        return abort(404);
+
+        // $id = Crypt::decryptString($uid);
+        // if (!$id) return abort(404);
+
+        // $sppd = Sppd::find($id);
+        // if (!$sppd) return abort(404);
+
+        // $sign = Pimpinan::where('is_default', true)->first();
+        // if (!$sign) {
+        //     $sign = Pimpinan::first();
+        // }
+
+        // $pdf = Pdf::loadView('main.sppd.template_sppd', [
+        //     'sppd' => $sppd,
+        //     'sign' => $sign,
+        // ]);
+
+        // $pdf->setPaper('legal', 'portrait');
+        // $pdf->setOption('isHtml5ParserEnabled', true);
+        // $pdf->setOption('isFontSubsettingEnabled', true);
+
+        // $safeNo = str_replace(['/', '\\'], '_', $sppd->no_spd);
+        // return $pdf->stream('SPPD_' . $safeNo . '.pdf');
     }
 }

@@ -53,7 +53,7 @@ class InboxController extends Controller
         $this->fileService = $fileService;
         $this->cacheService = $cacheService;
 
-        $this->middleware('permission:surat masuk', ['only' => ['index', 'serverside', 'show']]);
+        $this->middleware('permission:surat masuk', ['only' => ['index', 'serverside', 'show', 'view_file']]);
         $this->middleware('permission:input surat masuk', ['only' => ['store', 'create', 'nomor_urut', 'upload_file']]);
         $this->middleware('permission:edit surat masuk', ['only' => ['edit', 'update', 'upload_file']]);
         $this->middleware('permission:hapus surat masuk', ['only' => ['destroy']]);
@@ -135,7 +135,7 @@ class InboxController extends Controller
             $query->where('year', $request->tahun);
         }
         if ($request->has('posisi') && $request->posisi != '' && in_array($request->posisi, $akses)) {
-            if ($user->leveluser->role != 'admin' || $user->leveluser->role != 'administrator') {
+            if ($user->leveluser->role !== 'admin' && $user->leveluser->role !== 'administrator') {
                 // $query->where('level_surat', $request->posisi);
                 $query->whereHas('posisi', function ($q) use ($request) {
                     $q->where('level', $request->posisi);
@@ -147,9 +147,14 @@ class InboxController extends Controller
         }
 
         $query->whereNull('on_delete');
-        $query->where(function ($static) use ($level) {
-            $static->whereIn('level_surat', $level->akses)
-                    ->orWhereIn('posisi_level', $level->akses);
+        $query->where(function ($static) use ($level, $user) {
+            $static->whereIn('level_surat', $level->akses ?? [])
+                    ->orWhereIn('posisi_level', $level->akses ?? [])
+                    ->orWhere('created_by', $user->uuid)
+                    ->orWhereHas('disposisi', function ($d) use ($user) {
+                        $d->where('pengirim_uuid', $user->uuid)
+                          ->orWhere('penerima_uuid', $user->uuid);
+                    });
         });
         // $query->whereIn('level_surat', $level->akses);
         // $query->orWhereIn('posisi_level', $level->akses);
@@ -372,7 +377,7 @@ class InboxController extends Controller
 
     public function view_pdf($uid)
     {
-        $folder = public_path('datas/uploads/suratmasuk');
+        $folder = storage_path('app/private/suratmasuk');
         $request = Request();
         $id  = Crypt::decryptString($uid);
         if (!$id) return abort(404);
@@ -420,7 +425,7 @@ class InboxController extends Controller
 
     public function save_pdf($inbox, $add = null)
     {
-        $folder = public_path('datas/uploads/suratmasuk');
+        $folder = storage_path('app/private/suratmasuk');
         $uid = Str::uuid();
         if (!File::exists($folder)) {
             File::makeDirectory($folder, 0755, true, true);
@@ -516,7 +521,12 @@ class InboxController extends Controller
 
     public function view_file($uid)
     {
-        $file = Crypt::decryptString($uid);
+        try {
+            $file = Crypt::decryptString($uid);
+        } catch (\Throwable $e) {
+            return abort(404);
+        }
+
         if (!$file) return abort(404);
 
         $safeFile = basename($file);

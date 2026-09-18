@@ -6,9 +6,13 @@ use App\Exports\AgendaAllExport;
 use App\Exports\AgendaKeluarExport;
 use App\Exports\AgendaMasukExport;
 use App\Exports\StatistikExport;
+use App\Exports\TindakLanjutExport;
 use App\Models\ArsipSurat;
+use App\Models\Disposisi;
 use App\Models\Inbox;
+use App\Models\Klasifikasi;
 use App\Models\Outbox;
+use App\Models\User;
 use App\Services\AgendaFpdfService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -24,7 +28,7 @@ class LaporanController extends Controller
 {
     public function __construct() {
         $this->middleware('permission:statistik', ['only' => ['statistik', 'statistik_ssr']]);
-        $this->middleware('permission:tindak lanjut', ['only' => ['tindak_lanjut', 'tindak_lanjut_ssr']]);
+        $this->middleware('permission:tindak lanjut', ['only' => ['tindak_lanjut', 'tindak_lanjut_ssr', 'tindak_lanjut_print', 'tindak_lanjut_excel']]);
         $this->middleware('permission:agenda', ['only' => ['agenda', 'agenda_ssr', 'agenda_print', 'agenda_print_fpdf']]);
     }
 
@@ -166,6 +170,21 @@ class LaporanController extends Controller
                 $query->whereIn('Posisi', ['Bupati']);
             }
 
+            // date filtering
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $startSlash = str_replace('-', '/', $request->start_date);
+                $endSlash   = str_replace('-', '/', $request->end_date);
+                $startDash  = str_replace('/', '-', $request->start_date);
+                $endDash    = str_replace('/', '-', $request->end_date);
+
+                $query->where(function($sub) use ($startSlash, $endSlash, $startDash, $endDash) {
+                    $sub->whereBetween('TGLSURAT', [$startSlash, $endSlash])
+                        ->orWhereBetween('TGLSURAT', [$startDash, $endDash])
+                        ->orWhereBetween('TGLENTRY', [$startSlash, $endSlash])
+                        ->orWhereBetween('TGLENTRY', [$startDash, $endDash]);
+                });
+            }
+
             $totalData = $query->count();
 
             // search query
@@ -249,6 +268,99 @@ class LaporanController extends Controller
         ]);
     }
 
+    public function tindak_lanjut_print(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
+        $user = $request->user();
+        if (!$user->hasAnyRole(['administrator', 'umum', 'setda', 'wabup', 'bupati', 'admin'])) {
+            return abort(403);
+        }
+
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+
+        if ($startDate && $endDate) {
+            $diffInDays = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate));
+            if ($diffInDays > 31) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Rentang waktu cetak PDF maksimal 31 hari. Untuk rentang waktu lebih panjang, silakan gunakan fitur Ekspor Excel.',
+                ], 422);
+            }
+        }
+
+        $query = ArsipSurat::where(function($q) {
+                $q->where(function($sub) {
+                    $sub->whereNotNull('DisposisiSekda')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiSekda\", ''))) > 0");
+                })
+                ->orWhere(function($sub) {
+                    $sub->whereNotNull('DisposisiSekda2')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiSekda2\", ''))) > 0");
+                })
+                ->orWhere(function($sub) {
+                    $sub->whereNotNull('DisposisiBupati')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiBupati\", ''))) > 0");
+                })
+                ->orWhere(function($sub) {
+                    $sub->whereNotNull('DisposisiWakil')->whereRaw("LENGTH(TRIM(COALESCE(\"DisposisiWakil\", ''))) > 0");
+                });
+            })
+            ->where('JENISSURAT', 'Masuk');
+
+        if ($user->hasRole('setda')) {
+            $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Sekretaris Daerah', 'Bupati']);
+        } elseif ($user->hasRole('wabup')) {
+            $query->whereIn('Posisi', ['Sekeretaris Daerah', 'Sekretaris Daerah', 'Wakil Bupati']);
+        } elseif ($user->hasRole('bupati')) {
+            $query->whereIn('Posisi', ['Bupati']);
+        }
+
+        if ($startDate && $endDate) {
+            $startSlash = str_replace('-', '/', $startDate);
+            $endSlash   = str_replace('-', '/', $endDate);
+            $startDash  = str_replace('/', '-', $startDate);
+            $endDash    = str_replace('/', '-', $endDate);
+
+            $query->where(function($sub) use ($startSlash, $endSlash, $startDash, $endDash) {
+                $sub->whereBetween('TGLSURAT', [$startSlash, $endSlash])
+                    ->orWhereBetween('TGLSURAT', [$startDash, $endDash])
+                    ->orWhereBetween('TGLENTRY', [$startSlash, $endSlash])
+                    ->orWhereBetween('TGLENTRY', [$startDash, $endDash]);
+            });
+        }
+
+        $items = $query->orderBy('NO', 'desc')->limit(1000)->get();
+
+        $pdf = Pdf::loadView('main.laporan.template_tindak_lanjut', [
+            'items'     => $items,
+            'startDate' => $startDate,
+            'endDate'   => $endDate,
+            'user'      => $user,
+        ]);
+
+        $pdf->setPaper('legal', 'landscape');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isFontSubsettingEnabled', true);
+
+        return $pdf->stream('Laporan_Tindak_Lanjut_' . ($startDate ? $startDate . '_' . $endDate : 'Semua') . '.pdf');
+    }
+
+    public function tindak_lanjut_excel(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->hasAnyRole(['administrator', 'umum', 'setda', 'wabup', 'bupati', 'admin'])) {
+            return abort(403);
+        }
+
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $role      = $user->roles->pluck('name')->first() ?? 'administrator';
+
+        $fileName = 'Laporan_Tindak_Lanjut_' . ($startDate ? $startDate . '_' . $endDate : date('Y')) . '.xlsx';
+
+        return Excel::download(new TindakLanjutExport($startDate, $endDate, $role), $fileName);
+    }
+
     public function agenda_ssr()
     {
         $request = Request();
@@ -258,61 +370,113 @@ class LaporanController extends Controller
             $length = $request->length ?? 10;
             $jenis = $request->input('jenis');
 
-            if ($jenis === 'Keluar') {
-                $query = Outbox::whereNull('on_delete')->with(['klasifikasi', 'creator.leveluser']);
-            } else {
-                // Default ke Surat Masuk jika 'Masuk', kosong, atau 'Semua'
-                $query = Inbox::whereNull('on_delete')->with([
-                    'klasifikasi',
-                    'creator.leveluser',
-                    'disposisi.pengirim.leveluser',
-                    'disposisi.penerima.leveluser',
-                    'disposisi.pimpinan',
-                ]);
-            }
+            $filterDate = function($q) use ($request) {
+                if ($request->filled('start_date') && $request->filled('end_date')) {
+                    $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
+                    $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
+                    $sDateStr = $request->start_date;
+                    $eDateStr = $request->end_date;
 
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                $startDate = Carbon::createFromFormat('Y-m-d', $request->start_date)->startOfDay();
-                $endDate = Carbon::createFromFormat('Y-m-d', $request->end_date)->endOfDay();
-                $sDateStr = $request->start_date;
-                $eDateStr = $request->end_date;
-
-                $query->where(function($q) use ($startDate, $endDate, $sDateStr, $eDateStr) {
-                    $q->whereBetween('created_at', [$startDate, $endDate])
-                      ->orWhereBetween('tgl_surat', [$sDateStr, $eDateStr]);
-                });
-            }
-
-            $query->orderBy('created_at', 'DESC');
-
-            $totalData = $query->count();
-
-            // search query
-            if ($request->has('search') && !empty($request->search['value'])) {
-                $search = $request->search['value'];
-                if ($jenis === 'Keluar') {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('no_surat', 'ilike', "%$search%")
-                            ->orWhere('no_agenda', 'ilike', "%$search%")
-                            ->orWhere('perihal', 'ilike', "%$search%")
-                            ->orWhere('isi_surat', 'ilike', "%$search%")
-                            ->orWhere('kepada', 'ilike', "%$search%")
-                            ->orWhere('wilayah', 'ilike', "%$search%");
+                    $q->where(function($sub) use ($startDate, $endDate, $sDateStr, $eDateStr) {
+                        $sub->whereBetween('created_at', [$startDate, $endDate])
+                            ->orWhereBetween('tgl_surat', [$sDateStr, $eDateStr]);
                     });
                 } else {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('no_surat', 'ilike', "%$search%")
+                    $q->where('year', date('Y'));
+                }
+            };
+
+            $filterSearch = function($q, $search, $isOutbox = false) {
+                if (!empty($search)) {
+                    $q->where(function ($sub) use ($search, $isOutbox) {
+                        $sub->where('no_surat', 'ilike', "%$search%")
                             ->orWhere('no_agenda', 'ilike', "%$search%")
                             ->orWhere('perihal', 'ilike', "%$search%")
                             ->orWhere('isi_surat', 'ilike', "%$search%")
-                            ->orWhere('dari', 'ilike', "%$search%")
+                            ->orWhere($isOutbox ? 'kepada' : 'dari', 'ilike', "%$search%")
                             ->orWhere('wilayah', 'ilike', "%$search%");
                     });
                 }
-            }
+            };
 
-            $totalFiltered = $query->count();
-            $list = $query->skip($start)->take($length)->get();
+            $searchValue = $request->input('search.value');
+
+            if ($jenis === 'Keluar') {
+                $q = Outbox::whereNull('on_delete')->with(['klasifikasi', 'creator.leveluser']);
+                $filterDate($q);
+                $filterSearch($q, $searchValue, true);
+                $totalData = Outbox::whereNull('on_delete')->where('year', date('Y'))->count();
+                $totalFiltered = $q->count();
+                $list = $q->orderBy('created_at', 'desc')->skip($start)->take($length)->get();
+            } elseif ($jenis === 'Masuk') {
+                $q = Inbox::whereNull('on_delete')->with([
+                    'klasifikasi', 'creator.leveluser', 'disposisi.pengirim.leveluser', 'disposisi.pimpinan'
+                ]);
+                $filterDate($q);
+                $filterSearch($q, $searchValue, false);
+                $totalData = Inbox::whereNull('on_delete')->where('year', date('Y'))->count();
+                $totalFiltered = $q->count();
+                $list = $q->orderBy('created_at', 'desc')->skip($start)->take($length)->get();
+            } else {
+                // Semua (Masuk dan Keluar digabungkan)
+                $qInbox = DB::table('inboxes')
+                    ->select([
+                        DB::raw("'Masuk' as jenis_surat"),
+                        'id', 'uuid', 'no_agenda', 'no_surat', 'tgl_surat', 'created_at',
+                        'isi_surat', 'perihal', 'dari',
+                        DB::raw("'Sekretariat Daerah' as kepada"),
+                        'id_klasifikasi', 'sifat_surat', 'created_by', 'nama_berkas', 'wilayah', 'posisi_level'
+                    ])
+                    ->whereNull('on_delete');
+                $filterDate($qInbox);
+                $filterSearch($qInbox, $searchValue, false);
+
+                $qOutbox = DB::table('outboxes')
+                    ->select([
+                        DB::raw("'Keluar' as jenis_surat"),
+                        'id', 'uuid', 'no_agenda', 'no_surat', 'tgl_surat', 'created_at',
+                        'isi_surat', 'perihal',
+                        DB::raw("unit as dari"),
+                        'kepada',
+                        'id_klasifikasi', 'sifat_surat', 'created_by', 'nama_berkas', 'wilayah',
+                        DB::raw("null::bigint as posisi_level")
+                    ])
+                    ->whereNull('on_delete');
+                $filterDate($qOutbox);
+                $filterSearch($qOutbox, $searchValue, true);
+
+                $unionQuery = $qInbox->unionAll($qOutbox);
+                $totalFiltered = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+                    ->mergeBindings($unionQuery)
+                    ->count();
+                $totalData = $totalFiltered;
+
+                $rows = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+                    ->mergeBindings($unionQuery)
+                    ->orderBy('created_at', 'desc')
+                    ->skip($start)
+                    ->take($length)
+                    ->get();
+
+                // Batch eager load relations for the paginated rows
+                $klasIds = $rows->pluck('id_klasifikasi')->filter()->unique();
+                $creatorUuids = $rows->pluck('created_by')->filter()->unique();
+                $inboxUuids = $rows->where('jenis_surat', 'Masuk')->pluck('uuid')->filter()->unique();
+
+                $klasifikasis = \App\Models\Klasifikasi::whereIn('id', $klasIds)->get()->keyBy('id');
+                $creators = \App\Models\User::with('leveluser')->whereIn('uuid', $creatorUuids)->get()->keyBy('uuid');
+                $disposisisByUuid = \App\Models\Disposisi::with(['pengirim.leveluser', 'pimpinan'])
+                    ->whereIn('uid_surat', $inboxUuids)
+                    ->get()
+                    ->groupBy('uid_surat');
+
+                $list = $rows->map(function($r) use ($klasifikasis, $creators, $disposisisByUuid) {
+                    $r->klasifikasi = $klasifikasis[$r->id_klasifikasi] ?? null;
+                    $r->creator = $creators[$r->created_by] ?? null;
+                    $r->disposisi = $r->jenis_surat === 'Masuk' ? ($disposisisByUuid[$r->uuid] ?? collect([])) : collect([]);
+                    return $r;
+                });
+            }
 
             $getDisposisiInfo = function($disposisis, $target) {
                 if (!$disposisis || $disposisis->isEmpty()) return '-';
@@ -340,6 +504,7 @@ class LaporanController extends Controller
 
             $data = [];
             foreach ($list as $l => $row) {
+                $isKeluar = ($row instanceof Outbox) || (($row->jenis_surat ?? '') === 'Keluar');
                 $tglKirim = $row->created_at ? Carbon::parse($row->created_at)->isoFormat('DD-MM-YYYY') : '-';
                 $tglSurat = $row->tgl_surat ? Carbon::parse($row->tgl_surat)->isoFormat('DD-MM-YYYY') : '-';
                 $noSurat = e($row->no_surat ?? '-');
@@ -348,15 +513,22 @@ class LaporanController extends Controller
                 $ketJra = e($row->klasifikasi->ket_jra ?? '');
                 $isiSurat = e($row->isi_surat ?? $row->perihal ?? '-');
 
-                $kepada = $jenis === 'Keluar' ? ($row->kepada ?? '-') : ($row->kepada ?? 'Sekretariat Daerah');
-                $dari = $jenis === 'Keluar'
-                    ? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? ($row->unit ?? 'Sekretariat Daerah')))
+                $kepada = $isKeluar ? ($row->kepada ?? '-') : ($row->kepada ?? 'Sekretariat Daerah');
+                $dari = $isKeluar
+                    ? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? (!empty($row->dari) ? $row->dari : 'Sekretariat Daerah')))
                     : ($row->dari ?? ($row->creator?->leveluser?->nama ?? ($row->creator?->nama_lengkap ?? '-')));
 
-                $disposisis = $jenis === 'Keluar' ? collect([]) : ($row->disposisi ?? collect([]));
+                $disposisis = $isKeluar ? collect([]) : ($row->disposisi ?? collect([]));
+
+                $noAgenda = $row->no_agenda ?? '-';
+                if (empty($jenis)) {
+                    $badgeClass = $isKeluar ? 'badge-light-danger' : 'badge-light-primary';
+                    $label = $isKeluar ? '[Keluar]' : '[Masuk]';
+                    $noAgenda .= '<br><span class="badge ' . $badgeClass . '">' . $label . '</span>';
+                }
 
                 $data[$l] = [
-                    'no_agenda' => $row->no_agenda ?? '-',
+                    'no_agenda' => $noAgenda,
                     'kepada'    => $kepada,
                     'tgl_buat'  => $tglKirim,
                     'tanggal'   => $tglSurat,
@@ -593,7 +765,7 @@ class LaporanController extends Controller
         try {
             $exportData = $this->getAgendaExportData($request);
         } catch (\InvalidArgumentException $e) {
-            return '<script>alert("' . e($e->getMessage()) . '"); window.close();</script>';
+            return $this->renderSwalErrorAndClose($e->getMessage());
         }
 
         $pdf = $this->build_pdf(
@@ -620,7 +792,7 @@ class LaporanController extends Controller
         try {
             $exportData = $this->getAgendaExportData($request);
         } catch (\InvalidArgumentException $e) {
-            return '<script>alert("' . e($e->getMessage()) . '"); window.close();</script>';
+            return $this->renderSwalErrorAndClose($e->getMessage());
         }
 
         $fpdfService = new AgendaFpdfService();
@@ -698,5 +870,45 @@ class LaporanController extends Controller
         $fileName = 'Statistik_Persuratan_' . $year . '_' . date('Ymd_His') . '.xlsx';
 
         return Excel::download(new StatistikExport($year), $fileName);
+    }
+
+    /**
+     * Render halaman error ramah pengguna dengan SweetAlert2 dan tutup tab otomatis.
+     */
+    protected function renderSwalErrorAndClose(string $message): string
+    {
+        $safeMsg = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+        $cssUrl = asset('templates/plugins/src/sweetalerts2/sweetalerts2.min.css');
+        $jsUrl = asset('templates/plugins/src/sweetalerts2/sweetalerts2.min.js');
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>Peringatan Cetak Laporan</title>
+    <link rel="stylesheet" href="{$cssUrl}">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <script src="{$jsUrl}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Swal.fire({
+                icon: "warning",
+                title: "Peringatan",
+                text: "{$safeMsg}",
+                confirmButtonText: "Tutup Jendela",
+                confirmButtonColor: "#4361ee"
+            }).then(function() {
+                window.close();
+            });
+        });
+    </script>
+</body>
+</html>
+HTML;
     }
 }
