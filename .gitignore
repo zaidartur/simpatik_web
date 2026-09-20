@@ -30,3 +30,6 @@ Homestead.json
 auth.json
 /.docs
 /.github
+*.py
+*.sql
+/storage/app/legacy_import/

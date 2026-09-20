@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Deny direct access to sensitive extensions and dotfiles
+    RewriteRule \.(?:py|sql|env|sh|bak|log|ini|yml|yaml)$ - [F,L,NC]
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+
+    # Prevent direct folder browsing of internal directories
+    RewriteRule ^(?:app|bootstrap|config|database|resources|routes|storage|\.docs|\.git|\.agents)(/.*)?$ - [F,L,NC]
+
+    # Route all requests to public folder if web server is pointing to project root
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

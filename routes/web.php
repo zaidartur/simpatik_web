@@ -143,3 +143,11 @@ Route::prefix('/aplikasi')->middleware(['auth', 'role:administrator'])->group(fu
     Route::get('/view', [App\Http\Controllers\ApplicationController::class, 'index'])->name('apps');
     Route::post('/update-permission', [App\Http\Controllers\ApplicationController::class, 'update_permission'])->name('apps.permission.update');
 });
+
+// Fitur Migrasi Data Legacy hanya aktif dan terdaftar pada mode local & testing (otomatis 404 pada production)
+if (app()->environment(['local', 'testing'])) {
+    Route::prefix('/legacy-migration')->middleware(['auth', 'role:administrator'])->group(function () {
+        Route::get('/', [App\Http\Controllers\LegacyMigrationController::class, 'index'])->name('migration.index');
+        Route::post('/process', [App\Http\Controllers\LegacyMigrationController::class, 'process'])->name('migration.process');
+    });
+}

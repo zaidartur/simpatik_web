@@ -5,6 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @if(config('broadcasting.default') === 'reverb' || env('BROADCAST_CONNECTION') === 'reverb')
+    <meta name="reverb-key" content="{{ config('reverb.apps.apps.0.key', env('REVERB_APP_KEY')) }}">
+    <meta name="reverb-host" content="{{ env('REVERB_HOST', request()->getHost()) }}">
+    <meta name="reverb-port" content="{{ env('REVERB_PORT', 8080) }}">
+    <meta name="reverb-scheme" content="{{ env('REVERB_SCHEME', 'http') }}">
+    @vite(['resources/js/app.js'])
+    @endif
     <meta name="author" content="Diskominfo Karanganyar">
     <meta name="description" content="Sistem Informasi Persuratan Masuk dan Keluar Kabupaten Karanganyar">
     <title>@yield('title') | Sipermas </title>

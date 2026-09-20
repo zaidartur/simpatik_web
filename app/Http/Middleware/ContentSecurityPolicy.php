@@ -21,7 +21,7 @@ class ContentSecurityPolicy
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob:",
-            "connect-src 'self'",
+            "connect-src 'self' ws: wss:",
             "frame-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",

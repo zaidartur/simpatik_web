@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # Block access to sensitive files and scripts (.py, .sql, .env, .sh, .log, etc.)
+    RewriteRule \.(?:py|sql|env|sh|bak|log|ini|yml|yaml)$ - [F,L,NC]
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

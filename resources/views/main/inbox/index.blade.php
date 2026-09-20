@@ -132,6 +132,14 @@
                                 <span class="btn-text-inner">Belum Ditanggapi</span>
                             </button>
                             @endcan
+                            @if (app()->environment(['local', 'testing']))
+                            @role('administrator')
+                            <button class="btn btn-warning mb-2 me-4 float-end" onclick="location.href='{{ route('migration.index') }}'" title="Migrasi Data Legacy (.sql)">
+                                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="feather"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span class="btn-text-inner">Migrasi Legacy</span>
+                            </button>
+                            @endrole
+                            @endif
                         </div>
                     </div>
                 </div>

@@ -176,7 +176,7 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        function initEchoListener() {
             if (typeof window.Echo !== 'undefined') {
                 window.Echo.private('App.Models.User.{{ Auth::id() }}')
                     .notification((notification) => {
@@ -215,6 +215,13 @@
                             });
                         }
                     });
+            } else if (window.__echoRetries === undefined || window.__echoRetries < 25) {
+                window.__echoRetries = (window.__echoRetries || 0) + 1;
+                setTimeout(initEchoListener, 200);
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initEchoListener();
         });
     </script>
