@@ -20,6 +20,17 @@ jobs:
           GITLAB_USERNAME: "soeroso" # Ganti dengan username GitLab Anda
           GITLAB_REPO: "simpatik-web" # Ganti dengan nama repo GitLab Anda
         run: |
+          # Configure temp git identity for runner
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Hapus folder .github dari penelusuran git lokal runner
+          git rm -rf --cached .github
+          rm -rf .github
+
+          # Buat commit sementara tanpa folder .github
+          git commit -m "Exclude .github folder for GitLab mirror"
+          
           # Menambahkan remote URL GitLab beserta token autentikasi
           git remote add gitlab https://oauth2:$GITLAB_TOKEN@git.karanganyarkab.go.id/$GITLAB_USERNAME/$GITLAB_REPO.git
           
