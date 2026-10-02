@@ -723,6 +723,78 @@
                         Bersihkan
                     </button>`
 
+        function validateScanFile(inputElement) {
+            if (!inputElement || !inputElement.files || inputElement.files.length === 0) {
+                $('.is-alert').hide();
+                return true;
+            }
+
+            const file = inputElement.files[0];
+            const allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg'];
+            const lastDotIndex = file.name.lastIndexOf('.');
+            const fileExt = lastDotIndex !== -1 ? file.name.substring(lastDotIndex + 1).toLowerCase() : '';
+            const maxSizeBytes = 10485760; // 10MB
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+            // 1. Validasi jenis / format file
+            if (!allowedExtensions.includes(fileExt)) {
+                inputElement.value = "";
+                const errorMsg = `Format file ".${fileExt || 'tanpa ekstensi'}" tidak didukung. Harap unggah berkas berekstensi PDF, JPG, JPEG, atau PNG.`;
+                $('#content_alert').html(errorMsg);
+                $('.is-alert').show();
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Jenis File Tidak Sesuai',
+                        html: `File <b>${file.name}</b> memiliki format yang tidak diizinkan.<br><br>Hanya berkas dengan ekstensi <b>PDF, JPG, JPEG, atau PNG</b> yang diperbolehkan.`,
+                        confirmButtonText: 'Tutup',
+                        confirmButtonColor: '#e7515a',
+                    });
+                } else if (typeof Toast !== 'undefined') {
+                    Toast.fire({
+                        icon: 'error',
+                        title: errorMsg
+                    });
+                }
+                return false;
+            }
+
+            // 2. Validasi ukuran file (maksimum 10MB)
+            if (file.size > maxSizeBytes) {
+                inputElement.value = "";
+                const errorMsg = `Ukuran file (${fileSizeMB} MB) melebihi batas maksimum 10 MB.`;
+                $('#content_alert').html(errorMsg);
+                $('.is-alert').show();
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ukuran File Terlalu Besar',
+                        html: `Ukuran file <b>${file.name}</b> adalah <b>${fileSizeMB} MB</b>.<br><br>Batas ukuran maksimum yang diperbolehkan adalah <b>10 MB</b>. Silakan kompres atau pilih berkas lain.`,
+                        confirmButtonText: 'Tutup',
+                        confirmButtonColor: '#e7515a',
+                    });
+                } else if (typeof Toast !== 'undefined') {
+                    Toast.fire({
+                        icon: 'error',
+                        title: errorMsg
+                    });
+                }
+                return false;
+            }
+
+            // File valid
+            $('.is-alert').hide();
+            if (typeof Toast !== 'undefined') {
+                Toast.fire({
+                    icon: 'success',
+                    title: `File siap diunggah: ${file.name} (${fileSizeMB} MB)`
+                });
+            }
+            return true;
+        }
+
         window.addEventListener('load', function() {
             var forms = document.getElementsByClassName('is-outbox');
             var invalid = $('.is-outbox .invalid-feedback');
@@ -749,7 +821,17 @@
                         Toast.fire({
                             icon: 'error',
                             title: 'Mohon untuk mengisi field'
-                        })
+                        });
+                        return false;
+                    }
+
+                    // Validasi file upload sebelum submit
+                    var uploadEl = document.getElementById("is_scan");
+                    if (uploadEl && uploadEl.files && uploadEl.files.length > 0) {
+                        if (!validateScanFile(uploadEl)) {
+                            event.preventDefault();
+                            return false;
+                        }
                     }
                 }, false);
             });
@@ -997,93 +1079,12 @@
 
             $('.is-alert').hide();
 
-            function validateScanFile(inputElement) {
-                if (!inputElement || !inputElement.files || inputElement.files.length === 0) {
-                    $('.is-alert').hide();
-                    return true;
-                }
-
-                const file = inputElement.files[0];
-                const allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg'];
-                const lastDotIndex = file.name.lastIndexOf('.');
-                const fileExt = lastDotIndex !== -1 ? file.name.substring(lastDotIndex + 1).toLowerCase() : '';
-                const maxSizeBytes = 10485760; // 10MB
-                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-
-                // 1. Validasi jenis / format file
-                if (!allowedExtensions.includes(fileExt)) {
-                    inputElement.value = "";
-                    const errorMsg = `Format file ".${fileExt || 'tanpa ekstensi'}" tidak didukung. Harap unggah berkas berekstensi PDF, JPG, JPEG, atau PNG.`;
-                    $('#content_alert').html(errorMsg);
-                    $('.is-alert').show();
-
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Jenis File Tidak Sesuai',
-                            html: `File <b>${file.name}</b> memiliki format yang tidak diizinkan.<br><br>Hanya berkas dengan ekstensi <b>PDF, JPG, JPEG, atau PNG</b> yang diperbolehkan.`,
-                            confirmButtonText: 'Tutup',
-                            confirmButtonColor: '#e7515a',
-                        });
-                    } else if (typeof Toast !== 'undefined') {
-                        Toast.fire({
-                            icon: 'error',
-                            title: errorMsg
-                        });
-                    }
-                    return false;
-                }
-
-                // 2. Validasi ukuran file (maksimum 10MB)
-                if (file.size > maxSizeBytes) {
-                    inputElement.value = "";
-                    const errorMsg = `Ukuran file (${fileSizeMB} MB) melebihi batas maksimum 10 MB.`;
-                    $('#content_alert').html(errorMsg);
-                    $('.is-alert').show();
-
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Ukuran File Terlalu Besar',
-                            html: `Ukuran file <b>${file.name}</b> adalah <b>${fileSizeMB} MB</b>.<br><br>Batas ukuran maksimum yang diperbolehkan adalah <b>10 MB</b>. Silakan kompres atau pilih berkas lain.`,
-                            confirmButtonText: 'Tutup',
-                            confirmButtonColor: '#e7515a',
-                        });
-                    } else if (typeof Toast !== 'undefined') {
-                        Toast.fire({
-                            icon: 'error',
-                            title: errorMsg
-                        });
-                    }
-                    return false;
-                }
-
-                // File valid
-                $('.is-alert').hide();
-                if (typeof Toast !== 'undefined') {
-                    Toast.fire({
-                        icon: 'success',
-                        title: `File siap diunggah: ${file.name} (${fileSizeMB} MB)`
-                    });
-                }
-                return true;
-            }
-
             var uploadField = document.getElementById("is_scan");
             if (uploadField) {
                 uploadField.onchange = function() {
                     validateScanFile(this);
                 };
             }
-
-            $('form.is-outbox').on('submit', function(e) {
-                if (uploadField && uploadField.files && uploadField.files.length > 0) {
-                    if (!validateScanFile(uploadField)) {
-                        e.preventDefault();
-                        return false;
-                    }
-                }
-            });
         });
     </script>
 
