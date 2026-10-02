@@ -12,3 +12,4 @@ sessions/*
 testsing/*
 views/*
 !*.gitignore
+*.php
