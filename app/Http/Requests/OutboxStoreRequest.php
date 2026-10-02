@@ -22,7 +22,7 @@ class OutboxStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'berkas'            => 'required|string|max:255',
+            'berkas'            => 'required|string|max:1000',
             'tgl_naik'          => 'required|date',
             'tgl_surat'         => 'required|date',
             'tgl_diteruskan'    => 'required|date',
@@ -30,7 +30,7 @@ class OutboxStoreRequest extends FormRequest
             'wilayah'           => 'required|string|max:100',
             'perihal'           => 'nullable|string|max:255',
             'isi'               => 'required|string',
-            'klasifikasi_kode'  => 'required',
+            'klasifikasi_kode'  => 'required|string|max:50',
             'tempat_berkas'     => 'required|string|max:100',
             'perkembangan'      => 'required|string|max:100',
             'sifat_surat'       => 'nullable|string|max:100',

@@ -257,11 +257,15 @@ class InboxController extends Controller
     public function get_jra(Request $request)
     {
         $request->validate([
-            'kode'  => 'required|string|max:10',
-            'name'  => 'required|string|max:100',
+            'kode'  => 'required|string|max:50',
+            'name'  => 'nullable|string|max:1000',
         ]);
 
-        $jra = Klasifikasi::where('klas3', $request->kode)->where('masalah3', $request->name)->first();
+        $query = Klasifikasi::where('klas3', $request->kode);
+        if ($request->filled('name')) {
+            $query->where('masalah3', $request->name);
+        }
+        $jra = $query->first() ?? Klasifikasi::where('klas3', $request->kode)->first();
 
         if ($jra) {
             $jra->thn_aktif = date('Y') + intval($jra->r_aktif);

@@ -26,8 +26,8 @@ class ReferensiStoreRequest extends FormRequest
         return match ($type) {
             'klasifikasi' => [
                 'klas3'     => 'required|string|max:50',
-                'masalah3'  => 'required|string|max:255',
-                'series'    => 'nullable|string|max:255',
+                'masalah3'  => 'required|string|max:1000',
+                'series'    => 'nullable|string|max:1000',
                 'r_aktif'   => 'required|integer|min:0',
                 'r_inaktif' => 'required|integer|min:0',
                 'ket_jra'   => 'nullable|string|max:255',

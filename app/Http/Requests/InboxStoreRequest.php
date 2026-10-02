@@ -22,14 +22,14 @@ class InboxStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'berkas'            => 'required|string|max:255',
+            'berkas'            => 'required|string|max:1000',
             'tgl_terima'        => 'required|date',
             'tgl_surat'         => 'required|date',
             'darikepada'        => 'required|string|max:255',
             'wilayah'           => 'required|string|max:100',
             'perihal'           => 'required|string|max:255',
             'isi'               => 'required|string',
-            'klasifikasi_kode'  => 'required|string|max:20',
+            'klasifikasi_kode'  => 'required|string|max:50',
             'urut'              => 'nullable|numeric',
             'no_surat'          => 'required|string|max:100',
             'aktif'             => 'nullable|numeric',

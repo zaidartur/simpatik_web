@@ -22,10 +22,7 @@ class PdfSanitizer
         }
 
 
-        // running WinOS or Linux
-        $gs = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'
-        ? 'C:\\Program Files\\gs\\gs10.06.0\\bin\\gswin64c.exe'
-        : 'gs';
+        $gs = $this->getGhostscriptBinary();
 
         $process = new Process([
             $gs,
@@ -43,7 +40,7 @@ class PdfSanitizer
             $inputPath,
         ]);
 
-        $process->setTimeout(60);
+        $process->setTimeout(120);
         $process->run();
 
         if (! $process->isSuccessful()) {
@@ -53,5 +50,45 @@ class PdfSanitizer
         if (! file_exists($outputPath) || filesize($outputPath) === 0) {
             throw new \RuntimeException('PDF sanitization failed.');
         }
+    }
+
+    /**
+     * Resolves the Ghostscript binary path dynamically.
+     */
+    public function getGhostscriptBinary(): string
+    {
+        $custom = env('GHOSTSCRIPT_PATH');
+        if (!empty($custom)) {
+            return $custom;
+        }
+
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $knownPaths = [
+                'C:\\Program Files\\gs\\gs10.06.0\\bin\\gswin64c.exe',
+                'C:\\Program Files\\gs\\gs10.05.0\\bin\\gswin64c.exe',
+                'C:\\Program Files\\gs\\gs10.04.0\\bin\\gswin64c.exe',
+            ];
+
+            foreach ($knownPaths as $path) {
+                if (file_exists($path)) {
+                    return $path;
+                }
+            }
+
+            // Auto-detect any installed Ghostscript version under Program Files
+            $wildcards = glob('C:\\Program Files\\gs\\*\\bin\\gswin64c.exe');
+            if (!empty($wildcards)) {
+                return end($wildcards);
+            }
+
+            $wildcards32 = glob('C:\\Program Files (x86)\\gs\\*\\bin\\gswin32c.exe');
+            if (!empty($wildcards32)) {
+                return end($wildcards32);
+            }
+
+            return 'gswin64c.exe';
+        }
+
+        return 'gs';
     }
 }

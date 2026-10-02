@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             \App\Http\Middleware\CheckUserBlocked::class,
-            \App\Http\Middleware\ContentSecurityPolicy::class,
+            // \App\Http\Middleware\ContentSecurityPolicy::class,
         ]);
 
         $middleware->alias([
