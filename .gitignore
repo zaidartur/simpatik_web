@@ -33,3 +33,4 @@ auth.json
 *.py
 *.sql
 /storage/app/legacy_import/
+/docker
