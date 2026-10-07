@@ -34,3 +34,4 @@ auth.json
 *.sql
 /storage/app/legacy_import/
 /docker
+Dockerfile
